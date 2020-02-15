@@ -36,6 +36,7 @@ const FieldGroup: NextPage<{
         selected={defaultValue as Date}
         onChange={onChange as DateCallback}
         dateFormat="dd/MM/yyyy"
+        readOnly={onChange === undefined}
       />
     )}
     {type == "text" && (
@@ -45,6 +46,7 @@ const FieldGroup: NextPage<{
         id="basic-url"
         defaultValue={defaultValue as string}
         style={{ minWidth: 100 }}
+        readOnly={onChange === undefined}
       />
     )}
   </div>

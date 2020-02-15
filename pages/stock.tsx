@@ -24,6 +24,7 @@ library.add(
 );
 
 import FieldGroup from "../components/FieldGroup";
+import { max, min } from "date-fns";
 
 type RowStock = { id: number; state: string };
 
@@ -98,7 +99,11 @@ class Stock extends React.Component<
                 fieldConfig={{
                   defaultValue: startDate,
                   type: "date",
-                  onChange: startDate => this.setState({ startDate })
+                  onChange: startDate =>
+                    this.setState({
+                      startDate: startDate,
+                      endDate: max([startDate, this.state.endDate])
+                    })
                 }}
               />
             </div>
@@ -109,7 +114,11 @@ class Stock extends React.Component<
                 fieldConfig={{
                   defaultValue: endDate,
                   type: "date",
-                  onChange: endDate => this.setState({ endDate })
+                  onChange: endDate =>
+                    this.setState({
+                      startDate: min([this.state.startDate, endDate]),
+                      endDate
+                    })
                 }}
               />
             </div>
