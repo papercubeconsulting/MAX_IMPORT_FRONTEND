@@ -34,72 +34,77 @@ const RowSample: NextPage<{data: RowStock}> = ({data}) => (
     <td>25/11/2019</td>
   </tr>
 )
-const Stock: NextPage<{ data: RowStock[] }> = ({ data }) => (
-  <>
-  <>
-  <div className="container" style={{maxWidth: "100%"}}>
-    <div className="row" style={{alignItems: "center"}}>
-      <div className="col-sm-2">
-        <FieldGroup label='Usuario' value='Luis Rivera' icon='user'/>
-      </div>
-      <div className="col-sm-3">
-        <FieldGroup label='Fecha Inicio' value='01/09/2019' icon='calendar-alt'/>
-      </div>
-      <div className="col-sm-3">
-        <FieldGroup label='Fecha Fin' value='01/09/2019' icon='calendar-alt'/>
-      </div>
-      <div className="col-sm-2">
-        <Button color="info" style={{width: '100%'}}><FontAwesomeIcon icon="search"/> Buscar</Button>
-      </div>
-      <div className="col-sm-2">
-        <Button color="warning" style={{width: '100%'}}>Nuevo abastecimiento</Button>
-      </div>
-    </div>
-  </div>
-  </>
-  <table className="table">
-    <thead className="thead-dark">
-      <tr>
-        <th scope="col">Mtto</th>
-        <th scope="col">Item</th>
-        <th scope="col">Proveedor</th>
-        <th scope="col">Cod. Carga</th>
-        <th scope="col">Almacén</th>
-        <th scope="col">Fecha Reg.</th>
-        <th scope="col">Estatus</th>
-        <th scope="col">Acción</th>
-        <th scope="col">Responsable</th>
-        <th scope="col">Fecha Aten.</th>
-      </tr>
-    </thead>
-    <tbody>
-      {data.map(row=><RowSample data={row}/>)}
-    </tbody>
-  </table>
-  <nav aria-label="Page navigation example">
-    <ul className="pagination justify-content-center">
-      <li className="page-item disabled">
-        <a className="page-link" href="#">Previa</a>
-      </li>
-      <li className="page-item active"><a className="page-link" href="#" tabIndex={-1}>1</a></li>
-      <li className="page-item"><a className="page-link" href="#">2</a></li>
-      <li className="page-item"><a className="page-link" href="#">3</a></li>
-      <li className="page-item"><a className="page-link" href="#">4</a></li>
-      <li className="page-item"><a className="page-link" href="#">5</a></li>
-      <li className="page-item">
-        <a className="page-link" href="#">Siguiente</a>
-      </li>
-    </ul>
-  </nav>
-  </>
-);
-
-Stock.getInitialProps = async ({ req }) => {
-  var data = [];
-  for(let i=0;i<10;++i){
-    data.push({id: i+1, state: i<5?'PEN':'ATE'});
+class Stock extends React.Component<{},{ data: RowStock[], startDate: Date, endDate: Date }>{
+  constructor(props: any){
+    super(props);
+    var data = [];
+    for(let i=0;i<10;++i){
+      data.push({id: i+1, state: i<5?'PEN':'ATE'});
+    }
+    this.state = {
+      data: data,
+      startDate: new Date(),
+      endDate: new Date(),
+    }
   }
-  return { data };
+  render(){
+    let {data,startDate, endDate} = this.state;
+    return(
+      <>
+        <div className="container" style={{maxWidth: "100%"}}>
+          <div className="row" style={{alignItems: "center"}}>
+            <div className="col-sm-2">
+              <FieldGroup label='Usuario' icon='user' fieldConfig={{defaultValue: 'Luis Rivera', type:'text'}}/>
+            </div>
+            <div className="col-sm-3">
+              <FieldGroup label='Fecha Inicio' icon='calendar-alt' fieldConfig={{defaultValue: startDate, type:'date', onChange: (startDate)=>this.setState({startDate})}}/>
+            </div>
+            <div className="col-sm-3">
+              <FieldGroup label='Fecha Fin' icon='calendar-alt' fieldConfig={{defaultValue: endDate, type:'date', onChange: (endDate)=>this.setState({endDate})}}/>
+            </div>
+            <div className="col-sm-2">
+              <Button color="info" style={{width: '100%'}}><FontAwesomeIcon icon="search"/> Buscar</Button>
+            </div>
+            <div className="col-sm-2">
+              <Button color="warning" style={{width: '100%'}}>Nuevo abastecimiento</Button>
+            </div>
+          </div>
+        </div>
+        <table className="table">
+          <thead className="thead-dark">
+            <tr>
+              <th scope="col">Mtto</th>
+              <th scope="col">Item</th>
+              <th scope="col">Proveedor</th>
+              <th scope="col">Cod. Carga</th>
+              <th scope="col">Almacén</th>
+              <th scope="col">Fecha Reg.</th>
+              <th scope="col">Estatus</th>
+              <th scope="col">Acción</th>
+              <th scope="col">Responsable</th>
+              <th scope="col">Fecha Aten.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map(row=><RowSample key={row.id} data={row}/>)}
+          </tbody>
+        </table>
+        <nav aria-label="Page navigation example">
+          <ul className="pagination justify-content-center">
+            <li className="page-item disabled">
+              <a className="page-link" href="#">Previa</a>
+            </li>
+            <li className="page-item active"><a className="page-link" href="#" tabIndex={-1}>1</a></li>
+            <li className="page-item"><a className="page-link" href="#">2</a></li>
+            <li className="page-item"><a className="page-link" href="#">3</a></li>
+            <li className="page-item"><a className="page-link" href="#">4</a></li>
+            <li className="page-item"><a className="page-link" href="#">5</a></li>
+            <li className="page-item">
+              <a className="page-link" href="#">Siguiente</a>
+            </li>
+          </ul>
+        </nav>
+      </>)
+  }
 };
-
 export default Stock;
