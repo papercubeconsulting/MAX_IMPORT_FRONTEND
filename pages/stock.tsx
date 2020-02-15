@@ -37,20 +37,22 @@ const RowSample: NextPage<{data: RowStock}> = ({data}) => (
 const Stock: NextPage<{ data: RowStock[] }> = ({ data }) => (
   <>
   <>
-  <div className="container" style={{maxWidth: "100%", marginTop: 15}}>
-    <div className="row">
-      <div className="col-sm">
+  <div className="container" style={{maxWidth: "100%"}}>
+    <div className="row" style={{alignItems: "center"}}>
+      <div className="col-sm-2">
         <FieldGroup label='Usuario' value='Luis Rivera' icon='user'/>
       </div>
-      <div className="col-sm">
+      <div className="col-sm-3">
         <FieldGroup label='Fecha Inicio' value='01/09/2019' icon='calendar-alt'/>
       </div>
-      <div className="col-sm">
+      <div className="col-sm-3">
         <FieldGroup label='Fecha Fin' value='01/09/2019' icon='calendar-alt'/>
       </div>
-      <div className="col-sm">
-        <Button color="info"><FontAwesomeIcon icon="search"/> Buscar</Button>
-        <Button color="warning" style={{marginLeft: 10}}>Nuevo abastecimiento</Button>
+      <div className="col-sm-2">
+        <Button color="info" style={{width: '100%'}}><FontAwesomeIcon icon="search"/> Buscar</Button>
+      </div>
+      <div className="col-sm-2">
+        <Button color="warning" style={{width: '100%'}}>Nuevo abastecimiento</Button>
       </div>
     </div>
   </div>

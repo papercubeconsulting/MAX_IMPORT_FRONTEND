@@ -3,6 +3,9 @@ import { NextPage } from 'next';
 import React from 'react';
 import { Button } from 'reactstrap';
 import FieldGroup from '../components/FieldGroup'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faCalendarAlt, faUser } from '@fortawesome/free-solid-svg-icons'
+library.add(faCalendarAlt, faUser)
 const Link: NextPage<{href: string,}> = ({href, children}) => (
     <a style={{flexGrow: 1}} href={href}>
         <Button color='info' style={{width: '100%', height: '100%', borderRadius: 0}}>
