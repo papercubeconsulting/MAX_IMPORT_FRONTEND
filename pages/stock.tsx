@@ -26,10 +26,9 @@ library.add(
 import FieldGroup from "../components/FieldGroup";
 import { max, min } from "date-fns";
 import Pagination from "../components/Pagination";
+import StockProvider, { StockElement } from "../providers/StockProvider";
 
-type RowStock = { id: number; state: string };
-
-const RowSample: NextPage<{ data: RowStock }> = ({ data }) => (
+const RowSample: NextPage<{ data: StockElement }> = ({ data }) => (
   <tr>
     <td>
       <Button color="info" style={{ marginRight: 4, marginLeft: 0 }}>
@@ -67,7 +66,7 @@ const RowSample: NextPage<{ data: RowStock }> = ({ data }) => (
 class Stock extends React.Component<
   {},
   {
-    data: RowStock[];
+    data: StockElement[];
     startDate: Date;
     endDate: Date;
     page: number;
@@ -76,17 +75,24 @@ class Stock extends React.Component<
 > {
   constructor(props: any) {
     super(props);
-    var data = [];
-    for (let i = 0; i < 10; ++i) {
-      data.push({ id: i + 1, state: i < 5 ? "PEN" : "ATE" });
-    }
     this.state = {
-      data: data,
+      data: [],
       startDate: new Date(),
       endDate: new Date(),
       page: 1,
       maxPage: 12
     };
+  }
+  changePage(page: number) {
+    let stockResponse = StockProvider.getStock(page);
+    this.setState({
+      page,
+      data: stockResponse.data,
+      maxPage: stockResponse.maxPage
+    });
+  }
+  componentDidMount() {
+    this.changePage(this.state.page);
   }
   render() {
     let { data, startDate, endDate, page, maxPage } = this.state;
@@ -168,7 +174,7 @@ class Stock extends React.Component<
           page={page}
           maxPage={maxPage}
           halfWidth={5}
-          onChange={page => this.setState({ page })}
+          onChange={page => this.changePage(page)}
         />
       </>
     );
