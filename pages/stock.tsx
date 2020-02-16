@@ -25,6 +25,7 @@ library.add(
 
 import FieldGroup from "../components/FieldGroup";
 import { max, min } from "date-fns";
+import Pagination from "../components/Pagination";
 
 type RowStock = { id: number; state: string };
 
@@ -65,7 +66,13 @@ const RowSample: NextPage<{ data: RowStock }> = ({ data }) => (
 );
 class Stock extends React.Component<
   {},
-  { data: RowStock[]; startDate: Date; endDate: Date }
+  {
+    data: RowStock[];
+    startDate: Date;
+    endDate: Date;
+    page: number;
+    maxPage: number;
+  }
 > {
   constructor(props: any) {
     super(props);
@@ -76,11 +83,13 @@ class Stock extends React.Component<
     this.state = {
       data: data,
       startDate: new Date(),
-      endDate: new Date()
+      endDate: new Date(),
+      page: 1,
+      maxPage: 12
     };
   }
   render() {
-    let { data, startDate, endDate } = this.state;
+    let { data, startDate, endDate, page, maxPage } = this.state;
     return (
       <>
         <div className="container" style={{ maxWidth: "100%" }}>
@@ -155,45 +164,12 @@ class Stock extends React.Component<
             ))}
           </tbody>
         </table>
-        <nav aria-label="Page navigation example">
-          <ul className="pagination justify-content-center">
-            <li className="page-item disabled">
-              <a className="page-link" href="#">
-                Previa
-              </a>
-            </li>
-            <li className="page-item active">
-              <a className="page-link" href="#" tabIndex={-1}>
-                1
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                2
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                3
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                4
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                5
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                Siguiente
-              </a>
-            </li>
-          </ul>
-        </nav>
+        <Pagination
+          page={page}
+          maxPage={maxPage}
+          halfWidth={5}
+          onChange={page => this.setState({ page })}
+        />
       </>
     );
   }
