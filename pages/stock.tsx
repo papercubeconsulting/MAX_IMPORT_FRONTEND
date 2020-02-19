@@ -27,6 +27,7 @@ import FieldGroup from "../components/FieldGroup";
 import { max, min } from "date-fns";
 import Pagination from "../components/Pagination";
 import StockProvider, { StockElement } from "../providers/StockProvider";
+import Link from "../components/Link";
 
 const RowSample: NextPage<{ data: StockElement }> = ({ data }) => (
   <tr>
@@ -143,13 +144,13 @@ class Stock extends React.Component<
               </Button>
             </div>
             <div className="col-sm-2">
-              <Button color="warning" style={{ width: "100%" }}>
+              <Link href="add_stock" color="warning">
                 Nuevo abastecimiento
-              </Button>
+              </Link>
             </div>
           </div>
         </div>
-        <table className="table">
+        <table className="table table-striped">
           <thead className="thead-dark">
             <tr>
               <th scope="col">Mtto</th>
