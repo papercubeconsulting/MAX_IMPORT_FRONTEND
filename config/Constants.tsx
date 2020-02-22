@@ -14,6 +14,9 @@ class Constants {
       return "Cancelado";
     }
   };
+  public static get ApiDateFormat() {
+    return "YYYY-MM-DD";
+  }
   public static get PageSize() {
     return 10;
   }

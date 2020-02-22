@@ -1,5 +1,6 @@
 import Constants, { ElementState } from "../config/Constants";
 import GenericProvider from "./GenericProvider";
+import moment from "moment";
 export type Warehouse = {
   id: number;
   name: string;
@@ -36,10 +37,16 @@ export type StockResponse = {
   pages: number;
 };
 class StockProvider extends GenericProvider {
-  static async getStock(page: number): Promise<StockResponse> {
+  static async getStock(
+    page: number,
+    startDate: Date,
+    endDate: Date
+  ): Promise<StockResponse> {
     let response = await this.httpGet("/supplies", {
       page: page,
-      pageSize: Constants.PageSize
+      pageSize: Constants.PageSize,
+      from: moment(startDate).format(Constants.ApiDateFormat),
+      to: moment(endDate).format(Constants.ApiDateFormat)
     });
     return response.data;
   }

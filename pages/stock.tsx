@@ -81,22 +81,26 @@ class Stock extends React.Component<
     super(props);
     this.state = {
       data: [],
-      startDate: new Date(),
+      startDate: moment()
+        .subtract("days", 7)
+        .toDate(),
       endDate: new Date(),
       page: 1,
       maxPage: 1
     };
   }
-  async changePage(page: number) {
-    let stockResponse = await StockProvider.getStock(page);
+  async loadData(page: number, startDate: Date, endDate: Date) {
+    let stockResponse = await StockProvider.getStock(page, startDate, endDate);
     this.setState({
       page,
       data: stockResponse.rows,
-      maxPage: stockResponse.pages
+      maxPage: stockResponse.pages,
+      startDate,
+      endDate
     });
   }
   componentDidMount() {
-    this.changePage(this.state.page);
+    this.loadData(this.state.page, this.state.startDate, this.state.endDate);
   }
   render() {
     let { data, startDate, endDate, page, maxPage } = this.state;
@@ -119,10 +123,11 @@ class Stock extends React.Component<
                   defaultValue: startDate,
                   type: "date",
                   onChange: startDate =>
-                    this.setState({
-                      startDate: startDate,
-                      endDate: max([startDate, this.state.endDate])
-                    })
+                    this.loadData(
+                      1,
+                      startDate,
+                      max([startDate, this.state.endDate])
+                    )
                 }}
               />
             </div>
@@ -134,10 +139,11 @@ class Stock extends React.Component<
                   defaultValue: endDate,
                   type: "date",
                   onChange: endDate =>
-                    this.setState({
-                      startDate: min([this.state.startDate, endDate]),
+                    this.loadData(
+                      1,
+                      min([this.state.startDate, endDate]),
                       endDate
-                    })
+                    )
                 }}
               />
             </div>
@@ -182,7 +188,9 @@ class Stock extends React.Component<
           page={page}
           maxPage={maxPage}
           halfWidth={5}
-          onChange={page => this.changePage(page)}
+          onChange={page =>
+            this.loadData(page, this.state.startDate, this.state.endDate)
+          }
         />
       </>
     );
