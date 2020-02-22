@@ -32,7 +32,7 @@ import StockProvider, { StockElement } from "../providers/StockProvider";
 import Link from "../components/Link";
 import Constants from "../config/Constants";
 
-const RowSample: NextPage<{ data: StockElement; serialNumber: number }> = ({
+const RowStock: NextPage<{ data: StockElement; serialNumber: number }> = ({
   data,
   serialNumber
 }) => (
@@ -170,7 +170,7 @@ class Stock extends React.Component<
           </thead>
           <tbody>
             {data.map((row, idx) => (
-              <RowSample
+              <RowStock
                 key={row.id}
                 serialNumber={1 + idx + Constants.PageSize * (page - 1)}
                 data={row}
