@@ -5,6 +5,7 @@ const Pagination: NextPage<{
   halfWidth: number;
   onChange(newPage: number): void;
 }> = ({ page, maxPage, halfWidth, onChange }) => {
+  maxPage = Math.max(1, maxPage);
   let items = [];
   let startIndex = Math.max(
     1,
