@@ -1,9 +1,11 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { NextPage } from "next";
 import React from "react";
+import moment from "moment";
 import { Button } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
+moment.locale("es");
 import {
   faEdit,
   faSearch,
@@ -28,8 +30,12 @@ import { max, min } from "date-fns";
 import Pagination from "../components/Pagination";
 import StockProvider, { StockElement } from "../providers/StockProvider";
 import Link from "../components/Link";
+import Constants from "../config/Constants";
 
-const RowSample: NextPage<{ data: StockElement }> = ({ data }) => (
+const RowSample: NextPage<{ data: StockElement; serialNumber: number }> = ({
+  data,
+  serialNumber
+}) => (
   <tr>
     <td>
       <Button color="info" style={{ marginRight: 4, marginLeft: 0 }}>
@@ -39,29 +45,26 @@ const RowSample: NextPage<{ data: StockElement }> = ({ data }) => (
         <FontAwesomeIcon icon="trash-alt" />
       </Button>
     </td>
-    <td>{data.id}</td>
-    <td>Hangzhou</td>
-    <td>XYZ-456</td>
-    <td>ALM-1 Gim</td>
-    <td>25/11/2019</td>
+    <td>{serialNumber}</td>
+    <td>{data.provider.name}</td>
+    <td>{data.code}</td>
+    <td>{data.warehouse.name}</td>
+    <td>{moment(new Date(data.createdAt)).format("L")}</td>
+    <td>{data.status}</td>
     <td>
-      {data.state == "ATE" && "Atendido"}
-      {data.state == "PEN" && "Pendiente"}
-    </td>
-    <td>
-      {data.state == "ATE" && (
+      {data.status == Constants.Status.Atendido && (
         <Button color="info" style={{ width: "100%" }}>
           <FontAwesomeIcon icon="eye" /> Ver
         </Button>
       )}
-      {data.state == "PEN" && (
+      {data.status == Constants.Status.Pendiente && (
         <Button color="success" style={{ width: "100%" }}>
           <FontAwesomeIcon icon="check" /> Atender
         </Button>
       )}
     </td>
-    <td>Charles X.</td>
-    <td>25/11/2019</td>
+    <td>{data.responsible}</td>
+    <td>{data.attentionDate ? new Date(data.attentionDate) : "Pendiente"}</td>
   </tr>
 );
 class Stock extends React.Component<
@@ -81,15 +84,15 @@ class Stock extends React.Component<
       startDate: new Date(),
       endDate: new Date(),
       page: 1,
-      maxPage: 12
+      maxPage: 1
     };
   }
-  changePage(page: number) {
-    let stockResponse = StockProvider.getStock(page);
+  async changePage(page: number) {
+    let stockResponse = await StockProvider.getStock(page);
     this.setState({
       page,
-      data: stockResponse.data,
-      maxPage: stockResponse.maxPage
+      data: stockResponse.rows,
+      maxPage: stockResponse.pages
     });
   }
   componentDidMount() {
@@ -166,8 +169,12 @@ class Stock extends React.Component<
             </tr>
           </thead>
           <tbody>
-            {data.map(row => (
-              <RowSample key={row.id} data={row} />
+            {data.map((row, idx) => (
+              <RowSample
+                key={row.id}
+                serialNumber={1 + idx + Constants.PageSize * (page - 1)}
+                data={row}
+              />
             ))}
           </tbody>
         </table>
