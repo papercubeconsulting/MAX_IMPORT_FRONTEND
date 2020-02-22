@@ -37,10 +37,10 @@ export type StockResponse = {
 };
 class StockProvider extends GenericProvider {
   static async getStock(page: number): Promise<StockResponse> {
-    let response = await this.httpGet(
-      "http://maximport-backend.q3d2pmiqsz.us-east-1.elasticbeanstalk.com/supplies",
-      { page: page, pageSize: Constants.PageSize }
-    );
+    let response = await this.httpGet("/supplies", {
+      page: page,
+      pageSize: Constants.PageSize
+    });
     return response.data;
   }
 }
