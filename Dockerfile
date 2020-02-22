@@ -1,3 +1,5 @@
+  
+
 # build phase
 FROM node:alpine as builder
 
@@ -9,14 +11,10 @@ RUN npm install
 
 COPY . .
 
-ADD ./set-env.sh /set-env.sh
-#RUN /set-env.sh
-#RUN chmod +x /set-env.sh
-
-RUN echo "Variable ${token}" 
 
 #RUN npm run $token
-RUN npm run build:test
+RUN npm run build
+RUN npm run export
 EXPOSE 80
 
 
@@ -34,7 +32,7 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./default.conf /etc/nginx/conf.d/default.conf
 
 # Copy our optimized build into the web folder that we point to in default.conf
-COPY --from=builder /app/build /var/www/
+COPY --from=builder /app/out /var/www/
 
 # # Convenicne just in case we want to add more configuration later
 # COPY entrypoint.sh /  
