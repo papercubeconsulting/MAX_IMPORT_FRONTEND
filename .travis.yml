@@ -9,7 +9,7 @@ deploy:
   region: us-east-1
   app: MaxImport-dev
   env: MaxImport-frontend
-  bucket_name: elasticbeanstalk-us-east-1-691046028389
+  bucket_name: elasticbeanstalk-us-east-1-047468546016
   bucket_path: MaxImport-dev
   on:
     branch: master
