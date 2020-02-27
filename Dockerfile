@@ -13,7 +13,8 @@ COPY . .
 # Building app
 RUN npm run build
 
-ENV PORT 8080
-EXPOSE 8080
-CMD ["npm", "run", "start"]
+EXPOSE 3000
+
+CMD ["npm", "start"]
+
 # Running the app
