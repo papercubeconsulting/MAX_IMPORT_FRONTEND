@@ -153,7 +153,7 @@ class Stock extends React.Component<
               </Button>
             </div>
             <div className="col-sm-2">
-              <Link href="add_stock" color="warning">
+              <Link href="/add_stock" color="warning">
                 Nuevo abastecimiento
               </Link>
             </div>
