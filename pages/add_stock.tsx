@@ -1,36 +1,16 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { NextPage } from "next";
 import React from "react";
-import {
-  Button,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  Dropdown,
-  UncontrolledDropdown
-} from "reactstrap";
+import { Button } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
-  faEdit,
-  faSearch,
   faTrashAlt,
-  faEye,
   faCheck,
   faCalendarAlt,
   faUser,
   faPlusCircle
 } from "@fortawesome/free-solid-svg-icons";
-library.add(
-  faEdit,
-  faTrashAlt,
-  faSearch,
-  faEye,
-  faCheck,
-  faCalendarAlt,
-  faUser,
-  faPlusCircle
-);
+library.add(faTrashAlt, faCheck, faCalendarAlt, faUser, faPlusCircle);
 
 import FieldGroup from "../components/FieldGroup";
 import Link from "../components/Link";
@@ -42,42 +22,10 @@ import ElementsProvider, {
   SubFamilyElement
 } from "../providers/ElementsProvider";
 import ModelsProvider, { ElementModel } from "../providers/ModelsProvider";
+import DropdownList, { SelectItem } from "../components/DropdownList";
 
 type StockItem = { id: number; sequentialNo: number };
-type SelectItem = { id: number; name: string };
-class DropdownList extends React.Component<
-  {
-    value: SelectItem | null;
-    title: string;
-    data: SelectItem[];
-    onChange: (value: SelectItem) => void;
-  },
-  {}
-> {
-  render() {
-    let { value } = this.props;
-    return (
-      <UncontrolledDropdown>
-        <DropdownToggle caret>
-          {value === null ? "Seleccionar" : value.name}
-        </DropdownToggle>
-        <DropdownMenu>
-          <DropdownItem header>{this.props.title}</DropdownItem>
-          {this.props.data.map((x, idx) => (
-            <DropdownItem
-              key={idx}
-              onClick={() =>
-                (value == null || value.id !== x.id) && this.props.onChange(x)
-              }
-            >
-              {x.name}
-            </DropdownItem>
-          ))}
-        </DropdownMenu>
-      </UncontrolledDropdown>
-    );
-  }
-}
+
 class StockRow extends React.Component<
   { data: StockItem; onDelete: () => void; families: Family[] },
   {
