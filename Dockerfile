@@ -1,20 +1,43 @@
-FROM node:10
+  
 
-# Setting working directory. All the path will be relative to WORKDIR
-WORKDIR /app
+# build phase
+FROM node:alpine as builder
 
-# Installing dependencies
+WORKDIR '/app'
+
 COPY package.json .
+
 RUN npm install
 
-# Copying source files
 COPY . .
 
-# Building app
+
+#RUN npm run $token
 RUN npm run build
+RUN npm run export
+EXPOSE 80
 
-EXPOSE 3000
 
-CMD ["npm", "start"]
+FROM nginx:1.15.8-alpine
 
-# Running the app
+# # Install only what is needed
+# RUN apt-get update && apt-get install -y --no-install-recommends curl \  
+#       && rm -rf /var/lib/apt/lists/*
+
+# Remove default nginx
+RUN rm /usr/share/nginx/html/*
+
+# Copy all of our nginx configurations
+COPY ./nginx.conf /etc/nginx/nginx.conf  
+COPY ./default.conf /etc/nginx/conf.d/default.conf
+
+# Copy our optimized build into the web folder that we point to in default.conf
+COPY --from=builder /app/out /var/www/
+
+# # Convenicne just in case we want to add more configuration later
+# COPY entrypoint.sh /  
+# RUN chmod +x /entrypoint.sh  
+# ENTRYPOINT ["/entrypoint.sh"]
+
+# Daemon Off otherwise, Docker will drop when the main process is done making child ones
+CMD ["nginx", "-g", "daemon off;"] 
