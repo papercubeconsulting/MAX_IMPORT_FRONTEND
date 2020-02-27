@@ -82,7 +82,7 @@ class Stock extends React.Component<
     this.state = {
       data: [],
       startDate: moment()
-        .subtract("days", 7)
+        .subtract(7, "days")
         .toDate(),
       endDate: new Date(),
       page: 1,

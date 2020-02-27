@@ -33,21 +33,106 @@ library.add(
 );
 
 import FieldGroup from "../components/FieldGroup";
-import { max, min } from "date-fns";
 import Link from "../components/Link";
+import FamiliesProvider, { Family } from "../providers/FamiliesProvider";
+import SubFamiliesProvider, {
+  SubFamily
+} from "../providers/SubFamiliesProvider";
+import ElementsProvider, {
+  SubFamilyElement
+} from "../providers/ElementsProvider";
+import ModelsProvider, { ElementModel } from "../providers/ModelsProvider";
 
 type StockItem = { id: number; sequentialNo: number };
-
-class RowSample extends React.Component<
-  { data: StockItem; onDelete: () => void },
-  { familia: string; subFamilia: string }
+type SelectItem = { id: number; name: string };
+class DropdownList extends React.Component<
+  {
+    value: SelectItem | null;
+    title: string;
+    data: SelectItem[];
+    onChange: (value: SelectItem) => void;
+  },
+  {}
+> {
+  render() {
+    let { value } = this.props;
+    return (
+      <UncontrolledDropdown>
+        <DropdownToggle caret>
+          {value === null ? "Seleccionar" : value.name}
+        </DropdownToggle>
+        <DropdownMenu>
+          <DropdownItem header>{this.props.title}</DropdownItem>
+          {this.props.data.map((x, idx) => (
+            <DropdownItem
+              key={idx}
+              onClick={() =>
+                (value == null || value.id !== x.id) && this.props.onChange(x)
+              }
+            >
+              {x.name}
+            </DropdownItem>
+          ))}
+        </DropdownMenu>
+      </UncontrolledDropdown>
+    );
+  }
+}
+class StockRow extends React.Component<
+  { data: StockItem; onDelete: () => void; families: Family[] },
+  {
+    family: SelectItem | null;
+    subFamily: SelectItem | null;
+    subFamilies: SubFamily[];
+    element: SelectItem | null;
+    elements: SubFamilyElement[];
+    model: SelectItem | null;
+    models: ElementModel[];
+    unicaja: SelectItem | null;
+  }
 > {
   constructor(props: any) {
     super(props);
     this.state = {
-      familia: "Arrancador",
-      subFamilia: "Relay"
+      family: null,
+      subFamily: null,
+      subFamilies: [],
+      element: null,
+      elements: [],
+      model: null,
+      models: [],
+      unicaja: null
     };
+  }
+  async changeFamily(family: SelectItem) {
+    let subFamilies = await SubFamiliesProvider.getSubFamilies(family.id);
+    this.setState({
+      family,
+      subFamily: null,
+      subFamilies,
+      element: null,
+      elements: [],
+      model: null,
+      models: []
+    });
+  }
+  async changeSubFamily(subFamily: SelectItem) {
+    let elements = await ElementsProvider.getElements(subFamily.id);
+    this.setState({
+      subFamily,
+      element: null,
+      elements,
+      model: null,
+      models: []
+    });
+  }
+  async changeElement(element: SelectItem) {
+    let models = await ModelsProvider.getModels(element.id);
+    this.setState({
+      element,
+      model: null,
+      models
+    });
   }
   render() {
     let { data } = this.props;
@@ -64,67 +149,59 @@ class RowSample extends React.Component<
         </td>
         <td>{data.sequentialNo}</td>
         <td>
-          <UncontrolledDropdown>
-            <DropdownToggle caret>{this.state.familia}</DropdownToggle>
-            <DropdownMenu>
-              <DropdownItem header>Familia</DropdownItem>
-              <DropdownItem
-                onClick={() => this.setState({ familia: "Arrancador" })}
-              >
-                Arrancador
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => this.setState({ familia: "Alternador" })}
-              >
-                Alternador
-              </DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+          <DropdownList
+            value={this.state.family}
+            title="Familia"
+            data={this.props.families.map(x => {
+              return {
+                id: x.id,
+                name: x.name
+              };
+            })}
+            onChange={this.changeFamily.bind(this)}
+          />
         </td>
         <td>
-          <UncontrolledDropdown>
-            <DropdownToggle caret>{this.state.subFamilia}</DropdownToggle>
-            <DropdownMenu>
-              <DropdownItem header>Sub-Familia</DropdownItem>
-              <DropdownItem
-                onClick={() => this.setState({ subFamilia: "Relay" })}
-              >
-                Relay
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => this.setState({ subFamilia: "Portacarbon" })}
-              >
-                Portacarbon
-              </DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+          <DropdownList
+            value={this.state.subFamily}
+            title="Sub-Familia"
+            data={this.state.subFamilies.map(x => {
+              return {
+                id: x.id,
+                name: x.name
+              };
+            })}
+            onChange={this.changeSubFamily.bind(this)}
+          />
         </td>
         <td>
-          <UncontrolledDropdown>
-            <DropdownToggle caret>Carbones</DropdownToggle>
-            <DropdownMenu>
-              <DropdownItem header>Elemento</DropdownItem>
-              <DropdownItem>Carbones</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+          <DropdownList
+            value={this.state.element}
+            title="Elemento"
+            data={this.state.elements.map(x => {
+              return {
+                id: x.id,
+                name: x.name
+              };
+            })}
+            onChange={this.changeElement.bind(this)}
+          />
         </td>
         <td>
-          <UncontrolledDropdown>
-            <DropdownToggle caret>ABCD</DropdownToggle>
-            <DropdownMenu>
-              <DropdownItem header>Modelo</DropdownItem>
-              <DropdownItem>ABCD</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+          <DropdownList
+            value={this.state.model}
+            title="Modelo"
+            data={this.state.models}
+            onChange={model => this.setState({ model })}
+          />
         </td>
         <td>
-          <UncontrolledDropdown>
-            <DropdownToggle caret>50</DropdownToggle>
-            <DropdownMenu>
-              <DropdownItem header>nidades/Caja</DropdownItem>
-              <DropdownItem>50</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+          <DropdownList
+            value={this.state.unicaja}
+            title="Unidades/Caja"
+            data={[{ id: 50, name: "50" }]}
+            onChange={unicaja => this.setState({ unicaja })}
+          />
         </td>
         <td>20</td>
       </tr>
@@ -133,7 +210,7 @@ class RowSample extends React.Component<
 }
 class Stock extends React.Component<
   {},
-  { data: StockItem[]; startDate: Date }
+  { data: StockItem[]; startDate: Date; families: Family[] }
 > {
   constructor(props: any) {
     super(props);
@@ -141,8 +218,14 @@ class Stock extends React.Component<
     data.push({ id: 0, sequentialNo: 1 });
     this.state = {
       data: data,
-      startDate: new Date()
+      startDate: new Date(),
+      families: []
     };
+  }
+  async componentDidMount() {
+    this.setState({
+      families: await FamiliesProvider.getFamilies()
+    });
   }
   addRow() {
     let { data } = this.state;
@@ -183,10 +266,10 @@ class Stock extends React.Component<
             </div>
             <div className="col-sm-3">
               <FieldGroup
-                label="Proveedor"
+                label="Carga"
                 icon="user"
                 fieldConfig={{
-                  defaultValue: "China Inc",
+                  defaultValue: "ABC-123",
                   type: "text",
                   onChange: text => {
                     console.log(text);
@@ -199,7 +282,7 @@ class Stock extends React.Component<
                 label="Almacén"
                 icon="user"
                 fieldConfig={{
-                  defaultValue: "China Inc",
+                  defaultValue: "ALM-1 Gim.",
                   type: "text",
                   onChange: text => {
                     console.log(text);
@@ -226,19 +309,34 @@ class Stock extends React.Component<
         <table className="table table-striped">
           <thead className="thead-dark">
             <tr>
-              <th scope="col"></th>
-              <th scope="col">Item</th>
-              <th scope="col">Familia</th>
-              <th scope="col">Sub-Familia</th>
-              <th scope="col">Elemento</th>
-              <th scope="col">Modelo</th>
-              <th scope="col">Uni/Caj</th>
-              <th scope="col">Cantidad Cajas</th>
+              <th style={{ width: "7%" }} scope="col"></th>
+              <th style={{ width: "8%" }} scope="col">
+                Item
+              </th>
+              <th style={{ width: "15%" }} scope="col">
+                Familia
+              </th>
+              <th style={{ width: "15%" }} scope="col">
+                Sub-Familia
+              </th>
+              <th style={{ width: "15%" }} scope="col">
+                Elemento
+              </th>
+              <th style={{ width: "15%" }} scope="col">
+                Modelo
+              </th>
+              <th style={{ width: "12%" }} scope="col">
+                Uni/Caj
+              </th>
+              <th style={{ width: "13%" }} scope="col">
+                Cantidad Cajas
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map(row => (
-              <RowSample
+              <StockRow
+                families={this.state.families}
                 key={row.id}
                 data={row}
                 onDelete={this.deleteRow.bind(this, row.id)}

@@ -43,7 +43,6 @@ const FieldGroup: NextPage<{
       <input
         type="text"
         className="form-control"
-        id="basic-url"
         defaultValue={defaultValue as string}
         style={{ minWidth: 100 }}
         readOnly={onChange === undefined}
