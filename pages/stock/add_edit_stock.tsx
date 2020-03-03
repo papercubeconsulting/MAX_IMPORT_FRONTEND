@@ -19,20 +19,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 library.add(faTrashAlt, faCheck, faCalendarAlt, faUser, faPlusCircle);
 
-import FieldGroup from "../components/FieldGroup";
-import FamiliesProvider, { Family } from "../providers/FamiliesProvider";
+import FieldGroup from "../../components/FieldGroup";
+import FamiliesProvider, { Family } from "../../providers/FamiliesProvider";
 import SubFamiliesProvider, {
   SubFamily
-} from "../providers/SubFamiliesProvider";
+} from "../../providers/SubFamiliesProvider";
 import ElementsProvider, {
   SubFamilyElement
-} from "../providers/ElementsProvider";
-import ModelsProvider, { ElementModel } from "../providers/ModelsProvider";
-import DropdownList, { SelectItem } from "../components/DropdownList";
-import WarehouseProvider from "../providers/WarehouseProvider";
-import { Warehouse } from "../providers/WarehouseProvider";
-import ProvidersProvider, { Provider } from "../providers/ProvidersProvider";
-import StockProvider from "../providers/StockProvider";
+} from "../../providers/ElementsProvider";
+import ModelsProvider, { ElementModel } from "../../providers/ModelsProvider";
+import DropdownList, { SelectItem } from "../../components/DropdownList";
+import WarehouseProvider from "../../providers/WarehouseProvider";
+import { Warehouse } from "../../providers/WarehouseProvider";
+import ProvidersProvider, { Provider } from "../../providers/ProvidersProvider";
+import StockProvider from "../../providers/StockProvider";
 import { withRouter, NextRouter } from "next/router";
 import Router from "next/router";
 

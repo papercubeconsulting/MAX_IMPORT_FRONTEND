@@ -5,7 +5,7 @@ import moment from "moment";
 import { Button, Modal, ModalHeader, ModalFooter, ModalBody } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { withRouter, useRouter, NextRouter, Router } from "next/router";
+import { withRouter, NextRouter } from "next/router";
 moment.locale("es");
 import {
   faEdit,
@@ -26,13 +26,12 @@ library.add(
   faUser
 );
 
-import FieldGroup from "../components/FieldGroup";
+import FieldGroup from "../../components/FieldGroup";
 import { max, min } from "date-fns";
-import Pagination from "../components/Pagination";
-import StockProvider, { StockElement } from "../providers/StockProvider";
-import Link from "../components/Link";
-import Constants from "../config/Constants";
-import { bool } from "prop-types";
+import Pagination from "../../components/Pagination";
+import StockProvider, { StockElement } from "../../providers/StockProvider";
+import Link from "../../components/Link";
+import Constants from "../../config/Constants";
 
 const RowStock: NextPage<{
   data: StockElement;
@@ -42,7 +41,7 @@ const RowStock: NextPage<{
   <tr>
     <td>
       <Button
-        href={`/add_stock?id=${data.id}`}
+        href={`/stock/add_edit_stock?id=${data.id}`}
         color="info"
         style={{ marginRight: 4, marginLeft: 0 }}
       >
@@ -203,7 +202,7 @@ class Stock extends React.Component<
               </Button>
             </div>
             <div className="col-sm-2">
-              <Link href="/add_stock" color="warning">
+              <Link href="/stock/add_edit_stock" color="warning">
                 Nuevo abastecimiento
               </Link>
             </div>
@@ -267,5 +266,4 @@ class Stock extends React.Component<
     );
   }
 }
-const ShowTheLocationWithRouter = withRouter(Stock);
 export default withRouter(Stock);
