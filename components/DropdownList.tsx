@@ -7,13 +7,14 @@ import {
   UncontrolledDropdown
 } from "reactstrap";
 
+export type SelectItemCallback = (value: SelectItem) => void;
 export type SelectItem = { id: number; name: string };
 class DropdownList extends React.Component<
   {
     value: SelectItem | null;
-    title: string;
+    title?: string;
     data: SelectItem[];
-    onChange: (value: SelectItem) => void;
+    onChange: SelectItemCallback;
   },
   {}
 > {
@@ -25,7 +26,9 @@ class DropdownList extends React.Component<
           {value === null ? "Seleccionar" : value.name}
         </DropdownToggle>
         <DropdownMenu>
-          <DropdownItem header>{this.props.title}</DropdownItem>
+          {this.props.title && (
+            <DropdownItem header>{this.props.title}</DropdownItem>
+          )}
           {this.props.data.map((x, idx) => (
             <DropdownItem
               key={idx}

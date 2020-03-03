@@ -21,5 +21,40 @@ class GenericProvider {
   static async httpGet(url: string, params: any): Promise<ServiceReponse<any>> {
     return await (await fetch(this.buildRelativeUrl(url, params))).json();
   }
+  static async httpDelete(url: string): Promise<ServiceReponse<any>> {
+    return await (
+      await fetch(this.buildRelativeUrl(url, {}), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+    ).json();
+  }
+  static async httpPost(
+    url: string,
+    params: any
+  ): Promise<ServiceReponse<any>> {
+    return await (
+      await fetch(this.buildRelativeUrl(url, {}), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(params)
+      })
+    ).json();
+  }
+  static async httpPut(url: string, params: any): Promise<ServiceReponse<any>> {
+    return await (
+      await fetch(this.buildRelativeUrl(url, {}), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(params)
+      })
+    ).json();
+  }
 }
 export default GenericProvider;

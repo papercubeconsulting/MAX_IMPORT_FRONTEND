@@ -1,18 +1,32 @@
 import Constants, { ElementState } from "../config/Constants";
 import GenericProvider from "./GenericProvider";
 import moment from "moment";
-export type Warehouse = {
+import { Warehouse } from "./WarehouseProvider";
+import { Provider } from "./ProvidersProvider";
+export type Product = {
   id: number;
-  name: string;
-  address: string;
-  createdAt: string;
-  updatedAt: string;
+  familyName: string;
+  subfamilyName: string;
+  elementName: string;
+  modelName: string;
+  code: null;
+  compatibility: string;
+  imagePath: null;
+  suggestedPrice: number;
+  familyId: number;
+  subfamilyId: number;
+  elementId: number;
+  modelId: number;
 };
-export type Provider = {
+export type ProductSupply = {
   id: number;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
+  quantity: number;
+  suppliedQuantity: number;
+  boxSize: number;
+  status: string;
+  supplyId: number;
+  productId: number;
+  product: Product;
 };
 export type StockElement = {
   id: number;
@@ -28,6 +42,7 @@ export type StockElement = {
   warehouse: Warehouse;
   provider: Provider;
   responsible: string;
+  suppliedProducts: ProductSupply[];
 };
 export type StockResponse = {
   count: number;
@@ -35,6 +50,22 @@ export type StockResponse = {
   page: number;
   pageSize: number;
   pages: number;
+};
+export type CreateStockRequest = {
+  providerId: number;
+  warehouseId: number;
+  observations: string;
+  suppliedProducts: {
+    productId: number;
+    boxSize: number;
+    quantity: number;
+  }[];
+};
+export type DeleteStockResponse = {
+  data: null;
+  status: number;
+  message: string;
+  userMessage: string;
 };
 class StockProvider extends GenericProvider {
   static async getStock(
@@ -49,6 +80,26 @@ class StockProvider extends GenericProvider {
       to: moment(endDate).format(Constants.ApiDateFormat)
     });
     return response.data;
+  }
+  static async getStockById(id: number): Promise<StockElement> {
+    let response = await this.httpGet(`/supplies/${id}`, {});
+    return response.data;
+  }
+  static async addEditStock(
+    id: number | null,
+    req: CreateStockRequest
+  ): Promise<StockElement> {
+    let response;
+    if (id == null) {
+      response = await this.httpPost("/supplies", req);
+    } else {
+      response = await this.httpPut(`/supplies/${id}`, req);
+    }
+    return response.data;
+  }
+  static async deleteStock(id: number): Promise<boolean> {
+    let response = await this.httpDelete(`/supplies/${id}`);
+    return response.status != 404;
   }
 }
 export default StockProvider;

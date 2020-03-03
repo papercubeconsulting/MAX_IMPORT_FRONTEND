@@ -1,6 +1,13 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import React from "react";
-import { Button } from "reactstrap";
+import React, { ChangeEvent } from "react";
+import {
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Alert
+} from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -13,7 +20,6 @@ import {
 library.add(faTrashAlt, faCheck, faCalendarAlt, faUser, faPlusCircle);
 
 import FieldGroup from "../components/FieldGroup";
-import Link from "../components/Link";
 import FamiliesProvider, { Family } from "../providers/FamiliesProvider";
 import SubFamiliesProvider, {
   SubFamily
@@ -23,11 +29,31 @@ import ElementsProvider, {
 } from "../providers/ElementsProvider";
 import ModelsProvider, { ElementModel } from "../providers/ModelsProvider";
 import DropdownList, { SelectItem } from "../components/DropdownList";
+import WarehouseProvider from "../providers/WarehouseProvider";
+import { Warehouse } from "../providers/WarehouseProvider";
+import ProvidersProvider, { Provider } from "../providers/ProvidersProvider";
+import StockProvider from "../providers/StockProvider";
+import { withRouter, NextRouter } from "next/router";
+import Router from "next/router";
 
-type StockItem = { id: number; sequentialNo: number };
+type RowData = {
+  family: SelectItem | null;
+  subFamily: SelectItem | null;
+  element: SelectItem | null;
+  model: SelectItem | null;
+  modelId: number | null;
+  unicaja: number;
+  quantity: number;
+};
+type StockItem = { id: number; sequentialNo: number; data: RowData };
 
 class StockRow extends React.Component<
-  { data: StockItem; onDelete: () => void; families: Family[] },
+  {
+    data: StockItem;
+    onDelete: () => void;
+    families: Family[];
+    onChange: (sequentialNo: number, value: RowData) => void;
+  },
   {
     family: SelectItem | null;
     subFamily: SelectItem | null;
@@ -36,51 +62,83 @@ class StockRow extends React.Component<
     elements: SubFamilyElement[];
     model: SelectItem | null;
     models: ElementModel[];
-    unicaja: SelectItem | null;
+    unicaja: string;
+    quantity: string;
   }
 > {
   constructor(props: any) {
     super(props);
     this.state = {
-      family: null,
-      subFamily: null,
+      family: this.props.data.data.family,
+      subFamily: this.props.data.data.subFamily,
       subFamilies: [],
-      element: null,
+      element: this.props.data.data.element,
       elements: [],
-      model: null,
+      model: this.props.data.data.model,
       models: [],
-      unicaja: null
+      unicaja: this.props.data.data.unicaja.toString(),
+      quantity: this.props.data.data.quantity.toString()
     };
+  }
+  onDataChange() {
+    if (this.state.model == null) return;
+    this.props.onChange(this.props.data.sequentialNo, {
+      family: this.state.family,
+      subFamily: this.state.subFamily,
+      element: this.state.element,
+      model: this.state.model,
+      modelId: this.state.model.id,
+      unicaja: parseInt(this.state.unicaja),
+      quantity: parseInt(this.state.quantity)
+    });
   }
   async changeFamily(family: SelectItem) {
     let subFamilies = await SubFamiliesProvider.getSubFamilies(family.id);
-    this.setState({
-      family,
-      subFamily: null,
-      subFamilies,
-      element: null,
-      elements: [],
-      model: null,
-      models: []
-    });
+    this.setState(
+      {
+        family,
+        subFamily: null,
+        subFamilies,
+        element: null,
+        elements: [],
+        model: null,
+        models: []
+      },
+      this.onDataChange.bind(this)
+    );
   }
   async changeSubFamily(subFamily: SelectItem) {
     let elements = await ElementsProvider.getElements(subFamily.id);
-    this.setState({
-      subFamily,
-      element: null,
-      elements,
-      model: null,
-      models: []
-    });
+    this.setState(
+      {
+        subFamily,
+        element: null,
+        elements,
+        model: null,
+        models: []
+      },
+      this.onDataChange.bind(this)
+    );
   }
   async changeElement(element: SelectItem) {
     let models = await ModelsProvider.getModels(element.id);
-    this.setState({
-      element,
-      model: null,
-      models
-    });
+    this.setState(
+      {
+        element,
+        model: null,
+        models
+      },
+      this.onDataChange.bind(this)
+    );
+  }
+  changeModel(model: SelectItem) {
+    this.setState({ model }, this.onDataChange.bind(this));
+  }
+  onChangeUnicaja({ target: { value } }: ChangeEvent<HTMLInputElement>) {
+    this.setState({ unicaja: value }, this.onDataChange.bind(this));
+  }
+  onChangeQuantity({ target: { value } }: ChangeEvent<HTMLInputElement>) {
+    this.setState({ quantity: value }, this.onDataChange.bind(this));
   }
   render() {
     let { data } = this.props;
@@ -95,7 +153,7 @@ class StockRow extends React.Component<
             <FontAwesomeIcon icon="trash-alt" />
           </Button>
         </td>
-        <td>{data.sequentialNo}</td>
+        <td>{data.sequentialNo + 1}</td>
         <td>
           <DropdownList
             value={this.state.family}
@@ -140,46 +198,125 @@ class StockRow extends React.Component<
             value={this.state.model}
             title="Modelo"
             data={this.state.models}
-            onChange={model => this.setState({ model })}
+            onChange={this.changeModel.bind(this)}
           />
         </td>
         <td>
-          <DropdownList
+          <input
+            className="form-control"
+            type="number"
             value={this.state.unicaja}
-            title="Unidades/Caja"
-            data={[{ id: 50, name: "50" }]}
-            onChange={unicaja => this.setState({ unicaja })}
+            onChange={this.onChangeUnicaja.bind(this)}
           />
         </td>
-        <td>20</td>
+        <td>
+          <input
+            className="form-control"
+            type="number"
+            value={this.state.quantity}
+            onChange={this.onChangeQuantity.bind(this)}
+          />
+        </td>
       </tr>
     );
   }
 }
 class Stock extends React.Component<
-  {},
-  { data: StockItem[]; startDate: Date; families: Family[] }
+  { router: NextRouter },
+  {
+    id: number | null;
+    data: StockItem[];
+    startDate: Date;
+    families: Family[];
+    warehouse: SelectItem | null;
+    warehouses: Warehouse[];
+    provider: SelectItem | null;
+    providers: Provider[];
+    isConfirmOpen: boolean;
+    isSuccessOpen: boolean;
+  }
 > {
-  constructor(props: any) {
-    super(props);
-    var data = [];
-    data.push({ id: 0, sequentialNo: 1 });
-    this.state = {
-      data: data,
-      startDate: new Date(),
-      families: []
+  defaultRowData(): RowData {
+    return {
+      family: null,
+      subFamily: null,
+      element: null,
+      model: null,
+      modelId: null,
+      unicaja: 0,
+      quantity: 0
     };
   }
-  async componentDidMount() {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      id: null,
+      data: [
+        {
+          id: 0,
+          sequentialNo: 0,
+          data: this.defaultRowData()
+        }
+      ],
+      startDate: new Date(),
+      families: [],
+      provider: null,
+      providers: [],
+      warehouse: null,
+      warehouses: [],
+      isConfirmOpen: false,
+      isSuccessOpen: false
+    };
+  }
+  async loadData(id: number) {
+    let response = await StockProvider.getStockById(id);
     this.setState({
-      families: await FamiliesProvider.getFamilies()
+      id,
+      provider: { id: response.provider.id, name: response.provider.name },
+      warehouse: { id: response.warehouse.id, name: response.warehouse.name },
+      data: response.suppliedProducts.map((x, idx) => {
+        return {
+          id: x.id,
+          sequentialNo: idx,
+          data: {
+            family: { id: x.product.familyId, name: x.product.familyName },
+            subFamily: {
+              id: x.product.subfamilyId,
+              name: x.product.subfamilyName
+            },
+            element: { id: x.product.elementId, name: x.product.elementName },
+            model: { id: x.product.modelId, name: x.product.modelName },
+            modelId: x.product.modelId,
+            unicaja: x.boxSize,
+            quantity: x.quantity
+          }
+        };
+      })
+    });
+  }
+  getId() {
+    return new URLSearchParams(location.search).get("id");
+  }
+  async componentDidMount() {
+    let id = this.getId();
+    if (id != null) {
+      await this.loadData(parseInt(id));
+    }
+    this.setState({
+      families: await FamiliesProvider.getFamilies(),
+      warehouses: await WarehouseProvider.getWarehouses(),
+      providers: await ProvidersProvider.getProviders()
     });
   }
   addRow() {
     let { data } = this.state;
-    let lastId = data.length > 0 ? data[data.length - 1].id : 0;
-    let lastSeqNo = data.length > 0 ? data[data.length - 1].sequentialNo : 0;
-    data.push({ id: lastId + 1, sequentialNo: lastSeqNo + 1 });
+    let lastId = data.length > 0 ? data[data.length - 1].id : -1;
+    let lastSeqNo = data.length > 0 ? data[data.length - 1].sequentialNo : -1;
+    data.push({
+      id: lastId + 1,
+      sequentialNo: lastSeqNo + 1,
+      data: this.defaultRowData()
+    });
     this.setState({ data: data });
   }
   deleteRow(id: number) {
@@ -189,66 +326,130 @@ class Stock extends React.Component<
       if (data[i].id != id) newData.push(data[i]);
     }
     for (let i = 0; i < newData.length; ++i) {
-      newData[i].sequentialNo = i + 1;
+      newData[i].sequentialNo = i;
     }
     this.setState({ data: newData });
+  }
+  setRowData(sequentialNo: number, value: RowData) {
+    let { data } = this.state;
+    let newData = [];
+    for (let i = 0; i < data.length; ++i) {
+      newData.push(data[i]);
+    }
+    newData[sequentialNo].data = value;
+    this.setState({ data: newData });
+  }
+  async confirmEditCreate() {
+    if (this.state.provider == null) {
+      alert("Ingresar proveedor");
+      return;
+    }
+    if (this.state.warehouse == null) {
+      alert("Ingresar almacén");
+      return;
+    }
+    if (this.state.data.length == 0) {
+      alert("Ingresar por lo menos un producto");
+      return;
+    }
+    for (let i = 0; i < this.state.data.length; ++i) {
+      let row = this.state.data[i];
+      if (row.data.quantity * row.data.unicaja == 0) {
+        alert(
+          "Cada fila debe tener por lo menos una caja y una unidad por caja"
+        );
+        return;
+      }
+      if (row.data.modelId == null) {
+        alert("Cada fila debe tener un modelo elegido");
+        return;
+      }
+    }
+    this.setState({ isConfirmOpen: true });
+  }
+  async editCreate() {
+    let newStock = await StockProvider.addEditStock(this.state.id, {
+      providerId: (this.state.provider as SelectItem).id,
+      warehouseId: (this.state.warehouse as SelectItem).id,
+      observations: "",
+      suppliedProducts: this.state.data.map(x => {
+        return {
+          productId: x.data.modelId as number,
+          boxSize: x.data.unicaja,
+          quantity: x.data.quantity
+        };
+      })
+    });
+    await this.loadData(newStock.id);
+    Router.push({
+      pathname: this.props.router.pathname,
+      query: { id: newStock.id }
+    });
+    this.setState({ isConfirmOpen: false, isSuccessOpen: true }, () =>
+      setTimeout(() => this.setState({ isSuccessOpen: false }), 2500)
+    );
+  }
+  toggleConfirm() {
+    this.setState({ isConfirmOpen: !this.state.isConfirmOpen });
   }
   render() {
     let { data, startDate } = this.state;
     return (
       <>
+        <Modal
+          isOpen={this.state.isConfirmOpen}
+          toggle={this.toggleConfirm.bind(this)}
+        >
+          <ModalHeader toggle={this.toggleConfirm.bind(this)}>
+            Confirmar
+          </ModalHeader>
+          <ModalBody>¿Está seguro de que desea guardar sus cambios?</ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.editCreate.bind(this)}>
+              Sí
+            </Button>{" "}
+            <Button color="secondary" onClick={this.toggleConfirm.bind(this)}>
+              No
+            </Button>
+          </ModalFooter>
+        </Modal>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
-            <div className="col-sm-3">
+            <div className="col-sm-4">
               <FieldGroup
                 label="Proveedor"
                 icon="user"
                 fieldConfig={{
-                  defaultValue: "China Inc",
-                  type: "text",
-                  onChange: text => {
-                    console.log(text);
-                  }
+                  value: this.state.provider,
+                  data: this.state.providers.map(x => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: provider => this.setState({ provider })
                 }}
               />
             </div>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Carga"
-                icon="user"
-                fieldConfig={{
-                  defaultValue: "ABC-123",
-                  type: "text",
-                  onChange: text => {
-                    console.log(text);
-                  }
-                }}
-              />
-            </div>
-            <div className="col-sm-3">
+            <div className="col-sm-4">
               <FieldGroup
                 label="Almacén"
                 icon="user"
                 fieldConfig={{
-                  defaultValue: "ALM-1 Gim.",
-                  type: "text",
-                  onChange: text => {
-                    console.log(text);
-                  }
+                  value: this.state.warehouse,
+                  data: this.state.warehouses.map(x => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: warehouse => this.setState({ warehouse })
                 }}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-4">
               <FieldGroup
                 label="Fecha"
                 icon="calendar-alt"
                 fieldConfig={{
-                  defaultValue: startDate,
-                  type: "date",
-                  onChange: startDate =>
-                    this.setState({
-                      startDate: startDate
-                    })
+                  value: startDate,
+                  type: "date"
                 }}
               />
             </div>
@@ -287,6 +488,7 @@ class Stock extends React.Component<
                 families={this.state.families}
                 key={row.id}
                 data={row}
+                onChange={this.setRowData.bind(this)}
                 onDelete={this.deleteRow.bind(this, row.id)}
               />
             ))}
@@ -311,17 +513,35 @@ class Stock extends React.Component<
             </tr>
           </tbody>
         </table>
-        <div className="row">
-          <div className="col-sm-3"></div>
+        <div className="d-flex justify-content-center align-items-center">
           <div className="col-sm-6">
-            <Link href="/stock" color="success" style={{ width: "100%" }}>
-              <FontAwesomeIcon icon="check" /> Crear/Modificar
-            </Link>
+            <Button
+              onClick={this.confirmEditCreate.bind(this)}
+              color="success"
+              style={{
+                width: "100%"
+              }}
+            >
+              {this.state.id == null ? "Crear" : "Modificar"}
+            </Button>
           </div>
-          <div className="col-sm-3"></div>
         </div>
+        <Alert
+          color="success"
+          isOpen={this.state.isSuccessOpen}
+          toggle={() => this.setState({ isSuccessOpen: false })}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            marginBottom: 0
+          }}
+        >
+          Cambios guardados exitosamente
+        </Alert>
       </>
     );
   }
 }
-export default Stock;
+export default withRouter(Stock);

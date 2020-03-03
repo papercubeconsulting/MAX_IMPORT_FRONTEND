@@ -5,6 +5,7 @@ import moment from "moment";
 import { Button } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import { withRouter, useRouter, NextRouter, Router } from "next/router";
 moment.locale("es");
 import {
   faEdit,
@@ -32,25 +33,36 @@ import StockProvider, { StockElement } from "../providers/StockProvider";
 import Link from "../components/Link";
 import Constants from "../config/Constants";
 
-const RowStock: NextPage<{ data: StockElement; serialNumber: number }> = ({
-  data,
-  serialNumber
-}) => (
+const RowStock: NextPage<{
+  data: StockElement;
+  serialNumber: number;
+  onDelete: (id: number) => void;
+}> = ({ data, serialNumber, onDelete }) => (
   <tr>
     <td>
-      <Button color="info" style={{ marginRight: 4, marginLeft: 0 }}>
+      <Button
+        href={`/add_stock?id=${data.id}`}
+        color="info"
+        style={{ marginRight: 4, marginLeft: 0 }}
+      >
         <FontAwesomeIcon icon="edit" />
       </Button>
-      <Button color="warning" style={{ marginRight: 0, marginLeft: 4 }}>
+      <Button
+        onClick={() => onDelete(data.id)}
+        color="warning"
+        style={{ marginRight: 0, marginLeft: 4 }}
+      >
         <FontAwesomeIcon icon="trash-alt" />
       </Button>
     </td>
-    <td>{serialNumber}</td>
+    <td className="text-center">{serialNumber}</td>
     <td>{data.provider.name}</td>
     <td>{data.code}</td>
     <td>{data.warehouse.name}</td>
-    <td>{moment(new Date(data.createdAt)).format("L")}</td>
-    <td>{data.status}</td>
+    <td className="text-center">
+      {moment(new Date(data.createdAt)).format("L")}
+    </td>
+    <td className="text-center">{data.status}</td>
     <td>
       {data.status == Constants.Status.Atendido && (
         <Button color="info" style={{ width: "100%" }}>
@@ -64,11 +76,13 @@ const RowStock: NextPage<{ data: StockElement; serialNumber: number }> = ({
       )}
     </td>
     <td>{data.responsible}</td>
-    <td>{data.attentionDate ? new Date(data.attentionDate) : "Pendiente"}</td>
+    <td className="text-center">
+      {data.attentionDate ? new Date(data.attentionDate) : "Pendiente"}
+    </td>
   </tr>
 );
 class Stock extends React.Component<
-  {},
+  { router: NextRouter },
   {
     data: StockElement[];
     startDate: Date;
@@ -102,6 +116,9 @@ class Stock extends React.Component<
   componentDidMount() {
     this.loadData(this.state.page, this.state.startDate, this.state.endDate);
   }
+  deleteRow(id: number) {
+    StockProvider.deleteStock(id);
+  }
   render() {
     let { data, startDate, endDate, page, maxPage } = this.state;
     return (
@@ -112,7 +129,7 @@ class Stock extends React.Component<
               <FieldGroup
                 label="Usuario"
                 icon="user"
-                fieldConfig={{ defaultValue: "Luis Rivera", type: "text" }}
+                fieldConfig={{ value: "Luis Rivera", type: "text" }}
               />
             </div>
             <div className="col-sm-3">
@@ -120,7 +137,7 @@ class Stock extends React.Component<
                 label="Fecha Inicio"
                 icon="calendar-alt"
                 fieldConfig={{
-                  defaultValue: startDate,
+                  value: startDate,
                   type: "date",
                   onChange: startDate =>
                     this.loadData(
@@ -136,7 +153,7 @@ class Stock extends React.Component<
                 label="Fecha Fin"
                 icon="calendar-alt"
                 fieldConfig={{
-                  defaultValue: endDate,
+                  value: endDate,
                   type: "date",
                   onChange: endDate =>
                     this.loadData(
@@ -162,22 +179,43 @@ class Stock extends React.Component<
         <table className="table table-striped">
           <thead className="thead-dark">
             <tr>
-              <th scope="col">Mtto</th>
-              <th scope="col">Item</th>
-              <th scope="col">Proveedor</th>
-              <th scope="col">Cod. Carga</th>
-              <th scope="col">Almacén</th>
-              <th scope="col">Fecha Reg.</th>
-              <th scope="col">Estatus</th>
-              <th scope="col">Acción</th>
-              <th scope="col">Responsable</th>
-              <th scope="col">Fecha Aten.</th>
+              <th scope="col" className="text-center">
+                Mtto
+              </th>
+              <th scope="col" className="text-center">
+                Item
+              </th>
+              <th scope="col" className="text-center">
+                Proveedor
+              </th>
+              <th scope="col" className="text-center">
+                Cod. Carga
+              </th>
+              <th scope="col" className="text-center">
+                Almacén
+              </th>
+              <th scope="col" className="text-center">
+                Fecha Reg.
+              </th>
+              <th scope="col" className="text-center">
+                Estatus
+              </th>
+              <th scope="col" className="text-center">
+                Acción
+              </th>
+              <th scope="col" className="text-center">
+                Responsable
+              </th>
+              <th scope="col" className="text-center">
+                Fecha Aten.
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((row, idx) => (
               <RowStock
                 key={row.id}
+                onDelete={this.deleteRow.bind(this)}
                 serialNumber={1 + idx + Constants.PageSize * (page - 1)}
                 data={row}
               />
@@ -196,4 +234,5 @@ class Stock extends React.Component<
     );
   }
 }
-export default Stock;
+const ShowTheLocationWithRouter = withRouter(Stock);
+export default withRouter(Stock);

@@ -1,7 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { NextPage } from "next";
 import React from "react";
-import { Button } from "reactstrap";
 import FieldGroup from "../components/FieldGroup";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCalendarAlt, faUser } from "@fortawesome/free-solid-svg-icons";
@@ -48,12 +47,12 @@ const Home: NextPage<{}> = ({}) => (
       <FieldGroup
         label="Fecha"
         icon="calendar-alt"
-        fieldConfig={{ defaultValue: new Date(), type: "date" }}
+        fieldConfig={{ value: new Date(), type: "date" }}
       />
       <FieldGroup
         label="Usuario"
         icon="user"
-        fieldConfig={{ defaultValue: "Luis Rivera", type: "text" }}
+        fieldConfig={{ value: "Luis Rivera", type: "text" }}
       />
       <div
         style={{
