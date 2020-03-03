@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { NextPage } from "next";
 import React from "react";
 import moment from "moment";
-import { Button } from "reactstrap";
+import { Button, Modal, ModalHeader, ModalFooter, ModalBody } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { withRouter, useRouter, NextRouter, Router } from "next/router";
@@ -32,6 +32,7 @@ import Pagination from "../components/Pagination";
 import StockProvider, { StockElement } from "../providers/StockProvider";
 import Link from "../components/Link";
 import Constants from "../config/Constants";
+import { bool } from "prop-types";
 
 const RowStock: NextPage<{
   data: StockElement;
@@ -89,6 +90,7 @@ class Stock extends React.Component<
     endDate: Date;
     page: number;
     maxPage: number;
+    pendingDeletionId: number | null;
   }
 > {
   constructor(props: any) {
@@ -100,7 +102,8 @@ class Stock extends React.Component<
         .toDate(),
       endDate: new Date(),
       page: 1,
-      maxPage: 1
+      maxPage: 1,
+      pendingDeletionId: null
     };
   }
   async loadData(page: number, startDate: Date, endDate: Date) {
@@ -116,13 +119,43 @@ class Stock extends React.Component<
   componentDidMount() {
     this.loadData(this.state.page, this.state.startDate, this.state.endDate);
   }
-  deleteRow(id: number) {
-    StockProvider.deleteStock(id);
+  confirmDeleteRow(id: number) {
+    this.setState({ pendingDeletionId: id });
+  }
+  async deleteRow() {
+    let { pendingDeletionId: id } = this.state;
+    await StockProvider.deleteStock(id as number);
+    await this.loadData(
+      this.state.page,
+      this.state.startDate,
+      this.state.endDate
+    );
+    this.hideConfirm();
+  }
+  hideConfirm() {
+    this.setState({ pendingDeletionId: null });
   }
   render() {
     let { data, startDate, endDate, page, maxPage } = this.state;
     return (
       <>
+        <Modal
+          isOpen={this.state.pendingDeletionId !== null}
+          toggle={this.hideConfirm.bind(this)}
+        >
+          <ModalHeader toggle={this.hideConfirm.bind(this)}>
+            Confirmar
+          </ModalHeader>
+          <ModalBody>¿Está seguro de que desea eliminar el elemento?</ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.deleteRow.bind(this)}>
+              Sí
+            </Button>{" "}
+            <Button color="secondary" onClick={this.hideConfirm.bind(this)}>
+              No
+            </Button>
+          </ModalFooter>
+        </Modal>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-2">
@@ -215,7 +248,7 @@ class Stock extends React.Component<
             {data.map((row, idx) => (
               <RowStock
                 key={row.id}
-                onDelete={this.deleteRow.bind(this)}
+                onDelete={this.confirmDeleteRow.bind(this)}
                 serialNumber={1 + idx + Constants.PageSize * (page - 1)}
                 data={row}
               />
