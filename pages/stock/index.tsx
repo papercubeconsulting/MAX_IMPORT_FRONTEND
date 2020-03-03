@@ -131,7 +131,7 @@ class Stock extends React.Component<
   }
   async deleteRow() {
     let { pendingDeletionId: id } = this.state;
-    await StockProvider.deleteStock(id as number);
+    await StockProvider.deleteStock(id as number, "Cancelado");
     await this.loadData(
       this.state.page,
       this.state.startDate,
@@ -153,7 +153,9 @@ class Stock extends React.Component<
           <ModalHeader toggle={this.hideConfirm.bind(this)}>
             Confirmar
           </ModalHeader>
-          <ModalBody>¿Está seguro de que desea eliminar el elemento?</ModalBody>
+          <ModalBody>
+            ¿Está seguro de que desea marcar el abastecimiento como cancelado?
+          </ModalBody>
           <ModalFooter>
             <Button color="primary" onClick={this.deleteRow.bind(this)}>
               Sí

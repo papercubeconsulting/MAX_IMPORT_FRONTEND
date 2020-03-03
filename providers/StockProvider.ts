@@ -1,4 +1,8 @@
-import Constants, { ElementState } from "../config/Constants";
+import Constants, {
+  ElementState,
+  Pendiente,
+  Atendido
+} from "../config/Constants";
 import GenericProvider from "./GenericProvider";
 import moment from "moment";
 import { Warehouse } from "./WarehouseProvider";
@@ -97,8 +101,8 @@ class StockProvider extends GenericProvider {
     }
     return response.data;
   }
-  static async deleteStock(id: number): Promise<boolean> {
-    let response = await this.httpDelete(`/supplies/${id}`);
+  static async deleteStock(id: number, status: ElementState): Promise<boolean> {
+    let response = await this.httpPut(`/supplies/${id}/status`, { status });
     return response.status != 404;
   }
 }
