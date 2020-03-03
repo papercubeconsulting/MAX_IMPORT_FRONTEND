@@ -33,7 +33,7 @@ const FieldGroup: NextPage<{
 }> = ({ icon, label, fieldConfig }) => {
   let { value, type, onChange } = fieldConfig;
   return (
-    <div className="input-group mb-3 mt-3">
+    <div className="input-group mb-3">
       <div className="input-group-prepend">
         <span className="input-group-text" id="basic-addon3">
           <FontAwesomeIcon icon={icon} />

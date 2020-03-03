@@ -2,7 +2,15 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { NextPage } from "next";
 import React from "react";
 import moment from "moment";
-import { Button, Modal, ModalHeader, ModalFooter, ModalBody } from "reactstrap";
+import {
+  Button,
+  Modal,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  Breadcrumb,
+  BreadcrumbItem
+} from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { withRouter, NextRouter } from "next/router";
@@ -155,6 +163,14 @@ class Stock extends React.Component<
             </Button>
           </ModalFooter>
         </Modal>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">
+            Menu
+          </BreadcrumbItem>
+          <BreadcrumbItem active tag="span">
+            Stock
+          </BreadcrumbItem>
+        </Breadcrumb>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-2">

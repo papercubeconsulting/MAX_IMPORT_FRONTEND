@@ -6,7 +6,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Alert
+  Alert,
+  Breadcrumb,
+  BreadcrumbItem
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -394,6 +396,7 @@ class Stock extends React.Component<
   }
   render() {
     let { data, startDate } = this.state;
+    let currentAction = this.state.id == null ? "Crear" : "Modificar";
     return (
       <>
         <Modal
@@ -413,6 +416,17 @@ class Stock extends React.Component<
             </Button>
           </ModalFooter>
         </Modal>
+        <Breadcrumb tag="nav" listTag="div">
+          <BreadcrumbItem tag="a" href="/">
+            Menu
+          </BreadcrumbItem>
+          <BreadcrumbItem tag="a" href="/stock">
+            Stock
+          </BreadcrumbItem>
+          <BreadcrumbItem active tag="span">
+            {currentAction}
+          </BreadcrumbItem>
+        </Breadcrumb>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-4">
@@ -522,7 +536,7 @@ class Stock extends React.Component<
                 width: "100%"
               }}
             >
-              {this.state.id == null ? "Crear" : "Modificar"}
+              {currentAction}
             </Button>
           </div>
         </div>
