@@ -18,7 +18,7 @@ class Constants {
     return "YYYY-MM-DD";
   }
   public static get PageSize() {
-    return 10;
+    return 20;
   }
 }
 export default Constants;
