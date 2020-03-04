@@ -48,20 +48,24 @@ const RowStock: NextPage<{
 }> = ({ data, serialNumber, onDelete }) => (
   <tr>
     <td>
-      <Button
-        href={`/stock/add_edit_stock?id=${data.id}`}
-        color="info"
-        style={{ marginRight: 4, marginLeft: 0 }}
-      >
-        <FontAwesomeIcon icon="edit" />
-      </Button>
-      <Button
-        onClick={() => onDelete(data.id)}
-        color="warning"
-        style={{ marginRight: 0, marginLeft: 4 }}
-      >
-        <FontAwesomeIcon icon="trash-alt" />
-      </Button>
+      {data.status == "Pendiente" && (
+        <Button
+          href={`/stock/add_edit_stock?id=${data.id}`}
+          color="info"
+          style={{ marginRight: 4, marginLeft: 0 }}
+        >
+          <FontAwesomeIcon icon="edit" />
+        </Button>
+      )}
+      {data.status == "Pendiente" && (
+        <Button
+          onClick={() => onDelete(data.id)}
+          color="warning"
+          style={{ marginRight: 0, marginLeft: 4 }}
+        >
+          <FontAwesomeIcon icon="trash-alt" />
+        </Button>
+      )}
     </td>
     <td className="text-center">{serialNumber}</td>
     <td>{data.provider.name}</td>
@@ -85,7 +89,7 @@ const RowStock: NextPage<{
     </td>
     <td>{data.responsible}</td>
     <td className="text-center">
-      {data.attentionDate ? new Date(data.attentionDate) : "Pendiente"}
+      {data.attentionDate ? new Date(data.attentionDate) : data.status}
     </td>
   </tr>
 );
@@ -175,7 +179,7 @@ class Stock extends React.Component<
         </Breadcrumb>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
-            <div className="col-sm-2">
+            <div className="col-sm-3">
               <FieldGroup
                 label="Usuario"
                 icon="user"
@@ -214,12 +218,7 @@ class Stock extends React.Component<
                 }}
               />
             </div>
-            <div className="col-sm-2">
-              <Button color="info" style={{ width: "100%" }}>
-                <FontAwesomeIcon icon="search" /> Buscar
-              </Button>
-            </div>
-            <div className="col-sm-2">
+            <div className="col-sm-3">
               <Link href="/stock/add_edit_stock" color="warning">
                 Nuevo abastecimiento
               </Link>
