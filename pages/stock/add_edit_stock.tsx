@@ -82,6 +82,26 @@ class StockRow extends React.Component<
       quantity: this.props.data.data.quantity.toString()
     };
   }
+  async componentDidMount() {
+    let {
+      family,
+      subFamily,
+      subFamilies,
+      element,
+      elements,
+      models
+    } = this.state;
+    if (family != null) {
+      subFamilies = await SubFamiliesProvider.getSubFamilies(family.id);
+    }
+    if (subFamily != null) {
+      elements = await ElementsProvider.getElements(subFamily.id);
+    }
+    if (element != null) {
+      models = await ModelsProvider.getModels(element.id);
+    }
+    this.setState({ subFamilies, elements, models });
+  }
   onDataChange() {
     if (this.state.model == null) return;
     this.props.onChange(this.props.data.sequentialNo, {
