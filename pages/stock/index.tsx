@@ -46,7 +46,7 @@ const RowStock: NextPage<{
   serialNumber: number;
   onDelete: (id: number) => void;
 }> = ({ data, serialNumber, onDelete }) => (
-  <tr>
+  <tr className="text-center">
     <td>
       {data.status == "Pendiente" && (
         <Button
@@ -67,14 +67,12 @@ const RowStock: NextPage<{
         </Button>
       )}
     </td>
-    <td className="text-center">{serialNumber}</td>
+    <td>{serialNumber}</td>
     <td>{data.provider.name}</td>
-    <td>{data.code}</td>
+    <td>{data.id}</td>
     <td>{data.warehouse.name}</td>
-    <td className="text-center">
-      {moment(new Date(data.createdAt)).format("L")}
-    </td>
-    <td className="text-center">{data.status}</td>
+    <td>{moment(new Date(data.createdAt)).format("L")}</td>
+    <td>{data.status}</td>
     <td>
       {data.status == Constants.Status.Atendido && (
         <Button color="info" style={{ width: "100%" }}>
@@ -88,9 +86,7 @@ const RowStock: NextPage<{
       )}
     </td>
     <td>{data.responsible}</td>
-    <td className="text-center">
-      {data.attentionDate ? new Date(data.attentionDate) : data.status}
-    </td>
+    <td>{data.attentionDate ? new Date(data.attentionDate) : data.status}</td>
   </tr>
 );
 class Stock extends React.Component<
@@ -229,7 +225,7 @@ class Stock extends React.Component<
           <thead className="thead-dark">
             <tr>
               <th scope="col" className="text-center">
-                Mtto
+                Movimiento
               </th>
               <th scope="col" className="text-center">
                 Item
