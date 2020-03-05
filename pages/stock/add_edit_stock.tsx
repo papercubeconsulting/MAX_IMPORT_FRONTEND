@@ -37,6 +37,9 @@ import ProvidersProvider, { Provider } from "../../providers/ProvidersProvider";
 import StockProvider from "../../providers/StockProvider";
 import { withRouter, NextRouter } from "next/router";
 import Router from "next/router";
+import moment from "moment";
+import ModalTemplate from "../../components/ModalTemplate";
+import ErrorTemplate from "../../components/ErrorTemplate";
 
 type RowData = {
   family: SelectItem | null;
@@ -254,8 +257,10 @@ class Stock extends React.Component<
     warehouses: Warehouse[];
     provider: SelectItem | null;
     providers: Provider[];
+    code: string;
     isConfirmOpen: boolean;
     isSuccessOpen: boolean;
+    errorMessages: string[] | null;
   }
 > {
   defaultRowData(): RowData {
@@ -284,10 +289,12 @@ class Stock extends React.Component<
       families: [],
       provider: null,
       providers: [],
+      code: "",
       warehouse: null,
       warehouses: [],
       isConfirmOpen: false,
-      isSuccessOpen: false
+      isSuccessOpen: false,
+      errorMessages: null
     };
   }
   async loadData(id: number) {
@@ -296,6 +303,8 @@ class Stock extends React.Component<
       id,
       provider: { id: response.provider.id, name: response.provider.name },
       warehouse: { id: response.warehouse.id, name: response.warehouse.name },
+      code: response.code,
+      startDate: moment(response.createdAt).toDate(),
       data: response.suppliedProducts.map((x, idx) => {
         return {
           id: x.id,
@@ -362,38 +371,42 @@ class Stock extends React.Component<
     this.setState({ data: newData });
   }
   async confirmEditCreate() {
+    let errors = [];
     if (this.state.provider == null) {
-      alert("Ingresar proveedor");
-      return;
+      errors.push("Ingresar proveedor");
     }
     if (this.state.warehouse == null) {
-      alert("Ingresar almacén");
-      return;
+      errors.push("Ingresar almacén");
     }
     if (this.state.data.length == 0) {
-      alert("Ingresar por lo menos un producto");
-      return;
+      errors.push("Ingresar por lo menos un producto");
     }
     for (let i = 0; i < this.state.data.length; ++i) {
       let row = this.state.data[i];
-      if (row.data.quantity * row.data.unicaja == 0) {
-        alert(
-          "Cada fila debe tener por lo menos una caja y una unidad por caja"
+      if (
+        row.data.modelId == null ||
+        row.data.unicaja < 0 ||
+        row.data.quantity < 0
+      ) {
+        errors.push(
+          "Cada fila debe tener un producto seleccionado, una unidad por caja y al menos una caja"
         );
-        return;
-      }
-      if (row.data.modelId == null) {
-        alert("Cada fila debe tener un modelo elegido");
-        return;
       }
     }
-    this.setState({ isConfirmOpen: true });
+    if (errors.length) {
+      this.setState({
+        errorMessages: errors
+      });
+    } else {
+      this.setState({ isConfirmOpen: true });
+    }
   }
   async editCreate() {
     let newStock = await StockProvider.addEditStock(this.state.id, {
       providerId: (this.state.provider as SelectItem).id,
       warehouseId: (this.state.warehouse as SelectItem).id,
       observations: "",
+      code: this.state.code,
       suppliedProducts: this.state.data.map(x => {
         return {
           productId: x.data.modelId as number,
@@ -419,23 +432,29 @@ class Stock extends React.Component<
     let currentAction = this.state.id == null ? "Crear" : "Modificar";
     return (
       <>
-        <Modal
+        {this.state.errorMessages != null && (
+          <ErrorTemplate
+            title="Datos inválidos"
+            close={() => this.setState({ errorMessages: null })}
+          >
+            <ul>
+              {this.state.errorMessages.map(x => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </ErrorTemplate>
+        )}
+        <ModalTemplate
+          title="Confirmar"
           isOpen={this.state.isConfirmOpen}
-          toggle={this.toggleConfirm.bind(this)}
+          close={this.toggleConfirm.bind(this)}
+          positive={this.editCreate.bind(this)}
+          negative={this.toggleConfirm.bind(this)}
+          positiveText="Sí"
+          negativeText="No"
         >
-          <ModalHeader toggle={this.toggleConfirm.bind(this)}>
-            Confirmar
-          </ModalHeader>
-          <ModalBody>¿Está seguro de que desea guardar sus cambios?</ModalBody>
-          <ModalFooter>
-            <Button color="primary" onClick={this.editCreate.bind(this)}>
-              Sí
-            </Button>{" "}
-            <Button color="secondary" onClick={this.toggleConfirm.bind(this)}>
-              No
-            </Button>
-          </ModalFooter>
-        </Modal>
+          ¿Está seguro de que desea guardar sus cambios?
+        </ModalTemplate>
         <Breadcrumb tag="nav" listTag="div">
           <BreadcrumbItem tag="a" href="/">
             Menu
@@ -449,7 +468,7 @@ class Stock extends React.Component<
         </Breadcrumb>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
-            <div className="col-sm-4">
+            <div className="col-sm-3">
               <FieldGroup
                 label="Proveedor"
                 icon="user"
@@ -463,7 +482,7 @@ class Stock extends React.Component<
                 }}
               />
             </div>
-            <div className="col-sm-4">
+            <div className="col-sm-3">
               <FieldGroup
                 label="Almacén"
                 icon="user"
@@ -477,7 +496,18 @@ class Stock extends React.Component<
                 }}
               />
             </div>
-            <div className="col-sm-4">
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Cód. Carga"
+                icon="user"
+                fieldConfig={{
+                  value: this.state.code,
+                  type: "text",
+                  onChange: code => this.setState({ code })
+                }}
+              />
+            </div>
+            <div className="col-sm-3">
               <FieldGroup
                 label="Fecha"
                 icon="calendar-alt"

@@ -59,6 +59,7 @@ export type CreateStockRequest = {
   providerId: number;
   warehouseId: number;
   observations: string;
+  code: string;
   suppliedProducts: {
     productId: number;
     boxSize: number;

@@ -9,6 +9,7 @@ import DropdownList, { SelectItem, SelectItemCallback } from "./DropdownList";
 registerLocale("es", es);
 setDefaultLocale("es");
 type DateCallback = (date: Date) => void;
+type TextCallback = (str: string) => void;
 type DropdownConfig = {
   data: SelectItem[];
   value: SelectItem | null;
@@ -22,7 +23,7 @@ const FieldGroup: NextPage<{
     | {
         value: string;
         type: "text";
-        onChange?(text: string): void;
+        onChange?: TextCallback;
       }
     | {
         value: Date;
@@ -56,6 +57,9 @@ const FieldGroup: NextPage<{
           defaultValue={value as string}
           style={{ minWidth: 100 }}
           readOnly={onChange === undefined}
+          onChange={e => {
+            onChange && (onChange as TextCallback)(e.target.value);
+          }}
         />
       )}
       {type == "dropdown" && (
