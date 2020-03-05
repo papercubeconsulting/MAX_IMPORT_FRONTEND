@@ -5,20 +5,27 @@ class ErrorTemplate extends React.Component<
   {
     close: () => void;
     title: string;
+    errorMessages: string[] | null;
   },
   {}
 > {
   render() {
     return (
-      <ModalTemplate
-        title={this.props.title}
-        isOpen={true}
-        close={this.props.close}
-        positive={this.props.close}
-        positiveText="Ok"
-      >
-        {this.props.children}
-      </ModalTemplate>
+      this.props.errorMessages != null && (
+        <ModalTemplate
+          title={this.props.title}
+          isOpen={this.props.errorMessages != null}
+          close={this.props.close}
+          positive={this.props.close}
+          positiveText="Ok"
+        >
+          <ul>
+            {this.props.errorMessages.map(x => (
+              <li>{x}</li>
+            ))}
+          </ul>
+        </ModalTemplate>
+      )
     );
   }
 }

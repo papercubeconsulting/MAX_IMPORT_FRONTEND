@@ -435,14 +435,9 @@ class Stock extends React.Component<
         {this.state.errorMessages != null && (
           <ErrorTemplate
             title="Datos inválidos"
+            errorMessages={this.state.errorMessages}
             close={() => this.setState({ errorMessages: null })}
-          >
-            <ul>
-              {this.state.errorMessages.map(x => (
-                <li>{x}</li>
-              ))}
-            </ul>
-          </ErrorTemplate>
+          />
         )}
         <ModalTemplate
           title="Confirmar"
