@@ -432,13 +432,11 @@ class Stock extends React.Component<
     let currentAction = this.state.id == null ? "Crear" : "Modificar";
     return (
       <>
-        {this.state.errorMessages != null && (
-          <ErrorTemplate
-            title="Datos inválidos"
-            errorMessages={this.state.errorMessages}
-            close={() => this.setState({ errorMessages: null })}
-          />
-        )}
+        <ErrorTemplate
+          title="Datos inválidos"
+          errorMessages={this.state.errorMessages}
+          close={() => this.setState({ errorMessages: null })}
+        />
         <ModalTemplate
           title="Confirmar"
           isOpen={this.state.isConfirmOpen}
