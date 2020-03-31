@@ -58,7 +58,7 @@ function Ticket({
           <div>
             <span style={{ fontSize: 25 }}>
               <span style={{ fontWeight: "bold" }}>Modelo</span>:{" "}
-              {productDetail.modelId}
+              {productDetail.modelName}
             </span>
           </div>
           <div>
