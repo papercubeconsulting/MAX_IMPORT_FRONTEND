@@ -125,13 +125,11 @@ Page.getInitialProps = async ({ res, query }) => {
     </div>
   );
   if (res == null) return;
-  // prompt to download pdf
-  res.setHeader("Content-disposition", 'attachment; filename="article.pdf');
-
-  // set content type
+  res.setHeader(
+    "Content-disposition",
+    `attachment; filename="tickets-ABAST${id}-PRODUC${suppliedProductId}.pdf"`
+  );
   res.setHeader("Content-Type", "application/pdf");
-
-  // output the pdf buffer
   res.end(buffer);
 };
 
