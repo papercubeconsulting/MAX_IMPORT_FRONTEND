@@ -22,6 +22,10 @@ export type Product = {
   elementId: number;
   modelId: number;
 };
+export type SuppliedProduct = {
+  indexFromSupliedProduct: number;
+  trackingCode: string;
+};
 export type ProductSupply = {
   id: number;
   quantity: number;
@@ -31,6 +35,7 @@ export type ProductSupply = {
   supplyId: number;
   productId: number;
   product: Product;
+  productBoxes: SuppliedProduct[];
 };
 export type StockElement = {
   id: number;
@@ -105,6 +110,25 @@ class StockProvider extends GenericProvider {
   static async deleteStock(id: number, status: ElementState): Promise<boolean> {
     let response = await this.httpPut(`/supplies/${id}/status`, { status });
     return response.status != 404;
+  }
+  static async attendStock(id: number): Promise<boolean> {
+    let response = await this.httpPut(`/supplies/${id}/status`, {
+      status: "Atendido"
+    });
+    return response.status < 400;
+  }
+  static async attendStockProduct(
+    supplyId: number,
+    suppliedProductId: number,
+    boxes: number[]
+  ): Promise<boolean> {
+    let response = await this.httpPost(
+      `/supplies/${supplyId}/attend/${suppliedProductId}`,
+      {
+        boxes
+      }
+    );
+    return response.status < 400;
   }
 }
 export default StockProvider;

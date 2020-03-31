@@ -80,9 +80,13 @@ const RowStock: NextPage<{
         </Button>
       )}
       {data.status == Constants.Status.Pendiente && (
-        <Button color="success" style={{ width: "100%" }}>
+        <Link
+          href={`/stock/attend_stock?id=${data.id}`}
+          color="success"
+          style={{ width: "100%" }}
+        >
           <FontAwesomeIcon icon="check" /> Atender
-        </Button>
+        </Link>
       )}
     </td>
     <td>{data.responsible}</td>
