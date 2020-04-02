@@ -11,7 +11,7 @@ COPY . .
 
 # Building app
 RUN npm run build
-
+COPY . .
 #rebuild
 
 ENV PORT 8080
