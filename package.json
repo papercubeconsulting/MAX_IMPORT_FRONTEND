@@ -26,7 +26,7 @@
     "html-pdf": "^2.2.0",
     "isomorphic-unfetch": "^3.0.0",
     "moment": "^2.24.0",
-    "next": "^9.2.1",
+    "next": "^9.3.2",
     "phantomjs-prebuilt": "^2.1.16",
     "react": "^16.12.0",
     "react-barcode": "^1.4.0",
