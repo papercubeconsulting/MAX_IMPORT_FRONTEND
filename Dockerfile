@@ -7,5 +7,9 @@ COPY . .
 ENV PORT 8080
 EXPOSE 8080
 RUN npm run build
-COPY . .
+
+
+COPY --from=builder /app/.next /app/.next
+
+
 CMD ["npm", "run", "start"]
