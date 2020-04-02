@@ -1,5 +1,6 @@
 FROM node:10
 
+#data
 WORKDIR '/app'
 COPY ./package.json ./
 RUN npm install
