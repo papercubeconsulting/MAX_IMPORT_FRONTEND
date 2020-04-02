@@ -1,15 +1,15 @@
-FROM node:9.4.0-alpine as builder
+FROM node:10
 
 WORKDIR '/app'
 COPY ./package.json ./
 RUN npm install
 COPY . .
+
 ENV PORT 8080
 EXPOSE 8080
+
+# Building app
 RUN npm run build
 
-
-COPY --from=builder /app/.next /app/.next
-
-
-CMD ["npm", "run", "start"]
+# Running the app
+CMD [ "npm", "run","start" ]
