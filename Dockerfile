@@ -9,7 +9,7 @@ COPY . .
 
 # Building app
 RUN npm run build
-
+#rebuild
 
 ENV PORT 8080
 EXPOSE 8080
