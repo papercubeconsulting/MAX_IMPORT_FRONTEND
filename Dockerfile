@@ -19,4 +19,4 @@ EXPOSE 8080
 
 #data
 # Running the app
-# CMD [ "npm", "run","start" ]
+CMD [ "npm", "run","start" ]
