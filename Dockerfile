@@ -10,7 +10,7 @@ COPY . .
 
 
 # Building app
-RUN npm run build
+#RUN npm run build
 # COPY . .
 #rebuild
 
@@ -19,4 +19,4 @@ EXPOSE 8080
 
 
 # Running the app
-# CMD [ "npm", "run","start" ]
+CMD [ "npm", "run","start" ]
