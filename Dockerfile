@@ -10,13 +10,13 @@ COPY . .
 
 
 # Building app
-#RUN npm run build
+RUN npm run build
 # COPY . .
 #rebuild
 
 ENV PORT 8080
 EXPOSE 8080
 
-
+#data
 # Running the app
-CMD [ "npm", "run","start" ]
+# CMD [ "npm", "run","start" ]
