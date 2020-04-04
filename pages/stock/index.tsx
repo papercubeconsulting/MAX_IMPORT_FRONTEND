@@ -94,7 +94,7 @@ const RowStock: NextPage<{
       )}
     </td>
     <td>Luis Rivera</td>
-    <td>{data.attentionDate ? new Date(data.attentionDate) : data.status}</td>
+    <td>{data.attentionDate ? moment(new Date(data.attentionDate)).format("L") : data.status}</td>
   </tr>
 );
 class Stock extends React.Component<
