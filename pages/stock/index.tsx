@@ -93,7 +93,7 @@ const RowStock: NextPage<{
         </Link>
       )}
     </td>
-    <td>{data.responsible}</td>
+    <td>Luis Rivera</td>
     <td>{data.attentionDate ? new Date(data.attentionDate) : data.status}</td>
   </tr>
 );
