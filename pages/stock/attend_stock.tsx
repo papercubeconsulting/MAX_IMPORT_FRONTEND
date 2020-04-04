@@ -11,7 +11,7 @@ import {
   BreadcrumbItem,
   Container,
   Row,
-  Col
+  Col,
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -20,17 +20,17 @@ import {
   faCheck,
   faCalendarAlt,
   faUser,
-  faPlusCircle
+  faPlusCircle,
 } from "@fortawesome/free-solid-svg-icons";
 library.add(faTrashAlt, faCheck, faCalendarAlt, faUser, faPlusCircle);
 
 import FieldGroup from "../../components/FieldGroup";
 import FamiliesProvider, { Family } from "../../providers/FamiliesProvider";
 import SubFamiliesProvider, {
-  SubFamily
+  SubFamily,
 } from "../../providers/SubFamiliesProvider";
 import ElementsProvider, {
-  SubFamilyElement
+  SubFamilyElement,
 } from "../../providers/ElementsProvider";
 import ModelsProvider, { ElementModel } from "../../providers/ModelsProvider";
 import DropdownList, { SelectItem } from "../../components/DropdownList";
@@ -45,6 +45,8 @@ import ModalTemplate from "../../components/ModalTemplate";
 import ErrorTemplate from "../../components/ErrorTemplate";
 // @ts-ignore
 import Barcode from "react-barcode";
+import { faPrint } from "@fortawesome/free-solid-svg-icons";
+library.add(faPrint);
 
 type RowData = {
   family: SelectItem | null;
@@ -91,7 +93,7 @@ class StockRow extends React.Component<
       model: this.props.data.data.model,
       models: [],
       unicaja: this.props.data.data.unicaja.toString(),
-      quantity: this.props.data.data.quantity.toString()
+      quantity: this.props.data.data.quantity.toString(),
     };
   }
   render() {
@@ -155,7 +157,7 @@ class StockRow extends React.Component<
             color="success"
             style={{ marginRight: 0, marginLeft: 4 }}
           >
-            QR
+            <FontAwesomeIcon icon="print" />
           </Button>
         </td>
       </tr>
@@ -183,6 +185,7 @@ class Stock extends React.Component<
     suppliedProducts: SuppliedProduct[];
     supplyQuantity: number;
     trackingCode: string;
+    readonly: boolean;
   }
 > {
   defaultRowData(): RowData {
@@ -194,7 +197,7 @@ class Stock extends React.Component<
       modelId: null,
       unicaja: 0,
       quantity: 0,
-      productBoxes: []
+      productBoxes: [],
     };
   }
   constructor(props: any) {
@@ -205,8 +208,8 @@ class Stock extends React.Component<
         {
           id: 0,
           sequentialNo: 0,
-          data: this.defaultRowData()
-        }
+          data: this.defaultRowData(),
+        },
       ],
       startDate: new Date(),
       families: [],
@@ -223,7 +226,8 @@ class Stock extends React.Component<
       boxRange: "",
       suppliedProducts: [],
       supplyQuantity: 0,
-      trackingCode: ""
+      trackingCode: "",
+      readonly: true,
     };
   }
   async loadData(id: number) {
@@ -242,32 +246,37 @@ class Stock extends React.Component<
             family: { id: x.product.familyId, name: x.product.familyName },
             subFamily: {
               id: x.product.subfamilyId,
-              name: x.product.subfamilyName
+              name: x.product.subfamilyName,
             },
             element: { id: x.product.elementId, name: x.product.elementName },
             model: { id: x.product.modelId, name: x.product.modelName },
             modelId: x.product.modelId,
             unicaja: x.boxSize,
             quantity: x.quantity,
-            productBoxes: x.productBoxes
-          }
+            productBoxes: x.productBoxes,
+          },
         };
-      })
+      }),
     });
     return response.suppliedProducts;
   }
   getId() {
     return new URLSearchParams(location.search).get("id");
   }
+  getReadonly() {
+    return new URLSearchParams(location.search).get("readonly") === "true";
+  }
   async componentDidMount() {
     let id = this.getId();
+    let readonly = this.getReadonly();
     if (id != null) {
       await this.loadData(parseInt(id));
     }
     this.setState({
       families: await FamiliesProvider.getFamilies(),
       warehouses: await WarehouseProvider.getWarehouses(),
-      providers: await ProvidersProvider.getProviders()
+      providers: await ProvidersProvider.getProviders(),
+      readonly,
     });
   }
   addRow() {
@@ -277,7 +286,7 @@ class Stock extends React.Component<
     data.push({
       id: lastId + 1,
       sequentialNo: lastSeqNo + 1,
-      data: this.defaultRowData()
+      data: this.defaultRowData(),
     });
     this.setState({ data: data });
   }
@@ -291,7 +300,7 @@ class Stock extends React.Component<
       supplyQuantity,
       isQRDialogOpen: true,
       suppliedProducts,
-      boxRange: `1-${supplyQuantity}`
+      boxRange: `1-${supplyQuantity}`,
     });
   }
   confirmAttend() {
@@ -303,7 +312,7 @@ class Stock extends React.Component<
     if (!result) {
       this.setState({
         errorMessages: ["Falta completar la atención de todas las cajas"],
-        isConfirmOpen: false
+        isConfirmOpen: false,
       });
     } else {
       this.setState({ isConfirmOpen: false, isSuccessOpen: true }, () =>
@@ -316,7 +325,7 @@ class Stock extends React.Component<
   }
   async attendBoxes() {
     let { boxRange } = this.state;
-    let ranges = boxRange.split(";");
+    let ranges = boxRange.split(",");
     let mustScanRaw = [];
     for (let i = 0; i < ranges.length; ++i) {
       let limits = ranges[i].split("-");
@@ -330,11 +339,13 @@ class Stock extends React.Component<
     for (let i = 0; i < mustScanRaw.length; ++i) {
       if (mustScanRaw[i] !== undefined) mustScan.push(i);
     }
-    let result = await StockProvider.attendStockProduct(
-      this.state.id as number,
-      this.state.supplyId,
-      mustScan
-    );
+    let result =
+      this.state.readonly ||
+      (await StockProvider.attendStockProduct(
+        this.state.id as number,
+        this.state.supplyId,
+        mustScan
+      ));
     let url = `/stock/tickets?id=${this.state.id}&suppliedProductId=${this.state.supplyId}`;
     for (let i = 0; i < mustScan.length; ++i) {
       url += `&box=${mustScan[i]}`;
@@ -357,7 +368,7 @@ class Stock extends React.Component<
     for (let i = 0; i < this.state.supplyQuantity; ++i) {
       supplyButtonArray.push({
         indexFromSupliedProduct: i + 1,
-        trackingCode: ""
+        trackingCode: "",
       });
     }
     for (let i = 0; i < this.state.suppliedProducts.length; ++i) {
@@ -388,11 +399,11 @@ class Stock extends React.Component<
               this.setState({ boxRange: value })
             }
             value={this.state.boxRange}
-            placeholder="1-5;6;7-9;"
+            placeholder="1-5,6,7-9"
           />
           <Container style={{ padding: 15 }}>
             <Row xs="6">
-              {supplyButtonArray.map(x => (
+              {supplyButtonArray.map((x) => (
                 <Col key={x.indexFromSupliedProduct} style={{ padding: 0 }}>
                   <Button
                     onClick={() =>
@@ -401,7 +412,7 @@ class Stock extends React.Component<
                     color={x.trackingCode.length == 0 ? "warning" : "success"}
                     style={{
                       width: "100%",
-                      margin: 0
+                      margin: 0,
                     }}
                   >
                     {x.indexFromSupliedProduct}
@@ -448,11 +459,11 @@ class Stock extends React.Component<
                 icon="user"
                 fieldConfig={{
                   value: this.state.provider,
-                  data: this.state.providers.map(x => {
+                  data: this.state.providers.map((x) => {
                     return { id: x.id, name: x.name };
                   }),
                   type: "dropdown",
-                  onChange: provider => this.setState({ provider })
+                  onChange: (provider) => this.setState({ provider }),
                 }}
               />
             </div>
@@ -462,11 +473,11 @@ class Stock extends React.Component<
                 icon="user"
                 fieldConfig={{
                   value: this.state.warehouse,
-                  data: this.state.warehouses.map(x => {
+                  data: this.state.warehouses.map((x) => {
                     return { id: x.id, name: x.name };
                   }),
                   type: "dropdown",
-                  onChange: warehouse => this.setState({ warehouse })
+                  onChange: (warehouse) => this.setState({ warehouse }),
                 }}
               />
             </div>
@@ -476,7 +487,7 @@ class Stock extends React.Component<
                 icon="user"
                 fieldConfig={{
                   value: this.state.code,
-                  type: "text"
+                  type: "text",
                 }}
               />
             </div>
@@ -486,7 +497,7 @@ class Stock extends React.Component<
                 icon="calendar-alt"
                 fieldConfig={{
                   value: startDate,
-                  type: "date"
+                  type: "date",
                 }}
               />
             </div>
@@ -519,7 +530,7 @@ class Stock extends React.Component<
             </tr>
           </thead>
           <tbody>
-            {data.map(row => (
+            {data.map((row) => (
               <StockRow
                 families={this.state.families}
                 key={row.id}
@@ -540,17 +551,19 @@ class Stock extends React.Component<
           </tbody>
         </table>
         <div className="d-flex justify-content-center align-items-center">
-          <div className="col-sm-6">
-            <Button
-              onClick={this.confirmAttend.bind(this)}
-              color="success"
-              style={{
-                width: "100%"
-              }}
-            >
-              {currentAction}
-            </Button>
-          </div>
+          {!this.state.readonly && (
+            <div className="col-sm-6">
+              <Button
+                onClick={this.confirmAttend.bind(this)}
+                color="success"
+                style={{
+                  width: "100%",
+                }}
+              >
+                {currentAction}
+              </Button>
+            </div>
+          )}
         </div>
         <Alert
           color="success"
@@ -561,7 +574,7 @@ class Stock extends React.Component<
             left: 0,
             right: 0,
             bottom: 0,
-            marginBottom: 0
+            marginBottom: 0,
           }}
         >
           Cambios guardados exitosamente

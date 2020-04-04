@@ -9,7 +9,7 @@ import {
   ModalFooter,
   ModalBody,
   Breadcrumb,
-  BreadcrumbItem
+  BreadcrumbItem,
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -22,7 +22,7 @@ import {
   faEye,
   faCheck,
   faCalendarAlt,
-  faUser
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
   faEdit,
@@ -75,9 +75,13 @@ const RowStock: NextPage<{
     <td>{data.status}</td>
     <td>
       {data.status == Constants.Status.Atendido && (
-        <Button color="info" style={{ width: "100%" }}>
+        <Link
+          href={`/stock/attend_stock?id=${data.id}&readonly=true`}
+          color="info"
+          style={{ width: "100%" }}
+        >
           <FontAwesomeIcon icon="eye" /> Ver
-        </Button>
+        </Link>
       )}
       {data.status == Constants.Status.Pendiente && (
         <Link
@@ -108,13 +112,11 @@ class Stock extends React.Component<
     super(props);
     this.state = {
       data: [],
-      startDate: moment()
-        .subtract(7, "days")
-        .toDate(),
+      startDate: moment().subtract(7, "days").toDate(),
       endDate: new Date(),
       page: 1,
       maxPage: 1,
-      pendingDeletionId: null
+      pendingDeletionId: null,
     };
   }
   async loadData(page: number, startDate: Date, endDate: Date) {
@@ -124,7 +126,7 @@ class Stock extends React.Component<
       data: stockResponse.rows,
       maxPage: stockResponse.pages,
       startDate,
-      endDate
+      endDate,
     });
   }
   componentDidMount() {
@@ -193,12 +195,12 @@ class Stock extends React.Component<
                 fieldConfig={{
                   value: startDate,
                   type: "date",
-                  onChange: startDate =>
+                  onChange: (startDate) =>
                     this.loadData(
                       1,
                       startDate,
                       max([startDate, this.state.endDate])
-                    )
+                    ),
                 }}
               />
             </div>
@@ -209,12 +211,12 @@ class Stock extends React.Component<
                 fieldConfig={{
                   value: endDate,
                   type: "date",
-                  onChange: endDate =>
+                  onChange: (endDate) =>
                     this.loadData(
                       1,
                       min([this.state.startDate, endDate]),
                       endDate
-                    )
+                    ),
                 }}
               />
             </div>
@@ -275,7 +277,7 @@ class Stock extends React.Component<
           page={page}
           maxPage={maxPage}
           halfWidth={5}
-          onChange={page =>
+          onChange={(page) =>
             this.loadData(page, this.state.startDate, this.state.endDate)
           }
         />
