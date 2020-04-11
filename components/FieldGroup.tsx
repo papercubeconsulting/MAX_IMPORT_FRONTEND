@@ -18,7 +18,7 @@ type DropdownConfig = {
 };
 const FieldGroup: NextPage<{
   label: string;
-  icon: IconProp;
+  icon?: IconProp;
   fieldConfig:
     | {
         value: string;
@@ -37,7 +37,7 @@ const FieldGroup: NextPage<{
     <div className="input-group mb-3">
       <div className="input-group-prepend">
         <span className="input-group-text" id="basic-addon3">
-          <FontAwesomeIcon icon={icon} />
+          {icon && <FontAwesomeIcon icon={icon} />}
           <span style={{ marginLeft: 5 }}>{label}</span>
         </span>
       </div>
@@ -57,7 +57,7 @@ const FieldGroup: NextPage<{
           defaultValue={value as string}
           style={{ minWidth: 100 }}
           readOnly={onChange === undefined}
-          onChange={e => {
+          onChange={(e) => {
             onChange && (onChange as TextCallback)(e.target.value);
           }}
         />

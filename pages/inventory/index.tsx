@@ -211,8 +211,10 @@ class Inventory extends React.Component<
     let hasStock = "all";
     if (stock.id == 0) {
       hasStock = "all";
-    } else {
+    } else if (stock.id == 1) {
       hasStock = "yes";
+    } else if (stock.id == 2) {
+      hasStock = "no";
     }
     this.setState({ hasStock, stock }, this.reloadData.bind(this));
   }
@@ -253,13 +255,12 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Stock"
-                icon="user"
                 fieldConfig={{
                   value: this.state.stock,
                   data: [
                     { id: 0, name: "Todos" },
                     { id: 1, name: "Sí" },
-                    { id: 2, name: "No" },
+                    //{ id: 2, name: "No" },
                   ],
                   type: "dropdown",
                   onChange: this.changeStock.bind(this),
@@ -269,7 +270,6 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Código de inventario"
-                icon="user"
                 fieldConfig={{
                   value: this.state.code,
                   type: "text",
@@ -285,7 +285,6 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Familia"
-                icon="user"
                 fieldConfig={{
                   value: this.state.family,
                   data: this.state.families.map((x) => {
@@ -299,7 +298,6 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Sub-Familia"
-                icon="user"
                 fieldConfig={{
                   value: this.state.subFamily,
                   data: this.state.subFamilies.map((x) => {
@@ -313,7 +311,6 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Elemento"
-                icon="user"
                 fieldConfig={{
                   value: this.state.element,
                   data: this.state.elements.map((x) => {
@@ -327,7 +324,6 @@ class Inventory extends React.Component<
             <div className="col-sm-3">
               <FieldGroup
                 label="Modelo"
-                icon="user"
                 fieldConfig={{
                   value: this.state.model,
                   data: this.state.models.map((x) => {
