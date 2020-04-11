@@ -28,7 +28,7 @@ const Home: NextPage<{}> = ({}) => (
       <Link {...buttonProps} href="#">
         Admin Ventas
       </Link>
-      <Link {...buttonProps} href="#">
+      <Link {...buttonProps} href="./inventory">
         Inventario
       </Link>
       <Link {...buttonProps} href="./stock">
@@ -59,7 +59,7 @@ const Home: NextPage<{}> = ({}) => (
           flex: 1,
           display: "flex",
           justifyContent: "center",
-          flexDirection: "column"
+          flexDirection: "column",
         }}
       >
         <div
