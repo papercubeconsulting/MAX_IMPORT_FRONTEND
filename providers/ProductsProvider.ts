@@ -1,4 +1,8 @@
 import GenericProvider from "./GenericProvider";
+export type WarehouseStock = {
+  warehouseType: string;
+  stock: number;
+};
 export type Product = {
   id: number;
   familyName: string;
@@ -16,6 +20,7 @@ export type Product = {
   elementId: number;
   modelId: number;
   totalStock: number;
+  stockByWarehouseType: [WarehouseStock];
 };
 export type ProductResponse = Product[];
 

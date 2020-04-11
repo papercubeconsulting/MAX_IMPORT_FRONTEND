@@ -1,16 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { NextPage } from "next";
 import React from "react";
 import moment from "moment";
-import {
-  Button,
-  Modal,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  Breadcrumb,
-  BreadcrumbItem,
-} from "reactstrap";
+import { Button, Breadcrumb, BreadcrumbItem } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { withRouter, NextRouter } from "next/router";
@@ -35,9 +26,7 @@ library.add(
 );
 
 import FieldGroup from "../../components/FieldGroup";
-import { max, min } from "date-fns";
 import Pagination from "../../components/Pagination";
-import StockProvider, { StockElement } from "../../providers/StockProvider";
 import Link from "../../components/Link";
 import Constants from "../../config/Constants";
 import ProductsProvider, { Product } from "../../providers/ProductsProvider";
@@ -50,36 +39,44 @@ import ModelsProvider, { ElementModel } from "../../providers/ModelsProvider";
 import ElementsProvider, {
   SubFamilyElement,
 } from "../../providers/ElementsProvider";
-import DropdownList, { SelectItem } from "../../components/DropdownList";
+import { SelectItem } from "../../components/DropdownList";
 import SubFamiliesProvider, {
   SubFamily,
 } from "../../providers/SubFamiliesProvider";
 
-const RowStock: NextPage<{
-  data: Product;
-  serialNumber: number;
-}> = ({ data, serialNumber }) => (
-  <tr className="text-center">
-    <td>{data.code}</td>
-    <td>{data.familyName}</td>
-    <td>{data.subfamilyName}</td>
-    <td>{data.elementName}</td>
-    <td>{data.modelName}</td>
-    <td>{data.totalStock}</td>
-    <td>
-      <Link
-        href={`/stock/attend_stock?id=${data.id}&readonly=true`}
-        color="success"
-        style={{ width: "100%" }}
-      >
-        <FontAwesomeIcon icon="eye" /> Ver
-      </Link>
-    </td>
-    <td>{data.totalStock}</td>
-    <td>{0}</td>
-    <td>{0}</td>
-  </tr>
-);
+function RowStock({ data }: { data: Product; serialNumber: number }) {
+  let stockTienda =
+    data.stockByWarehouseType.filter((x) => x.warehouseType == "Tienda")[0]
+      ?.stock || 0;
+  let stockAlmacen =
+    data.stockByWarehouseType.filter((x) => x.warehouseType == "Almacén")[0]
+      ?.stock || 0;
+  let stockTecho =
+    data.stockByWarehouseType.filter((x) => x.warehouseType == "Averiado")[0]
+      ?.stock || 0;
+  return (
+    <tr className="text-center">
+      <td>{data.code}</td>
+      <td>{data.familyName}</td>
+      <td>{data.subfamilyName}</td>
+      <td>{data.elementName}</td>
+      <td>{data.modelName}</td>
+      <td>{data.totalStock}</td>
+      <td>
+        <Link
+          href={`/stock/attend_stock?id=${data.id}&readonly=true`}
+          color="success"
+          style={{ width: "100%" }}
+        >
+          <FontAwesomeIcon icon="eye" /> Ver
+        </Link>
+      </td>
+      <td>{stockTienda}</td>
+      <td>{stockAlmacen}</td>
+      <td>{stockTecho}</td>
+    </tr>
+  );
+}
 class Inventory extends React.Component<
   { router: NextRouter },
   {
@@ -223,7 +220,7 @@ class Inventory extends React.Component<
     this.setState({ code }, this.reloadData.bind(this));
   }
   render() {
-    let { data, startDate, endDate, page, maxPage } = this.state;
+    let { data, startDate, page, maxPage } = this.state;
     return (
       <>
         <Breadcrumb tag="nav" listTag="div">
