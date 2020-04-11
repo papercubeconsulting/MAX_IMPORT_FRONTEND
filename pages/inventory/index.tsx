@@ -86,8 +86,6 @@ class Inventory extends React.Component<
     page: number;
     maxPage: number;
     pendingDeletionId: number | null;
-    warehouses: Warehouse[];
-    providers: Provider[];
     families: Family[];
     subFamilies: SubFamily[];
     elements: SubFamilyElement[];
@@ -110,8 +108,6 @@ class Inventory extends React.Component<
       page: 1,
       maxPage: 1,
       pendingDeletionId: null,
-      warehouses: [],
-      providers: [],
       families: [],
       subFamilies: [],
       elements: [],
@@ -146,7 +142,6 @@ class Inventory extends React.Component<
       param.code = this.state.code;
     }
     let stockResponse = await ProductsProvider.getProducts(param);
-    console.log(stockResponse);
     this.setState({
       page,
       data: stockResponse,
@@ -154,8 +149,6 @@ class Inventory extends React.Component<
       startDate,
       endDate,
       families: await FamiliesProvider.getFamilies(),
-      warehouses: await WarehouseProvider.getWarehouses(),
-      providers: await ProvidersProvider.getProviders(),
       //models: await ModelsProvider.getModels(element.id),
     });
   }
