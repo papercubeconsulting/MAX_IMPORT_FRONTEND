@@ -141,14 +141,16 @@ class Inventory extends React.Component<
     if (this.state.code.length) {
       param.code = this.state.code;
     }
-    let stockResponse = await ProductsProvider.getProducts(param);
+    let { families } = this.state;
+    families =
+      families.length > 0 ? families : await FamiliesProvider.getFamilies();
     this.setState({
       page,
-      data: stockResponse,
+      data: await ProductsProvider.getProducts(param),
       maxPage: 10,
       startDate,
       endDate,
-      families: await FamiliesProvider.getFamilies(),
+      families,
       //models: await ModelsProvider.getModels(element.id),
     });
   }
