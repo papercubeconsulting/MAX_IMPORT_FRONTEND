@@ -22,8 +22,8 @@ const FieldGroup: NextPage<{
   fieldConfig:
     | {
         value: string;
-        type: "text";
-        onChange?: TextCallback;
+        type: "text" | "number";
+        onChange?: (x: string) => void;
       }
     | {
         value: Date;
@@ -50,9 +50,9 @@ const FieldGroup: NextPage<{
           readOnly={onChange === undefined}
         />
       )}
-      {type == "text" && (
+      {(type == "text" || type == "number") && (
         <input
-          type="text"
+          type={type}
           className="form-control"
           defaultValue={value as string}
           style={{ minWidth: 100 }}

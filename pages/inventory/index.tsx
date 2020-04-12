@@ -43,6 +43,7 @@ import { SelectItem } from "../../components/DropdownList";
 import SubFamiliesProvider, {
   SubFamily,
 } from "../../providers/SubFamiliesProvider";
+import ModalTemplate from "../../components/ModalTemplate";
 
 function RowStock({ data }: { data: Product; serialNumber: number }) {
   let stockTienda =
@@ -63,11 +64,7 @@ function RowStock({ data }: { data: Product; serialNumber: number }) {
       <td>{data.modelName}</td>
       <td>{data.totalStock}</td>
       <td>
-        <Link
-          href={`/stock/attend_stock?id=${data.id}&readonly=true`}
-          color="success"
-          style={{ width: "100%" }}
-        >
+        <Link href={"#"} color="success" style={{ width: "100%" }}>
           <FontAwesomeIcon icon="eye" /> Ver
         </Link>
       </td>
@@ -77,12 +74,181 @@ function RowStock({ data }: { data: Product; serialNumber: number }) {
     </tr>
   );
 }
+class AddProduct extends React.Component<
+  { isOpen: boolean; close: () => void; families: Family[] },
+  {
+    subFamilies: SubFamily[];
+    elements: SubFamilyElement[];
+    models: ElementModel[];
+    family: SelectItem | null;
+    subFamily: SelectItem | null;
+    element: SelectItem | null;
+    model: SelectItem | null;
+    compatibility: string;
+    price: number;
+  }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      subFamilies: [],
+      elements: [],
+      models: [],
+      family: null,
+      subFamily: null,
+      element: null,
+      model: null,
+      compatibility: "",
+      price: 0,
+    };
+  }
+  async changeFamily(family: SelectItem) {
+    let subFamilies = await SubFamiliesProvider.getSubFamilies(family.id);
+    this.setState({
+      family,
+      subFamily: null,
+      subFamilies,
+      element: null,
+      elements: [],
+      model: null,
+      models: [],
+    });
+  }
+  async changeSubFamily(subFamily: SelectItem) {
+    let elements = await ElementsProvider.getElements(subFamily.id);
+    this.setState({
+      subFamily,
+      element: null,
+      elements,
+      model: null,
+      models: [],
+    });
+  }
+  async changeElement(element: SelectItem) {
+    let models = await ModelsProvider.getModels(element.id);
+    this.setState({
+      element,
+      model: null,
+      models,
+    });
+  }
+  changeModel(model: SelectItem) {
+    this.setState({ model });
+  }
+  create() {
+    ProductsProvider.createProduct({
+      familyId: this.state.family?.id,
+      familyName: this.state.family?.name || "",
+      subfamilyId: this.state.family?.id,
+      subfamilyName: this.state.family?.name || "",
+      elementId: this.state.family?.id,
+      elementName: this.state.element?.name || "",
+      modelId: this.state.family?.id,
+      modelName: this.state.model?.name || "",
+      compatibility: this.state.compatibility,
+      suggestedPrice: this.state.price,
+    });
+  }
+  render() {
+    return (
+      <ModalTemplate
+        size="xl"
+        title="Nuevo ítem inventario"
+        isOpen={this.props.isOpen}
+        close={this.props.close.bind(this)}
+        positive={this.create.bind(this)}
+        negative={this.props.close.bind(this)}
+        positiveText="Crear"
+        negativeText="Cancelar"
+      >
+        <div className="container" style={{ maxWidth: "100%" }}>
+          <div className="row" style={{ alignItems: "center" }}>
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Familia"
+                fieldConfig={{
+                  value: this.state.family,
+                  data: this.props.families.map((x) => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: this.changeFamily.bind(this),
+                }}
+              />
+            </div>
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Sub-Familia"
+                fieldConfig={{
+                  value: this.state.subFamily,
+                  data: this.state.subFamilies.map((x) => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: this.changeSubFamily.bind(this),
+                }}
+              />
+            </div>
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Elemento"
+                fieldConfig={{
+                  value: this.state.element,
+                  data: this.state.elements.map((x) => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: this.changeElement.bind(this),
+                }}
+              />
+            </div>
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Modelo"
+                fieldConfig={{
+                  value: this.state.model,
+                  data: this.state.models.map((x) => {
+                    return { id: x.id, name: x.name };
+                  }),
+                  type: "dropdown",
+                  onChange: this.changeModel.bind(this),
+                }}
+              />
+            </div>
+          </div>
+          <div className="row" style={{ alignItems: "center" }}>
+            <div className="col-sm-3">
+              <FieldGroup
+                label="Precio"
+                fieldConfig={{
+                  value: this.state.price.toString(),
+                  type: "number",
+                  onChange: (price) =>
+                    this.setState({ price: parseFloat(price) }),
+                }}
+              />
+            </div>
+            <div className="col-sm-9">
+              <FieldGroup
+                label="Compatibilidad"
+                fieldConfig={{
+                  value: this.state.compatibility,
+                  type: "text",
+                  onChange: (compatibility) => this.setState({ compatibility }),
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </ModalTemplate>
+    );
+  }
+}
 class Inventory extends React.Component<
   { router: NextRouter },
   {
     data: Product[];
     startDate: Date;
-    endDate: Date;
     page: number;
     maxPage: number;
     pendingDeletionId: number | null;
@@ -97,6 +263,7 @@ class Inventory extends React.Component<
     stock: SelectItem | null;
     hasStock: string | null;
     code: string;
+    isAddingProduct: boolean;
   }
 > {
   constructor(props: any) {
@@ -104,7 +271,6 @@ class Inventory extends React.Component<
     this.state = {
       data: [],
       startDate: moment().subtract(7, "days").toDate(),
-      endDate: new Date(),
       page: 1,
       maxPage: 1,
       pendingDeletionId: null,
@@ -119,10 +285,11 @@ class Inventory extends React.Component<
       stock: null,
       hasStock: null,
       code: "",
+      isAddingProduct: false,
     };
   }
-  async loadData(page: number, startDate: Date, endDate: Date) {
-    let param: any = {};
+  async loadData(page: number, startDate: Date) {
+    let param: any = { page };
     if (this.state.family) {
       param.familyId = this.state.family.id;
     }
@@ -144,18 +311,18 @@ class Inventory extends React.Component<
     let { families } = this.state;
     families =
       families.length > 0 ? families : await FamiliesProvider.getFamilies();
+    let productsResponse = await ProductsProvider.getProducts(param);
     this.setState({
       page,
-      data: await ProductsProvider.getProducts(param),
-      maxPage: 10,
+      data: productsResponse.rows,
+      maxPage: productsResponse.pages,
       startDate,
-      endDate,
       families,
       //models: await ModelsProvider.getModels(element.id),
     });
   }
   reloadData() {
-    this.loadData(this.state.page, this.state.startDate, this.state.endDate);
+    this.loadData(this.state.page, this.state.startDate);
   }
   componentDidMount() {
     this.reloadData();
@@ -228,6 +395,11 @@ class Inventory extends React.Component<
             Inventory
           </BreadcrumbItem>
         </Breadcrumb>
+        <AddProduct
+          isOpen={this.state.isAddingProduct}
+          close={() => this.setState({ isAddingProduct: false })}
+          families={this.state.families}
+        />
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-3">
@@ -377,9 +549,7 @@ class Inventory extends React.Component<
           page={page}
           maxPage={maxPage}
           halfWidth={5}
-          onChange={(page) =>
-            this.loadData(page, this.state.startDate, this.state.endDate)
-          }
+          onChange={(page) => this.loadData(page, this.state.startDate)}
         />
         <div
           className="d-flex justify-content-center align-items-center"
@@ -388,7 +558,7 @@ class Inventory extends React.Component<
           <div className="col-sm-1" />
           <div className="col-sm-4">
             <Button
-              onClick={() => {}}
+              onClick={() => this.setState({ isAddingProduct: true })}
               color="success"
               style={{
                 width: "100%",

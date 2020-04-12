@@ -10,12 +10,17 @@ class ModalTemplate extends React.Component<
     negativeText?: string;
     positive: () => void;
     negative?: () => void;
+    size?: string;
   },
   {}
 > {
   render() {
     return (
-      <Modal isOpen={this.props.isOpen} toggle={this.props.close}>
+      <Modal
+        size={this.props.size}
+        isOpen={this.props.isOpen}
+        toggle={this.props.close}
+      >
         <ModalHeader toggle={this.props.close}>{this.props.title}</ModalHeader>
         <ModalBody>{this.props.children}</ModalBody>
         <ModalFooter>
