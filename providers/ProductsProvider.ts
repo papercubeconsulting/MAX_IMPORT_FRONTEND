@@ -47,9 +47,9 @@ class ProductsProvider extends GenericProvider {
     let response = await this.httpGet("/products", param || {});
     return response.data;
   }
-  static async createProduct(request: CreateProductRequest): Promise<Product> {
+  static async createProduct(request: CreateProductRequest): Promise<boolean> {
     let response = await this.httpPost("/products", request);
-    return response.data;
+    return response.status < 400;
   }
 }
 export default ProductsProvider;

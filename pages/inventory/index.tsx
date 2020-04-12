@@ -44,6 +44,7 @@ import SubFamiliesProvider, {
   SubFamily,
 } from "../../providers/SubFamiliesProvider";
 import ModalTemplate from "../../components/ModalTemplate";
+import ErrorTemplate from "../../components/ErrorTemplate";
 
 function RowStock({ data }: { data: Product; serialNumber: number }) {
   let stockTienda =
@@ -87,6 +88,7 @@ class AddProduct extends React.Component<
     compatibility: string;
     price: number;
     confirm: boolean;
+    errorMessages: string[] | null;
   }
 > {
   constructor(props: any) {
@@ -102,6 +104,7 @@ class AddProduct extends React.Component<
       compatibility: "",
       price: 0,
       confirm: false,
+      errorMessages: null,
     };
   }
   async changeFamily(family: SelectItem) {
@@ -141,19 +144,28 @@ class AddProduct extends React.Component<
     this.setState({ confirm: true });
   }
   async create() {
-    await ProductsProvider.createProduct({
-      familyId: this.state.family?.id,
-      familyName: this.state.family?.name || "",
-      subfamilyId: this.state.family?.id,
-      subfamilyName: this.state.family?.name || "",
-      elementId: this.state.family?.id,
-      elementName: this.state.element?.name || "",
-      modelId: this.state.family?.id,
-      modelName: this.state.model?.name || "",
-      compatibility: this.state.compatibility,
-      suggestedPrice: this.state.price,
-    });
-    this.close();
+    if (
+      await ProductsProvider.createProduct({
+        familyId: this.state.family?.id,
+        familyName: this.state.family?.name || "",
+        subfamilyId: this.state.family?.id,
+        subfamilyName: this.state.family?.name || "",
+        elementId: this.state.family?.id,
+        elementName: this.state.element?.name || "",
+        modelId: this.state.family?.id,
+        modelName: this.state.model?.name || "",
+        compatibility: this.state.compatibility,
+        suggestedPrice: this.state.price,
+      })
+    ) {
+      this.close();
+    } else {
+      this.setState({
+        errorMessages: [
+          "Hubo un error creando el inventario, por favor verifique los datos y vuelva a intentarlo",
+        ],
+      });
+    }
   }
   close() {
     this.setState({ confirm: false });
@@ -179,129 +191,146 @@ class AddProduct extends React.Component<
     );
   }
   render() {
-    return this.state.confirm ? (
-      <ModalTemplate
-        size="xl"
-        title="Nuevo ítem inventario"
-        isOpen={this.props.isOpen}
-        close={this.close.bind(this)}
-        positive={this.create.bind(this)}
-        negative={this.close.bind(this)}
-        positiveText="Crear"
-        negativeText="Cancelar"
-      >
-        <div className="container" style={{ maxWidth: "100%" }}>
-          <div
-            className="row"
-            style={{ alignItems: "center", textAlign: "center" }}
+    return (
+      <>
+        {!this.state.confirm && (
+          <ModalTemplate
+            size="xl"
+            title="Nuevo ítem inventario"
+            isOpen={this.props.isOpen}
+            close={this.close.bind(this)}
+            positive={this.confirmCreate.bind(this)}
+            negative={this.close.bind(this)}
+            positiveText="Crear"
+            negativeText="Cancelar"
           >
-            ¿Está seguro de que desea crear este ítem en el inventario?
-          </div>
-          <div className="row" style={{ paddingTop: 10 }}>
-            {this.category(this.state.family?.name)}
-            {this.category(this.state.subFamily?.name)}
-            {this.category(this.state.element?.name)}
-            {this.category(this.state.model?.name)}
-          </div>
-          <div className="row" style={{ paddingTop: 10, fontWeight: "bold" }}>
-            Precio: S/{this.state.price.toFixed(2)}
-          </div>
-          <div className="row" style={{ paddingTop: 10, fontWeight: "bold" }}>
-            Compatibilidad: {this.state.compatibility}
-          </div>
-        </div>
-      </ModalTemplate>
-    ) : (
-      <ModalTemplate
-        size="xl"
-        title="Nuevo ítem inventario"
-        isOpen={this.props.isOpen}
-        close={this.close.bind(this)}
-        positive={this.confirmCreate.bind(this)}
-        negative={this.close.bind(this)}
-        positiveText="Crear"
-        negativeText="Cancelar"
-      >
-        <div className="container" style={{ maxWidth: "100%" }}>
-          <div className="row" style={{ alignItems: "center" }}>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Familia"
-                fieldConfig={{
-                  value: this.state.family,
-                  data: this.props.families.map((x) => {
-                    return { id: x.id, name: x.name };
-                  }),
-                  type: "dropdown",
-                  onChange: this.changeFamily.bind(this),
-                }}
-              />
+            <div className="container" style={{ maxWidth: "100%" }}>
+              <div className="row" style={{ alignItems: "center" }}>
+                <div className="col-sm-3">
+                  <FieldGroup
+                    label="Familia"
+                    fieldConfig={{
+                      value: this.state.family,
+                      data: this.props.families.map((x) => {
+                        return { id: x.id, name: x.name };
+                      }),
+                      type: "dropdown",
+                      onChange: this.changeFamily.bind(this),
+                    }}
+                  />
+                </div>
+                <div className="col-sm-3">
+                  <FieldGroup
+                    label="Sub-Familia"
+                    fieldConfig={{
+                      value: this.state.subFamily,
+                      data: this.state.subFamilies.map((x) => {
+                        return { id: x.id, name: x.name };
+                      }),
+                      type: "dropdown",
+                      onChange: this.changeSubFamily.bind(this),
+                    }}
+                  />
+                </div>
+                <div className="col-sm-3">
+                  <FieldGroup
+                    label="Elemento"
+                    fieldConfig={{
+                      value: this.state.element,
+                      data: this.state.elements.map((x) => {
+                        return { id: x.id, name: x.name };
+                      }),
+                      type: "dropdown",
+                      onChange: this.changeElement.bind(this),
+                    }}
+                  />
+                </div>
+                <div className="col-sm-3">
+                  <FieldGroup
+                    label="Modelo"
+                    fieldConfig={{
+                      value: this.state.model,
+                      data: this.state.models.map((x) => {
+                        return { id: x.id, name: x.name };
+                      }),
+                      type: "dropdown",
+                      onChange: this.changeModel.bind(this),
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="row" style={{ alignItems: "center" }}>
+                <div className="col-sm-3">
+                  <FieldGroup
+                    label="Precio"
+                    fieldConfig={{
+                      value: this.state.price.toString(),
+                      type: "number",
+                      onChange: (price) =>
+                        this.setState({ price: parseFloat(price) }),
+                    }}
+                  />
+                </div>
+                <div className="col-sm-9">
+                  <FieldGroup
+                    label="Compatibilidad"
+                    fieldConfig={{
+                      value: this.state.compatibility,
+                      type: "text",
+                      onChange: (compatibility) =>
+                        this.setState({ compatibility }),
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Sub-Familia"
-                fieldConfig={{
-                  value: this.state.subFamily,
-                  data: this.state.subFamilies.map((x) => {
-                    return { id: x.id, name: x.name };
-                  }),
-                  type: "dropdown",
-                  onChange: this.changeSubFamily.bind(this),
-                }}
-              />
+          </ModalTemplate>
+        )}
+        {this.state.confirm && (
+          <ModalTemplate
+            size="xl"
+            title="Nuevo ítem inventario"
+            isOpen={this.props.isOpen}
+            close={() => this.setState({ confirm: false })}
+            positive={this.create.bind(this)}
+            negative={() => this.setState({ confirm: false })}
+            positiveText="Crear"
+            negativeText="Cancelar"
+          >
+            <div className="container" style={{ maxWidth: "100%" }}>
+              <div
+                className="row"
+                style={{ alignItems: "center", textAlign: "center" }}
+              >
+                ¿Está seguro de que desea crear este ítem en el inventario?
+              </div>
+              <div className="row" style={{ paddingTop: 10 }}>
+                {this.category(this.state.family?.name)}
+                {this.category(this.state.subFamily?.name)}
+                {this.category(this.state.element?.name)}
+                {this.category(this.state.model?.name)}
+              </div>
+              <div
+                className="row"
+                style={{ paddingTop: 10, fontWeight: "bold", fontSize: 18 }}
+              >
+                Precio: S/{this.state.price.toFixed(2)}
+              </div>
+              <div
+                className="row"
+                style={{ paddingTop: 10, fontWeight: "bold", fontSize: 18 }}
+              >
+                Compatibilidad: {this.state.compatibility}
+              </div>
             </div>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Elemento"
-                fieldConfig={{
-                  value: this.state.element,
-                  data: this.state.elements.map((x) => {
-                    return { id: x.id, name: x.name };
-                  }),
-                  type: "dropdown",
-                  onChange: this.changeElement.bind(this),
-                }}
-              />
-            </div>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Modelo"
-                fieldConfig={{
-                  value: this.state.model,
-                  data: this.state.models.map((x) => {
-                    return { id: x.id, name: x.name };
-                  }),
-                  type: "dropdown",
-                  onChange: this.changeModel.bind(this),
-                }}
-              />
-            </div>
-          </div>
-          <div className="row" style={{ alignItems: "center" }}>
-            <div className="col-sm-3">
-              <FieldGroup
-                label="Precio"
-                fieldConfig={{
-                  value: this.state.price.toString(),
-                  type: "number",
-                  onChange: (price) =>
-                    this.setState({ price: parseFloat(price) }),
-                }}
-              />
-            </div>
-            <div className="col-sm-9">
-              <FieldGroup
-                label="Compatibilidad"
-                fieldConfig={{
-                  value: this.state.compatibility,
-                  type: "text",
-                  onChange: (compatibility) => this.setState({ compatibility }),
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </ModalTemplate>
+          </ModalTemplate>
+        )}
+        <ErrorTemplate
+          title="Datos inválidos"
+          errorMessages={this.state.errorMessages}
+          close={() => this.setState({ errorMessages: null })}
+        />
+      </>
     );
   }
 }
