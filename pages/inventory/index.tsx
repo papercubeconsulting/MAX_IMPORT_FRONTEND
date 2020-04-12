@@ -86,6 +86,7 @@ class AddProduct extends React.Component<
     model: SelectItem | null;
     compatibility: string;
     price: number;
+    confirm: boolean;
   }
 > {
   constructor(props: any) {
@@ -100,6 +101,7 @@ class AddProduct extends React.Component<
       model: null,
       compatibility: "",
       price: 0,
+      confirm: false,
     };
   }
   async changeFamily(family: SelectItem) {
@@ -135,8 +137,11 @@ class AddProduct extends React.Component<
   changeModel(model: SelectItem) {
     this.setState({ model });
   }
-  create() {
-    ProductsProvider.createProduct({
+  async confirmCreate() {
+    this.setState({ confirm: true });
+  }
+  async create() {
+    await ProductsProvider.createProduct({
       familyId: this.state.family?.id,
       familyName: this.state.family?.name || "",
       subfamilyId: this.state.family?.id,
@@ -148,16 +153,72 @@ class AddProduct extends React.Component<
       compatibility: this.state.compatibility,
       suggestedPrice: this.state.price,
     });
+    this.close();
+  }
+  close() {
+    this.setState({ confirm: false });
+    this.props.close();
+  }
+  category(text: string | undefined) {
+    return (
+      <div className="col-sm-3">
+        <div
+          style={{
+            alignItems: "center",
+            textAlign: "center",
+            margin: 5,
+            padding: 10,
+            borderRadius: 5,
+            backgroundColor: "gray",
+            color: "white",
+          }}
+        >
+          {text}
+        </div>
+      </div>
+    );
   }
   render() {
-    return (
+    return this.state.confirm ? (
       <ModalTemplate
         size="xl"
         title="Nuevo ítem inventario"
         isOpen={this.props.isOpen}
-        close={this.props.close.bind(this)}
+        close={this.close.bind(this)}
         positive={this.create.bind(this)}
-        negative={this.props.close.bind(this)}
+        negative={this.close.bind(this)}
+        positiveText="Crear"
+        negativeText="Cancelar"
+      >
+        <div className="container" style={{ maxWidth: "100%" }}>
+          <div
+            className="row"
+            style={{ alignItems: "center", textAlign: "center" }}
+          >
+            ¿Está seguro de que desea crear este ítem en el inventario?
+          </div>
+          <div className="row" style={{ paddingTop: 10 }}>
+            {this.category(this.state.family?.name)}
+            {this.category(this.state.subFamily?.name)}
+            {this.category(this.state.element?.name)}
+            {this.category(this.state.model?.name)}
+          </div>
+          <div className="row" style={{ paddingTop: 10, fontWeight: "bold" }}>
+            Precio: S/{this.state.price.toFixed(2)}
+          </div>
+          <div className="row" style={{ paddingTop: 10, fontWeight: "bold" }}>
+            Compatibilidad: {this.state.compatibility}
+          </div>
+        </div>
+      </ModalTemplate>
+    ) : (
+      <ModalTemplate
+        size="xl"
+        title="Nuevo ítem inventario"
+        isOpen={this.props.isOpen}
+        close={this.close.bind(this)}
+        positive={this.confirmCreate.bind(this)}
+        negative={this.close.bind(this)}
         positiveText="Crear"
         negativeText="Cancelar"
       >
