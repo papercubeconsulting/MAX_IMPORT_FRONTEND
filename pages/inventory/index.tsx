@@ -135,6 +135,10 @@ class AddProduct extends React.Component<
     confirm: boolean;
     errorMessages: string[] | null;
     file: File | null;
+    familyName: string | null;
+    subFamilyName: string | null;
+    elementName: string | null;
+    modelName: string | null;
   }
 > {
   constructor(props: any) {
@@ -152,6 +156,10 @@ class AddProduct extends React.Component<
       confirm: false,
       errorMessages: null,
       file: null,
+      familyName: null,
+      subFamilyName: null,
+      elementName: null,
+      modelName: null,
     };
   }
   findFirst(arr: SelectItem[], text: string): SelectItem | null {
@@ -163,8 +171,8 @@ class AddProduct extends React.Component<
     }
     return item;
   }
-  async changeFamily(familyText: string) {
-    let family = this.findFirst(this.props.families, familyText);
+  async changeFamily(familyName: string) {
+    let family = this.findFirst(this.props.families, familyName);
     let subFamilies =
       family != null ? await SubFamiliesProvider.getSubFamilies(family.id) : [];
     this.setState({
@@ -175,10 +183,11 @@ class AddProduct extends React.Component<
       elements: [],
       model: null,
       models: [],
+      familyName,
     });
   }
-  async changeSubFamily(subFamilyText: string) {
-    let subFamily = this.findFirst(this.state.subFamilies, subFamilyText);
+  async changeSubFamily(subFamilyName: string) {
+    let subFamily = this.findFirst(this.state.subFamilies, subFamilyName);
     let elements =
       subFamily != null ? await ElementsProvider.getElements(subFamily.id) : [];
     this.setState({
@@ -187,21 +196,23 @@ class AddProduct extends React.Component<
       elements,
       model: null,
       models: [],
+      subFamilyName,
     });
   }
-  async changeElement(elementText: string) {
-    let element = this.findFirst(this.state.elements, elementText);
+  async changeElement(elementName: string) {
+    let element = this.findFirst(this.state.elements, elementName);
     let models =
       element != null ? await ModelsProvider.getModels(element.id) : [];
     this.setState({
       element,
       model: null,
       models,
+      elementName,
     });
   }
-  changeModel(modelText: string) {
-    let model = this.findFirst(this.state.models, modelText);
-    this.setState({ model });
+  changeModel(modelName: string) {
+    let model = this.findFirst(this.state.models, modelName);
+    this.setState({ model, modelName });
   }
 
   async confirmCreate() {
@@ -213,13 +224,13 @@ class AddProduct extends React.Component<
     if (
       await ProductsProvider.createProduct({
         familyId: this.state.family?.id,
-        familyName: this.state.family?.name || "",
+        familyName: this.state.familyName || "",
         subfamilyId: this.state.family?.id,
-        subfamilyName: this.state.family?.name || "",
+        subfamilyName: this.state.subFamilyName || "",
         elementId: this.state.family?.id,
-        elementName: this.state.element?.name || "",
+        elementName: this.state.elementName || "",
         modelId: this.state.family?.id,
-        modelName: this.state.model?.name || "",
+        modelName: this.state.modelName || "",
         compatibility: this.state.compatibility,
         suggestedPrice: this.state.price,
         imageBase64:
@@ -239,7 +250,7 @@ class AddProduct extends React.Component<
     this.setState({ confirm: false });
     this.props.close();
   }
-  category(text: string | undefined) {
+  category(text: string | null) {
     return (
       <div className="col-sm-3">
         <div
@@ -306,7 +317,7 @@ class AddProduct extends React.Component<
                 </div>
                 <div className="col-sm-3">
                   <Autocomplete
-                    label="Elemento"
+                    label="Modelo"
                     value={this.state.model}
                     values={this.state.models.map((x) => {
                       return x.name;
@@ -371,10 +382,10 @@ class AddProduct extends React.Component<
                 ¿Está seguro de que desea crear este ítem en el inventario?
               </div>
               <div className="row" style={{ paddingTop: 10 }}>
-                {this.category(this.state.family?.name)}
-                {this.category(this.state.subFamily?.name)}
-                {this.category(this.state.element?.name)}
-                {this.category(this.state.model?.name)}
+                {this.category(this.state.familyName)}
+                {this.category(this.state.subFamilyName)}
+                {this.category(this.state.elementName)}
+                {this.category(this.state.modelName)}
               </div>
               <div
                 className="row"
