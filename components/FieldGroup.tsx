@@ -10,6 +10,7 @@ registerLocale("es", es);
 setDefaultLocale("es");
 type DateCallback = (date: Date) => void;
 type TextCallback = (str: string) => void;
+type FileCallback = (FileList: FileList) => void;
 type DropdownConfig = {
   data: SelectItem[];
   value: SelectItem | null;
@@ -23,12 +24,17 @@ const FieldGroup: NextPage<{
     | {
         value: string;
         type: "text" | "number";
-        onChange?: (x: string) => void;
+        onChange?: TextCallback;
       }
     | {
         value: Date;
         type: "date";
         onChange?: DateCallback;
+      }
+    | {
+        value?: undefined;
+        type: "file";
+        onChange?: FileCallback;
       }
     | DropdownConfig;
 }> = ({ icon, label, fieldConfig }) => {
@@ -67,6 +73,18 @@ const FieldGroup: NextPage<{
           value={value as SelectItem}
           data={(fieldConfig as DropdownConfig).data as SelectItem[]}
           onChange={onChange as SelectItemCallback}
+        />
+      )}
+      {type == "file" && (
+        <input
+          type="file"
+          className="form-control"
+          defaultValue={value as string}
+          style={{ minWidth: 100 }}
+          readOnly={onChange === undefined}
+          onChange={(e) => {
+            onChange && (onChange as FileCallback)(e.target.files as FileList);
+          }}
         />
       )}
     </div>

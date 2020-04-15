@@ -1,6 +1,21 @@
 import GenericProvider from "./GenericProvider";
 export type WarehouseStock = {
+  warehouseId: number;
+  warehouseName: string;
   warehouseType: string;
+  stock: number;
+};
+export type WarehouseTypeStock = {
+  warehouseType: string;
+  stock: number;
+};
+export type WarehouseBoxSizeStock = {
+  warehouseId: number;
+  warehouseName: string;
+  warehouseType: string;
+  boxSize: number;
+  quantityBoxes: number;
+  completeBoxes: number;
   stock: number;
 };
 export type Product = {
@@ -20,7 +35,9 @@ export type Product = {
   elementId: number;
   modelId: number;
   totalStock: number;
-  stockByWarehouseType: [WarehouseStock];
+  stockByWarehouse: [WarehouseStock];
+  stockByWarehouseType: [WarehouseTypeStock];
+  stockByWarehouseAndBoxSize: [WarehouseBoxSizeStock];
 };
 export type ProductResponse = {
   count: number;
@@ -40,9 +57,14 @@ export type CreateProductRequest = {
   modelName: string;
   compatibility: string;
   suggestedPrice: number;
+  imageBase64: string;
 };
 
 class ProductsProvider extends GenericProvider {
+  static async getProduct(id: number): Promise<Product> {
+    let response = await this.httpGet(`/products/${id}`, {});
+    return response.data;
+  }
   static async getProducts(param: any | null): Promise<ProductResponse> {
     let response = await this.httpGet("/products", param || {});
     return response.data;

@@ -31,10 +31,6 @@ import Link from "../../components/Link";
 import Constants from "../../config/Constants";
 import ProductsProvider, { Product } from "../../providers/ProductsProvider";
 import FamiliesProvider, { Family } from "../../providers/FamiliesProvider";
-import WarehouseProvider, {
-  Warehouse,
-} from "../../providers/WarehouseProvider";
-import ProvidersProvider, { Provider } from "../../providers/ProvidersProvider";
 import ModelsProvider, { ElementModel } from "../../providers/ModelsProvider";
 import ElementsProvider, {
   SubFamilyElement,
@@ -45,7 +41,13 @@ import SubFamiliesProvider, {
 } from "../../providers/SubFamiliesProvider";
 import ModalTemplate from "../../components/ModalTemplate";
 import ErrorTemplate from "../../components/ErrorTemplate";
-
+const toBase64 = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = (error) => reject(error);
+  });
 function RowStock({ data }: { data: Product; serialNumber: number }) {
   let stockTienda =
     data.stockByWarehouseType.filter((x) => x.warehouseType == "Tienda")[0]
@@ -65,7 +67,11 @@ function RowStock({ data }: { data: Product; serialNumber: number }) {
       <td>{data.modelName}</td>
       <td>{data.totalStock}</td>
       <td>
-        <Link href={"#"} color="success" style={{ width: "100%" }}>
+        <Link
+          href={`/inventory/product?id=${data.id}`}
+          color="success"
+          style={{ width: "100%" }}
+        >
           <FontAwesomeIcon icon="eye" /> Ver
         </Link>
       </td>
@@ -89,6 +95,7 @@ class AddProduct extends React.Component<
     price: number;
     confirm: boolean;
     errorMessages: string[] | null;
+    file: File | null;
   }
 > {
   constructor(props: any) {
@@ -105,6 +112,7 @@ class AddProduct extends React.Component<
       price: 0,
       confirm: false,
       errorMessages: null,
+      file: null,
     };
   }
   async changeFamily(family: SelectItem) {
@@ -140,10 +148,13 @@ class AddProduct extends React.Component<
   changeModel(model: SelectItem) {
     this.setState({ model });
   }
+
   async confirmCreate() {
     this.setState({ confirm: true });
   }
   async create() {
+    let { file } = this.state;
+    if (file == null) return;
     if (
       await ProductsProvider.createProduct({
         familyId: this.state.family?.id,
@@ -156,6 +167,8 @@ class AddProduct extends React.Component<
         modelName: this.state.model?.name || "",
         compatibility: this.state.compatibility,
         suggestedPrice: this.state.price,
+        imageBase64:
+          this.state.file != null ? await toBase64(this.state.file) : "",
       })
     ) {
       this.close();
@@ -260,7 +273,7 @@ class AddProduct extends React.Component<
                 </div>
               </div>
               <div className="row" style={{ alignItems: "center" }}>
-                <div className="col-sm-3">
+                <div className="col-sm-4">
                   <FieldGroup
                     label="Precio"
                     fieldConfig={{
@@ -271,7 +284,7 @@ class AddProduct extends React.Component<
                     }}
                   />
                 </div>
-                <div className="col-sm-9">
+                <div className="col-sm-4">
                   <FieldGroup
                     label="Compatibilidad"
                     fieldConfig={{
@@ -279,6 +292,16 @@ class AddProduct extends React.Component<
                       type: "text",
                       onChange: (compatibility) =>
                         this.setState({ compatibility }),
+                    }}
+                  />
+                </div>
+                <div className="col-sm-4">
+                  <FieldGroup
+                    label="Imagen"
+                    fieldConfig={{
+                      type: "file",
+                      onChange: (list) =>
+                        list.length > 0 && this.setState({ file: list[0] }),
                     }}
                   />
                 </div>
