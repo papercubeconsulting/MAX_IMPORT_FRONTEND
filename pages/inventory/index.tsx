@@ -386,7 +386,13 @@ class AddProduct extends React.Component<
             <div className="container" style={{ maxWidth: "100%" }}>
               <div
                 className="row"
-                style={{ alignItems: "center", textAlign: "center" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  fontSize: 18,
+                }}
               >
                 ¿Está seguro de que desea crear este ítem en el inventario?
               </div>
