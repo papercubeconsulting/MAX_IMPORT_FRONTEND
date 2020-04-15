@@ -113,7 +113,7 @@ function Autocomplete({
             onChange(e.target.value);
           }}
           className={`form-control ${
-            valueName.length == 0
+            valueName.trim().length == 0
               ? "bg-danger text-white"
               : value == null
               ? "bg-warning text-secondary"
@@ -170,7 +170,7 @@ class AddProduct extends React.Component<
   findFirst(arr: SelectItem[], text: string): SelectItem | null {
     let item = null;
     for (let i = 0; i < this.props.families.length; ++i) {
-      if (arr[i].name == text) {
+      if (arr[i].name.trim() == text.trim()) {
         item = this.props.families[i];
       }
     }
@@ -229,13 +229,13 @@ class AddProduct extends React.Component<
     if (
       await ProductsProvider.createProduct({
         familyId: this.state.family?.id,
-        familyName: this.state.familyName || "",
+        familyName: this.state.familyName.trim(),
         subfamilyId: this.state.family?.id,
-        subfamilyName: this.state.subFamilyName || "",
+        subfamilyName: this.state.subFamilyName.trim(),
         elementId: this.state.family?.id,
-        elementName: this.state.elementName || "",
+        elementName: this.state.elementName.trim(),
         modelId: this.state.family?.id,
-        modelName: this.state.modelName || "",
+        modelName: this.state.modelName.trim(),
         compatibility: this.state.compatibility,
         suggestedPrice: this.state.price,
         imageBase64:
