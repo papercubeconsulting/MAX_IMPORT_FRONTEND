@@ -81,6 +81,45 @@ function RowStock({ data }: { data: Product; serialNumber: number }) {
     </tr>
   );
 }
+function Autocomplete({
+  label,
+  values,
+  onChange,
+  value,
+}: {
+  label: string;
+  values: string[];
+  onChange: (x: string) => void;
+  value: SelectItem | null;
+}) {
+  return (
+    <>
+      <datalist id={label}>
+        {values.map((x) => (
+          <option key={x} value={x}></option>
+        ))}
+      </datalist>
+      <div className="input-group mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text" id="basic-addon3">
+            <span style={{ marginLeft: 5 }}>{label}</span>
+          </span>
+        </div>
+        <input
+          onChange={(e) => {
+            onChange(e.target.value);
+          }}
+          className={`form-control ${
+            value == null
+              ? "bg-warning text-secondary"
+              : "bg-success text-white"
+          }`}
+          list={label}
+        ></input>
+      </div>
+    </>
+  );
+}
 class AddProduct extends React.Component<
   { isOpen: boolean; close: () => void; families: Family[] },
   {
@@ -115,8 +154,19 @@ class AddProduct extends React.Component<
       file: null,
     };
   }
-  async changeFamily(family: SelectItem) {
-    let subFamilies = await SubFamiliesProvider.getSubFamilies(family.id);
+  findFirst(arr: SelectItem[], text: string): SelectItem | null {
+    let item = null;
+    for (let i = 0; i < this.props.families.length; ++i) {
+      if (arr[i].name == text) {
+        item = this.props.families[i];
+      }
+    }
+    return item;
+  }
+  async changeFamily(familyText: string) {
+    let family = this.findFirst(this.props.families, familyText);
+    let subFamilies =
+      family != null ? await SubFamiliesProvider.getSubFamilies(family.id) : [];
     this.setState({
       family,
       subFamily: null,
@@ -127,8 +177,10 @@ class AddProduct extends React.Component<
       models: [],
     });
   }
-  async changeSubFamily(subFamily: SelectItem) {
-    let elements = await ElementsProvider.getElements(subFamily.id);
+  async changeSubFamily(subFamilyText: string) {
+    let subFamily = this.findFirst(this.state.subFamilies, subFamilyText);
+    let elements =
+      subFamily != null ? await ElementsProvider.getElements(subFamily.id) : [];
     this.setState({
       subFamily,
       element: null,
@@ -137,15 +189,18 @@ class AddProduct extends React.Component<
       models: [],
     });
   }
-  async changeElement(element: SelectItem) {
-    let models = await ModelsProvider.getModels(element.id);
+  async changeElement(elementText: string) {
+    let element = this.findFirst(this.state.elements, elementText);
+    let models =
+      element != null ? await ModelsProvider.getModels(element.id) : [];
     this.setState({
       element,
       model: null,
       models,
     });
   }
-  changeModel(model: SelectItem) {
+  changeModel(modelText: string) {
+    let model = this.findFirst(this.state.models, modelText);
     this.setState({ model });
   }
 
@@ -220,55 +275,43 @@ class AddProduct extends React.Component<
             <div className="container" style={{ maxWidth: "100%" }}>
               <div className="row" style={{ alignItems: "center" }}>
                 <div className="col-sm-3">
-                  <FieldGroup
+                  <Autocomplete
                     label="Familia"
-                    fieldConfig={{
-                      value: this.state.family,
-                      data: this.props.families.map((x) => {
-                        return { id: x.id, name: x.name };
-                      }),
-                      type: "dropdown",
-                      onChange: this.changeFamily.bind(this),
-                    }}
+                    value={this.state.family}
+                    values={this.props.families.map((x) => {
+                      return x.name;
+                    })}
+                    onChange={this.changeFamily.bind(this)}
                   />
                 </div>
                 <div className="col-sm-3">
-                  <FieldGroup
+                  <Autocomplete
                     label="Sub-Familia"
-                    fieldConfig={{
-                      value: this.state.subFamily,
-                      data: this.state.subFamilies.map((x) => {
-                        return { id: x.id, name: x.name };
-                      }),
-                      type: "dropdown",
-                      onChange: this.changeSubFamily.bind(this),
-                    }}
+                    value={this.state.subFamily}
+                    values={this.state.subFamilies.map((x) => {
+                      return x.name;
+                    })}
+                    onChange={this.changeSubFamily.bind(this)}
                   />
                 </div>
                 <div className="col-sm-3">
-                  <FieldGroup
+                  <Autocomplete
                     label="Elemento"
-                    fieldConfig={{
-                      value: this.state.element,
-                      data: this.state.elements.map((x) => {
-                        return { id: x.id, name: x.name };
-                      }),
-                      type: "dropdown",
-                      onChange: this.changeElement.bind(this),
-                    }}
+                    value={this.state.element}
+                    values={this.state.elements.map((x) => {
+                      return x.name;
+                    })}
+                    onChange={this.changeElement.bind(this)}
                   />
                 </div>
                 <div className="col-sm-3">
-                  <FieldGroup
-                    label="Modelo"
-                    fieldConfig={{
-                      value: this.state.model,
-                      data: this.state.models.map((x) => {
-                        return { id: x.id, name: x.name };
-                      }),
-                      type: "dropdown",
-                      onChange: this.changeModel.bind(this),
-                    }}
+                  <Autocomplete
+                    label="Elemento"
+                    value={this.state.model}
+                    values={this.state.models.map((x) => {
+                      return x.name;
+                    })}
+                    onChange={this.changeModel.bind(this)}
                   />
                 </div>
               </div>
