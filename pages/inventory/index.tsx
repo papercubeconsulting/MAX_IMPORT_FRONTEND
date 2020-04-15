@@ -112,12 +112,12 @@ function Autocomplete({
           onChange={(e) => {
             onChange(e.target.value);
           }}
-          className={`form-control ${
+          className={`form-control text-white ${
             valueName.trim().length == 0
-              ? "bg-danger text-white"
+              ? "bg-danger"
               : value == null
-              ? "bg-warning text-secondary"
-              : "bg-success text-white"
+              ? "bg-info"
+              : "bg-success "
           }`}
           list={label}
         ></input>
