@@ -176,10 +176,7 @@ class Inventory extends React.Component<
         </div>
         <div className="container" style={{ maxWidth: "100%" }}>
           <div className="row" style={{ alignItems: "center" }}>
-            <div
-              className={data?.imagePath != null ? "col-sm-6" : "col-sm-12"}
-              style={{ padding: 0 }}
-            >
+            <div className="col-sm-6" style={{ padding: 0 }}>
               <table className="table table-striped">
                 <thead className="thead-dark">
                   <tr>
@@ -201,26 +198,26 @@ class Inventory extends React.Component<
                 </tbody>
               </table>
             </div>
-            {data?.imagePath && (
-              <div
-                className={"col-sm-6"}
+            <div
+              className={"col-sm-6"}
+              style={{
+                padding: 0,
+                alignItems: "center",
+                justifyContent: "center",
+                display: "flex",
+                overflow: "hidden",
+              }}
+            >
+              <img
                 style={{
-                  padding: 0,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  display: "flex",
+                  flexShrink: 0,
+                  width: "70%",
+                  height: "70%",
+                  objectFit: "contain",
                 }}
-              >
-                <img
-                  style={{
-                    flexShrink: 0,
-                    minWidth: "80%",
-                    minHeight: "80%",
-                  }}
-                  src={data?.imagePath}
-                />
-              </div>
-            )}
+                src={data?.imagePath || "/static/imagen-no-disponible.png"}
+              />
+            </div>
           </div>
         </div>
         <div
