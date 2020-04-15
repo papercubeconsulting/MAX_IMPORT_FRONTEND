@@ -86,11 +86,13 @@ function Autocomplete({
   values,
   onChange,
   value,
+  valueName,
 }: {
   label: string;
   values: string[];
   onChange: (x: string) => void;
   value: SelectItem | null;
+  valueName: string | null;
 }) {
   return (
     <>
@@ -106,6 +108,7 @@ function Autocomplete({
           </span>
         </div>
         <input
+          value={valueName != null ? valueName : undefined}
           onChange={(e) => {
             onChange(e.target.value);
           }}
@@ -289,6 +292,7 @@ class AddProduct extends React.Component<
                   <Autocomplete
                     label="Familia"
                     value={this.state.family}
+                    valueName={this.state.familyName}
                     values={this.props.families.map((x) => {
                       return x.name;
                     })}
@@ -299,6 +303,7 @@ class AddProduct extends React.Component<
                   <Autocomplete
                     label="Sub-Familia"
                     value={this.state.subFamily}
+                    valueName={this.state.subFamilyName}
                     values={this.state.subFamilies.map((x) => {
                       return x.name;
                     })}
@@ -309,6 +314,7 @@ class AddProduct extends React.Component<
                   <Autocomplete
                     label="Elemento"
                     value={this.state.element}
+                    valueName={this.state.elementName}
                     values={this.state.elements.map((x) => {
                       return x.name;
                     })}
@@ -319,6 +325,7 @@ class AddProduct extends React.Component<
                   <Autocomplete
                     label="Modelo"
                     value={this.state.model}
+                    valueName={this.state.modelName}
                     values={this.state.models.map((x) => {
                       return x.name;
                     })}
