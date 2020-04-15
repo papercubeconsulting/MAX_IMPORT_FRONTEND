@@ -1,27 +1,10 @@
-import Constants, {
-  ElementState,
-  Pendiente,
-  Atendido
-} from "../config/Constants";
+import Constants, { ElementState } from "../config/Constants";
 import GenericProvider from "./GenericProvider";
 import moment from "moment";
 import { Warehouse } from "./WarehouseProvider";
 import { Provider } from "./ProvidersProvider";
-export type Product = {
-  id: number;
-  familyName: string;
-  subfamilyName: string;
-  elementName: string;
-  modelName: string;
-  code: null;
-  compatibility: string;
-  imagePath: null;
-  suggestedPrice: number;
-  familyId: number;
-  subfamilyId: number;
-  elementId: number;
-  modelId: number;
-};
+import { Product } from "./ProductsProvider";
+
 export type SuppliedProduct = {
   indexFromSupliedProduct: number;
   trackingCode: string;
@@ -87,7 +70,7 @@ class StockProvider extends GenericProvider {
       page: page,
       pageSize: Constants.PageSize,
       from: moment(startDate).format(Constants.ApiDateFormat),
-      to: moment(endDate).format(Constants.ApiDateFormat)
+      to: moment(endDate).format(Constants.ApiDateFormat),
     });
     return response.data;
   }
@@ -113,7 +96,7 @@ class StockProvider extends GenericProvider {
   }
   static async attendStock(id: number): Promise<boolean> {
     let response = await this.httpPut(`/supplies/${id}/status`, {
-      status: "Atendido"
+      status: "Atendido",
     });
     return response.status < 400;
   }
@@ -125,7 +108,7 @@ class StockProvider extends GenericProvider {
     let response = await this.httpPost(
       `/supplies/${supplyId}/attend/${suppliedProductId}`,
       {
-        boxes
+        boxes,
       }
     );
     return response.status < 400;

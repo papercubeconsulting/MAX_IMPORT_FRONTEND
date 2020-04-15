@@ -2,32 +2,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
 import moment from "moment";
 import { Breadcrumb, BreadcrumbItem } from "reactstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
 import { withRouter, NextRouter } from "next/router";
 moment.locale("es");
-import {
-  faEdit,
-  faSearch,
-  faTrashAlt,
-  faEye,
-  faCheck,
-  faCalendarAlt,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
-library.add(
-  faEdit,
-  faTrashAlt,
-  faSearch,
-  faEye,
-  faCheck,
-  faCalendarAlt,
-  faUser
-);
 
-import Pagination from "../../components/Pagination";
-import Link from "../../components/Link";
-import Constants from "../../config/Constants";
 import ProductsProvider, { Product } from "../../providers/ProductsProvider";
 import FieldGroup from "../../components/FieldGroup";
 class Inventory extends React.Component<
@@ -64,6 +41,16 @@ class Inventory extends React.Component<
   }
   render() {
     let { data } = this.state;
+    let stockTienda =
+      data?.stockByWarehouseType?.filter((x) => x.warehouseType == "Tienda")[0]
+        ?.stock || 0;
+    let stockAlmacen =
+      data?.stockByWarehouseType?.filter((x) => x.warehouseType == "Almacén")[0]
+        ?.stock || 0;
+    let stockTecho =
+      data?.stockByWarehouseType?.filter(
+        (x) => x.warehouseType == "Averiado"
+      )[0]?.stock || 0;
     return (
       <>
         <Breadcrumb tag="nav" listTag="div">
@@ -127,7 +114,7 @@ class Inventory extends React.Component<
               <FieldGroup
                 label="Disponibilidad Venta"
                 fieldConfig={{
-                  value: data?.code?.toString() || "",
+                  value: stockTienda.toString() || "",
                   type: "text",
                 }}
               />
@@ -136,7 +123,7 @@ class Inventory extends React.Component<
               <FieldGroup
                 label="Disponibilidad Almacén"
                 fieldConfig={{
-                  value: data?.code?.toString() || "",
+                  value: stockAlmacen.toString() || "",
                   type: "text",
                 }}
               />
@@ -145,7 +132,7 @@ class Inventory extends React.Component<
               <FieldGroup
                 label="Disponibilidad Averiado"
                 fieldConfig={{
-                  value: data?.code?.toString() || "",
+                  value: stockTecho.toString() || "",
                   type: "text",
                 }}
               />
@@ -190,7 +177,7 @@ class Inventory extends React.Component<
                 </thead>
                 <tbody>
                   {data?.stockByWarehouse.map((x, idx) => (
-                    <tr className="text-center">
+                    <tr key={idx} className="text-center">
                       <td>{x.warehouseName}</td>
                       <td>{x.stock}</td>
                     </tr>
@@ -256,7 +243,7 @@ class Inventory extends React.Component<
           </thead>
           <tbody>
             {data?.stockByWarehouseAndBoxSize.map((x, idx) => (
-              <tr className="text-center">
+              <tr key={idx} className="text-center">
                 <td>{idx + 1}</td>
                 <td>{x.warehouseName}</td>
                 <td>{x.quantityBoxes}</td>

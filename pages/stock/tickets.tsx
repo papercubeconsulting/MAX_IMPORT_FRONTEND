@@ -5,14 +5,14 @@ import React from "react";
 import codes from "rescode";
 import StockProvider, {
   ProductSupply,
-  Product,
-  SuppliedProduct
+  SuppliedProduct,
 } from "../../providers/StockProvider";
+import { Product } from "../../providers/ProductsProvider";
 codes.loadModules(["code128", "gs1-128"], {
   includetext: true,
   scaleX: 4,
   scaleY: 3,
-  textyoffset: 10
+  textyoffset: 10,
 });
 const Page: NextPage<{}> = ({}) => <main>Your user agent</main>;
 function Ticket({
@@ -21,7 +21,7 @@ function Ticket({
   box,
   isFirst,
   isEven,
-  isLast
+  isLast,
 }: {
   productDetail: Product;
   boxSize: number;
@@ -78,7 +78,7 @@ function Ticket({
         <div
           style={{
             borderBottom: "2px dashed",
-            width: "100%"
+            width: "100%",
           }}
         ></div>
       )}
@@ -90,7 +90,7 @@ Page.getInitialProps = async ({ res, query }) => {
   let suppliedProductId = parseInt(query["suppliedProductId"] as string);
   let indexQuery = query["box"] || [];
   if (!(indexQuery instanceof Array)) indexQuery = [indexQuery];
-  let indexes = indexQuery.map(x => parseInt(x)).sort();
+  let indexes = indexQuery.map((x) => parseInt(x)).sort();
   let indexMap: { [key: string]: boolean } = {};
   for (let i = 0; i < indexes.length; ++i) {
     indexMap[indexes[i]] = true;
