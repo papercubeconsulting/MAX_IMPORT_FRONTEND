@@ -92,7 +92,7 @@ function Autocomplete({
   values: string[];
   onChange: (x: string) => void;
   value: SelectItem | null;
-  valueName: string | null;
+  valueName: string;
 }) {
   return (
     <>
@@ -108,12 +108,14 @@ function Autocomplete({
           </span>
         </div>
         <input
-          value={valueName != null ? valueName : undefined}
+          value={valueName}
           onChange={(e) => {
             onChange(e.target.value);
           }}
           className={`form-control ${
-            value == null
+            valueName.length == 0
+              ? "bg-danger text-white"
+              : value == null
               ? "bg-warning text-secondary"
               : "bg-success text-white"
           }`}
@@ -138,10 +140,10 @@ class AddProduct extends React.Component<
     confirm: boolean;
     errorMessages: string[] | null;
     file: File | null;
-    familyName: string | null;
-    subFamilyName: string | null;
-    elementName: string | null;
-    modelName: string | null;
+    familyName: string;
+    subFamilyName: string;
+    elementName: string;
+    modelName: string;
   }
 > {
   constructor(props: any) {
@@ -159,10 +161,10 @@ class AddProduct extends React.Component<
       confirm: false,
       errorMessages: null,
       file: null,
-      familyName: null,
-      subFamilyName: null,
-      elementName: null,
-      modelName: null,
+      familyName: "",
+      subFamilyName: "",
+      elementName: "",
+      modelName: "",
     };
   }
   findFirst(arr: SelectItem[], text: string): SelectItem | null {
