@@ -215,7 +215,7 @@ class Inventory extends React.Component<
                   height: "70%",
                   objectFit: "contain",
                 }}
-                src={data?.imagePath || "/static/imagen-no-disponible.png"}
+                src={data?.imageBase64 || "/static/imagen-no-disponible.png"}
               />
             </div>
           </div>

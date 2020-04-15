@@ -26,7 +26,7 @@ export type Product = {
   modelName: string;
   code: number;
   compatibility: string;
-  imagePath: string | null;
+  imageBase64: string | null;
   suggestedPrice: number;
   createdAt: string;
   updatedAt: string;

@@ -45,7 +45,7 @@ const toBase64 = (file: File) =>
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = (error) => reject(error);
   });
 function RowStock({ data }: { data: Product; serialNumber: number }) {
@@ -169,9 +169,9 @@ class AddProduct extends React.Component<
   }
   findFirst(arr: SelectItem[], text: string): SelectItem | null {
     let item = null;
-    for (let i = 0; i < this.props.families.length; ++i) {
+    for (let i = 0; i < arr.length; ++i) {
       if (arr[i].name.trim() == text.trim()) {
-        item = this.props.families[i];
+        item = arr[i];
       }
     }
     return item;
@@ -192,6 +192,7 @@ class AddProduct extends React.Component<
     });
   }
   async changeSubFamily(subFamilyName: string) {
+    console.log(this.state.subFamilies, subFamilyName);
     let subFamily = this.findFirst(this.state.subFamilies, subFamilyName);
     let elements =
       subFamily != null ? await ElementsProvider.getElements(subFamily.id) : [];
@@ -230,11 +231,11 @@ class AddProduct extends React.Component<
       await ProductsProvider.createProduct({
         familyId: this.state.family?.id,
         familyName: this.state.familyName.trim(),
-        subfamilyId: this.state.family?.id,
+        subfamilyId: this.state.subFamily?.id,
         subfamilyName: this.state.subFamilyName.trim(),
-        elementId: this.state.family?.id,
+        elementId: this.state.element?.id,
         elementName: this.state.elementName.trim(),
-        modelId: this.state.family?.id,
+        modelId: this.state.model?.id,
         modelName: this.state.modelName.trim(),
         compatibility: this.state.compatibility,
         suggestedPrice: this.state.price,
