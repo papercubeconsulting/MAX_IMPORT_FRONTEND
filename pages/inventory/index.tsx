@@ -339,7 +339,7 @@ class AddProduct extends React.Component<
               <div className="row" style={{ alignItems: "center" }}>
                 <div className="col-sm-4">
                   <FieldGroup
-                    label="Precio"
+                    label="Precio S/"
                     fieldConfig={{
                       value: this.state.price.toString(),
                       type: "number",
@@ -370,13 +370,36 @@ class AddProduct extends React.Component<
                   />
                 </div>
               </div>
+              <div className="row" style={{alignItems:"left", padding:"15"}}>
+                    <div style={{width:"100", height:"30",backgroundColor:"#dc3546" , display:"flex" , alignItems:"center" , justifyContent:"center"}}>
+                        <p style={{color:"white", textAlign:"center",alignItems:"center" , justifyContent:"center"}}>No Seleccionado</p>
+                    </div>
+                    <div style={{width:"100", minWidth:"100",backgroundColor:"white" , marginRight:"-15"}}>
+                    <p style={{color:"white", textAlign:"center"}}>Nuevo</p>
+                    </div>
+                    <div style={{width:"100",backgroundColor:"#28a746", marginRight:"10"}}>
+                        <p  style={{color:"white"}}>Existente</p>
+                    </div>
+                    <div style={{width:"100", minWidth:"100",backgroundColor:"white" , marginRight:"-15"}}>
+                    <p style={{color:"white", textAlign:"center"}}>Nuevo</p>
+                    </div>
+                    <div style={{width:"100", minWidth:"100",backgroundColor:"#17a3b8", marginRight:"10"}}>
+                        <p style={{color:"white"}}>Nuevo</p>
+                    </div>
+              </div>
+              <div className="row" style={{alignItems:"left"}}>
+                
+              </div>
+              <div className="row" style={{alignItems:"left"}}>
+                
+              </div>
             </div>
           </ModalTemplate>
         )}
         {this.state.confirm && (
           <ModalTemplate
             size="xl"
-            title="Nuevo ítem inventario"
+            title="¿Está seguro de que desea crear este ítem en el inventario?"
             isOpen={this.props.isOpen}
             close={() => this.setState({ confirm: false })}
             positive={this.create.bind(this)}
@@ -385,7 +408,7 @@ class AddProduct extends React.Component<
             negativeText="Cancelar"
           >
             <div className="container" style={{ maxWidth: "100%" }}>
-              <div
+              {/* <div
                 className="row"
                 style={{
                   display: "flex",
@@ -396,7 +419,7 @@ class AddProduct extends React.Component<
                 }}
               >
                 ¿Está seguro de que desea crear este ítem en el inventario?
-              </div>
+              </div> */}
               <div className="row" style={{ paddingTop: 10 }}>
                 {this.category(this.state.familyName)}
                 {this.category(this.state.subFamilyName)}
@@ -558,7 +581,7 @@ class Inventory extends React.Component<
       hasStock = "all";
     } else if (stock.id == 1) {
       hasStock = "yes";
-    } else if (stock.id == 2) {
+    } else if (stock.id == 0) {
       hasStock = "no";
     }
     this.setState({ hasStock, stock }, this.reloadData.bind(this));
@@ -610,7 +633,7 @@ class Inventory extends React.Component<
                   data: [
                     { id: 0, name: "Todos" },
                     { id: 1, name: "Sí" },
-                    //{ id: 2, name: "No" },
+                    { id: 2, name: "No" }
                   ],
                   type: "dropdown",
                   onChange: this.changeStock.bind(this),
@@ -704,8 +727,11 @@ class Inventory extends React.Component<
               <th scope="col" className="text-center">
                 Modelo
               </th>
-              <th scope="col" colSpan={2} className="text-center">
+              <th scope="col" className="text-center">
                 Stock
+              </th>
+              <th scope="col"  className="text-center">
+                
               </th>
               <th scope="col" className="text-center">
                 En tiendas
