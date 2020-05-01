@@ -13,6 +13,7 @@ class Inventory extends React.Component<
     data: Product | null;
     page: number;
     maxPage: number;
+    isOpen:boolean;
   }
 > {
   constructor(props: any) {
@@ -21,6 +22,7 @@ class Inventory extends React.Component<
       data: null,
       page: 1,
       maxPage: 1,
+      isOpen:false,
     };
   }
   getId() {
@@ -39,6 +41,11 @@ class Inventory extends React.Component<
   componentDidMount() {
     this.reloadData();
   }
+  handleShowDialog = () => {
+    this.setState({ isOpen: !this.state.isOpen });
+    console.log("cliked");
+  };
+
   render() {
     let { data } = this.state;
     let stockTienda =
@@ -51,6 +58,7 @@ class Inventory extends React.Component<
       data?.stockByWarehouseType?.filter(
         (x) => x.warehouseType == "Averiado"
       )[0]?.stock || 0;
+    
     return (
       <>
         <Breadcrumb tag="nav" listTag="div">
@@ -58,10 +66,12 @@ class Inventory extends React.Component<
             Menu
           </BreadcrumbItem>
           <BreadcrumbItem active tag="span">
-            Inventory
+            Inventario
           </BreadcrumbItem>
         </Breadcrumb>
+
         <div className="container" style={{ maxWidth: "100%" }}>
+     
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-3">
               <FieldGroup
@@ -112,23 +122,23 @@ class Inventory extends React.Component<
             </div>
             <div className="col-sm-3">
               <FieldGroup
-                label="Disponibilidad Venta"
+                label="Disponibles"
                 fieldConfig={{
-                  value: stockTienda.toString() || "",
+                  value: (stockTienda +stockAlmacen).toString() || "",
                   type: "text",
                 }}
               />
             </div>
             <div className="col-sm-3">
               <FieldGroup
-                label="Disponibilidad Almacén"
+                label="Averiados"
                 fieldConfig={{
-                  value: stockAlmacen.toString() || "",
+                  value: stockTecho.toString() || "",
                   type: "text",
                 }}
               />
             </div>
-            <div className="col-sm-3">
+            {/* <div className="col-sm-3">
               <FieldGroup
                 label="Disponibilidad Averiado"
                 fieldConfig={{
@@ -136,7 +146,7 @@ class Inventory extends React.Component<
                   type: "text",
                 }}
               />
-            </div>
+            </div> */}
           </div>
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-12">
@@ -201,12 +211,30 @@ class Inventory extends React.Component<
                   width: "70%",
                   height: "70%",
                   objectFit: "contain",
+                 
                 }}
+                onClick={this.handleShowDialog}
                 src={data?.imageBase64 || "/static/imagen-no-disponible.png"}
               />
+                {this.state.isOpen && (
+                  <dialog
+                    className="dialog"
+                    style={{ position: "absolute" }}
+                    open
+                    onClick={this.handleShowDialog}
+                  >
+                    <img
+                      className="image"
+                      src={data?.imageBase64 || "/static/imagen-no-disponible.png"}
+                      onClick={this.handleShowDialog}
+                      alt="no image"
+                    />
+                  </dialog>
+                )}
             </div>
           </div>
         </div>
+    
         <div
           className="col-sm-12"
           style={{
@@ -258,4 +286,6 @@ class Inventory extends React.Component<
     );
   }
 }
+
+
 export default withRouter(Inventory);

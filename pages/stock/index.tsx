@@ -176,7 +176,7 @@ class Stock extends React.Component<
             Menu
           </BreadcrumbItem>
           <BreadcrumbItem active tag="span">
-            Stock
+            Abastecimiento
           </BreadcrumbItem>
         </Breadcrumb>
         <div className="container" style={{ maxWidth: "100%" }}>

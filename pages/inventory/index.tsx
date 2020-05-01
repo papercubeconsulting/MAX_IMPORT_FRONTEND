@@ -370,20 +370,20 @@ class AddProduct extends React.Component<
                   />
                 </div>
               </div>
-              <div className="row" style={{alignItems:"left", padding:"15"}}>
-                    <div style={{width:"100", height:"30",backgroundColor:"#dc3546" , display:"flex" , alignItems:"center" , justifyContent:"center"}}>
-                        <p style={{color:"white", textAlign:"center",alignItems:"center" , justifyContent:"center"}}>No Seleccionado</p>
+              <div className="row" style={{alignItems:"left", padding:"15", justifyContent:"flex-start"}}>
+                    <div style={{width:"100",backgroundColor:"#dc3546" , display:"flex" , alignItems:"center" , justifyContent:"center", marginLeft: '15px',padding:'5px' , }}>
+                        <p style={{color:"white", textAlign:"center",alignItems:"center" , justifyContent:"center" , display:"flex"}}>No Seleccionado</p>
                     </div>
                     <div style={{width:"100", minWidth:"100",backgroundColor:"white" , marginRight:"-15"}}>
                     <p style={{color:"white", textAlign:"center"}}>Nuevo</p>
                     </div>
-                    <div style={{width:"100",backgroundColor:"#28a746", marginRight:"10"}}>
+                    <div style={{width:"100",backgroundColor:"#28a746", marginRight:"10",padding:'5px' }}>
                         <p  style={{color:"white"}}>Existente</p>
                     </div>
                     <div style={{width:"100", minWidth:"100",backgroundColor:"white" , marginRight:"-15"}}>
                     <p style={{color:"white", textAlign:"center"}}>Nuevo</p>
                     </div>
-                    <div style={{width:"100", minWidth:"100",backgroundColor:"#17a3b8", marginRight:"10"}}>
+                    <div style={{width:"100", minWidth:"100",backgroundColor:"#17a3b8", marginRight:"10",padding:'5px' }}>
                         <p style={{color:"white"}}>Nuevo</p>
                     </div>
               </div>
@@ -598,7 +598,7 @@ class Inventory extends React.Component<
             Menu
           </BreadcrumbItem>
           <BreadcrumbItem active tag="span">
-            Inventory
+            Inventario
           </BreadcrumbItem>
         </Breadcrumb>
         <AddProduct
