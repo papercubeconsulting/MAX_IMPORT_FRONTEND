@@ -1,19 +1,101 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/router";
-import {Container, Grid, Icon, Select} from "../../components";
-import {Input, notification} from "antd";
-import {faCalendarAlt} from "@fortawesome/free-solid-svg-icons";
-import moment from "moment";
-import {clientDateFormat} from "../../util";
-import {getElements, getFamilies, getModels, getSubfamilies} from "../../providers";
+import {Container, Grid, Select} from "../../components";
+import {Input, notification, Table} from "antd";
+import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "../../providers";
+import {urlQueryParams} from "../../util";
+import {get} from "lodash";
 
 export default ({setPageTitle}) => {
+    let columns;
     setPageTitle("Inventario");
+
+    columns = [
+        {
+            title: "Cód. Inv.",
+            dataIndex: "id",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "Familia",
+            dataIndex: "familyName",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "Sub-Familia",
+            dataIndex: "subfamilyName",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "Elemento",
+            dataIndex: "elementName",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "Modelo",
+            dataIndex: "modelName",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "Stock",
+            dataIndex: "totalStock",
+            width: "fit-content",
+            align: "center"
+        },
+        {
+            title: "En Tienda",
+            dataIndex: "stockByWarehouseType",
+            width: "fit-content",
+            align: "center",
+            render: stockByWarehouseTypeArray => {
+                const _stock = stockByWarehouseTypeArray.find(stockByWarehouseType =>
+                    stockByWarehouseType.warehouseType === "Tienda"
+                );
+
+                return get(_stock, "stock", 0);
+            }
+        },
+        {
+            title: "En Almacén",
+            dataIndex: "stockByWarehouseType",
+            width: "fit-content",
+            align: "center",
+            render: stockByWarehouseTypeArray => {
+                const _stock = stockByWarehouseTypeArray.find(stockByWarehouseType =>
+                    stockByWarehouseType.warehouseType === "Almacén"
+                );
+
+                return get(_stock, "stock", 0);
+            }
+        },
+        {
+            title: "En Techo",
+            dataIndex: "stockByWarehouseType",
+            width: "fit-content",
+            align: "center",
+            render: stockByWarehouseTypeArray => {
+                const _stock = stockByWarehouseTypeArray.find(stockByWarehouseType =>
+                    stockByWarehouseType.warehouseType === "Averiado"
+                );
+
+                return get(_stock, "stock", 0);
+            }
+        }
+    ];
+
+    const [windowHeight, setWindowHeight] = useState(0);
+    const [pagination, setPagination] = useState(null);
 
     const [families, setFamilies] = useState([]);
     const [subfamilies, setSubfamilies] = useState([]);
     const [elements, setElements] = useState([]);
     const [models, setModels] = useState([]);
+    const [products, setProducts] = useState([]);
 
     const [page, setPage] = useState(null);
     const [stock, setStock] = useState(null);
@@ -22,17 +104,43 @@ export default ({setPageTitle}) => {
     const [subfamilyId, setSubfamilyId] = useState(null);
     const [elementId, setElementId] = useState(null);
     const [modelId, setModelId] = useState(null);
-    const [updatingParams, setUpdatingParams] = useState(false);
+
+    const stateUpdateOrigin = useRef("url");
 
     const router = useRouter();
     const queryParams = router.query;
 
     useEffect(() => {
-        !updatingParams && Object.keys(router.query).length && urlToState();
+        setWindowHeight(window.innerHeight);
+    }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const _products = await getProducts(queryParams);
+                setPagination({
+                    position: ["bottomCenter"],
+                    total: _products.count,
+                    current: _products.page,
+                    pageSize: _products.pageSize,
+                    showSizeChanger: false
+                });
+                setProducts(_products.rows);
+            } catch (error) {
+                notification.error({
+                    message: "Error en el servidor",
+                    description: error.message
+                })
+            }
+        };
+
+        if (stateUpdateOrigin.current === "url") urlToState();
+        fetchProducts();
     }, [queryParams]);
 
     useEffect(() => {
-        if (page || stock || code || familyId || subfamilyId || elementId || modelId) stateToUrl();
+        if (stateUpdateOrigin.current === "manual")
+            stateToUrl();
     }, [page, stock, code, familyId, subfamilyId, elementId, modelId]);
 
     useEffect(() => {
@@ -54,12 +162,21 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchSubfamilies = async () => {
-            setSubfamilies([]);
-            setSubfamilyId(null);
+            try {
+                if (stateUpdateOrigin.current !== "url") {
+                    setSubfamilies([]);
+                    setSubfamilyId(null);
+                }
 
-            if (familyId) {
-                const _subfamilies = await getSubfamilies(familyId);
-                setSubfamilies(_subfamilies)
+                if (familyId) {
+                    const _subfamilies = await getSubfamilies(familyId);
+                    setSubfamilies(_subfamilies)
+                }
+            } catch (error) {
+                notification.error({
+                    message: "Error en el servidor",
+                    description: error.message
+                })
             }
         };
 
@@ -68,12 +185,21 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchElements = async () => {
-            setElements([]);
-            setElementId(null);
+            try {
+                if (stateUpdateOrigin.current !== "url") {
+                    setElements([]);
+                    setElementId(null);
+                }
 
-            if (subfamilyId) {
-                const _elements = await getElements(subfamilyId);
-                setElements(_elements)
+                if (subfamilyId) {
+                    const _elements = await getElements(subfamilyId);
+                    setElements(_elements)
+                }
+            } catch (error) {
+                notification.error({
+                    message: "Error en el servidor",
+                    description: error.message
+                })
             }
         };
 
@@ -82,12 +208,21 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchModels = async () => {
-            setModels([]);
-            setModelId(null);
+            try {
+                if (stateUpdateOrigin.current !== "url") {
+                    setModels([]);
+                    setModelId(null);
+                }
 
-            if (elementId) {
-                const _models = await getModels(elementId);
-                setModels(_models)
+                if (elementId) {
+                    const _models = await getModels(elementId);
+                    setModels(_models)
+                }
+            } catch (error) {
+                notification.error({
+                    message: "Error en el servidor",
+                    description: error.message
+                })
             }
         };
 
@@ -95,7 +230,6 @@ export default ({setPageTitle}) => {
     }, [elementId]);
 
     const urlToState = () => {
-        console.log("urlToState", updatingParams);
         setPage(Number.parseInt(queryParams.page) || null);
         setStock(queryParams.stock || null);
         setCode(Number.parseInt(queryParams.code) || null);
@@ -106,7 +240,6 @@ export default ({setPageTitle}) => {
     };
 
     const stateToUrl = async () => {
-        setUpdatingParams(true);
         const params = {};
 
         page && (params.page = page);
@@ -117,17 +250,8 @@ export default ({setPageTitle}) => {
         subfamilyId && elementId && (params.elementId = elementId);
         elementId && modelId && (params.modelId = modelId);
 
-        if (Object.keys(params).length) {
-            await router.push(`/products?${urlQueryParams(params)}`);
-        } else {
-            await router.push("/products");
-        }
-        setUpdatingParams(false);
+        await router.push(`/products${urlQueryParams(params)}`);
     };
-
-    const urlQueryParams = params => Object.keys(params)
-        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(params[key]))
-        .join("&");
 
     const selectOptions = collection => {
         const options = collection.map(document => ({
@@ -144,22 +268,18 @@ export default ({setPageTitle}) => {
         return [defaultOption, ...options];
     };
 
+    const updateState = (setState, value) => {
+        stateUpdateOrigin.current = "manual";
+        setState(value);
+    };
 
-    return (
-        <Container height="30%">
-            <Grid gridTemplateColumns="repeat(4, 1fr)"
+    return <>
+        <Container height="25%">
+            <Grid gridTemplateColumns="repeat(3, 1fr)"
                   gridTemplateRows="repeat(2, 1fr)"
                   gridGap="2rem">
-                <Input value={moment().subtract(7, "days").format(clientDateFormat)}
-                       addonBefore={
-                           <>
-                               <Icon icon={faCalendarAlt}/>
-                               Fecha
-                           </>
-                       }
-                       disabled/>
                 <Select value={stock}
-                        onChange={value => setStock(value)}
+                        onChange={value => updateState(setStock, value)}
                         label="Stock"
                         options={[
                             {
@@ -172,25 +292,32 @@ export default ({setPageTitle}) => {
                             }
                         ]}/>
                 <Input value={code}
-                       onChange={event => setCode(event.target.value)}
+                       onChange={event => updateState(setCode, event.target.value)}
                        addonBefore="Código de inventario"/>
                 <Select value={familyId}
-                        onChange={value => setFamilyId(value)}
+                        onChange={value => updateState(setFamilyId, value)}
                         label="Familia"
                         options={selectOptions(families)}/>
                 <Select value={subfamilyId}
-                        onChange={value => setSubfamilyId(value)}
+                        onChange={value => updateState(setSubfamilyId, value)}
                         label="Sub-Familia"
                         options={selectOptions(subfamilies)}/>
                 <Select value={elementId}
-                        onChange={value => setElementId(value)}
+                        onChange={value => updateState(setElementId, value)}
                         label="Elemento"
                         options={selectOptions(elements)}/>
                 <Select value={modelId}
-                        onChange={value => setModelId(value)}
+                        onChange={value => updateState(setModelId, value)}
                         label="Modelo"
                         options={selectOptions(models)}/>
             </Grid>
         </Container>
-    )
-}
+        <Table columns={columns}
+               bordered
+               scrollToFirstRowOnChange
+               pagination={pagination}
+               scroll={{y: (windowHeight * 0.6) - 40}}
+               onChange={pagination => updateState(setPage, pagination.current)}
+               dataSource={products}/>
+    </>
+};

@@ -21,13 +21,6 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
   }
   
-  a {
-    color: white !important;
-    text-decoration: none;
-    font-size: 1rem;
-    text-align: center;
-  }
-  
   h1 {
     font-size: 2rem;
   }
