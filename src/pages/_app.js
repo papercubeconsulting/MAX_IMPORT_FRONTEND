@@ -10,7 +10,8 @@ export default ({Component, pageProps}) => {
         <style dangerouslySetInnerHTML={{__html: stylesheet}}/>
         <GlobalStyle/>
         <BaseLayout title={title}>
-            <Component setPageTitle={setTitle} {...pageProps}/>
+            <Component setPageTitle={setTitle}
+                       {...pageProps}/>
         </BaseLayout>
     </>;
 }
@@ -37,5 +38,18 @@ const GlobalStyle = createGlobalStyle`
   
   h3 {
     font-size: 1rem;
+  }
+  
+  .ant-input-disabled {
+    color: rgba(0,0,0,.65) !important;
+  }
+  
+  .ant-input, .ant-select {
+    height: 2rem !important;
+    font-size: 1rem !important;
+  }
+  
+  .ant-input-group-addon {
+    font-size: 1rem !important;
   }
 `;

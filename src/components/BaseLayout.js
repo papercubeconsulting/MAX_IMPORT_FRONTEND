@@ -1,68 +1,82 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faIndent, faCalendarAlt, faUser} from "@fortawesome/free-solid-svg-icons";
+import {faCalendarAlt, faIndent, faUser} from "@fortawesome/free-solid-svg-icons";
 import {Container} from "./Container";
 import {clientDateFormat} from "../util";
 import moment from "moment";
+import {useRouter} from "next/router";
+import {Icon} from "./Icon";
+import Link from "next/Link";
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        router.pathname !== "/" && setIsVisibleMenu(false);
+    }, [router.pathname]);
+
+    const isActiveLink = route => {
+        const currentRoute = router.pathname.split("/")[1];
+
+        return route === currentRoute;
+    };
 
     return <>
         <Layout>
             <Sidebar collapsed={!isVisibleMenu}>
                 <Menu>
-                    <MenuItem>
-                        <a href="/">
+                    <Link href="/">
+                        <MenuItem>
                             Perfil
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Nueva Proforma
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Hiatorial Proformas
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Pagos en Caja
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Despachos
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Admin Ventas
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/products">
+                        <MenuItem active={isActiveLink("products")}>
                             Inventario
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Abastecimientos
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             BD Clientes
-                        </a>
-                    </MenuItem>
-                    <MenuItem>
-                        <a href="/">
+                        </MenuItem>
+                    </Link>
+                    <Link href="/">
+                        <MenuItem>
                             Admin Usuarios
-                        </a>
-                    </MenuItem>
+                        </MenuItem>
+                    </Link>
                 </Menu>
             </Sidebar>
             <Grid>
@@ -128,6 +142,11 @@ const MenuItem = styled.div`
   justify-content: center;
   height: 100%;
   cursor: pointer;
+  background-color: ${props => props.active ? "rgba(0,0,0,0.3)" : "transparent"};
+  color: white !important;
+  text-decoration: none;
+  font-size: 1rem;
+  text-align: center;
   
   :hover {
     background-color: rgba(0,0,0,0.3);
@@ -166,11 +185,6 @@ const Trigger = styled(FontAwesomeIcon)`
   cursor: pointer;
   font-size: 1.5rem;
   margin-right: 1rem;
-`;
-
-const Icon = styled(FontAwesomeIcon)`
-  font-size: 1rem;
-  margin-right: 0.5rem;
 `;
 
 const Content = styled.main`
