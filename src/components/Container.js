@@ -7,4 +7,5 @@ export const Container = styled.div`
   flex-direction: ${props => props.flexDirection || "initial"};
   align-items: ${props => props.alignItems || "initial"};
   justify-content: ${props => props.justifyContent || "initial"};
+  padding: ${props => props.padding || "1rem"};
 `;

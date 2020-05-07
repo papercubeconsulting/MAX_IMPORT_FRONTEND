@@ -1,7 +1,10 @@
 import React, {useState} from "react";
 import styled from "styled-components";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faIndent} from "@fortawesome/free-solid-svg-icons";
+import {faIndent, faCalendarAlt, faUser} from "@fortawesome/free-solid-svg-icons";
+import {Container} from "./Container";
+import {clientDateFormat} from "../util";
+import moment from "moment";
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
@@ -62,11 +65,36 @@ export const BaseLayout = props => {
                     </MenuItem>
                 </Menu>
             </Sidebar>
-            <Content>
-                <Trigger icon={faIndent}
-                         onClick={() => setIsVisibleMenu(prevState => !prevState)}/>
-                {props.children}
-            </Content>
+            <Grid>
+                <Header>
+                    <Container padding="0px"
+                               width="auto"
+                               alignItems="center">
+                        <Trigger icon={faIndent}
+                                 onClick={() => setIsVisibleMenu(prevState => !prevState)}/>
+                        <h2>
+                            {props.title}
+                        </h2>
+                    </Container>
+                    <Container padding="0px"
+                               width="auto"
+                               justifyContent="flex-end"
+                               alignItems="center">
+                        <Icon icon={faCalendarAlt}/>
+                        <h3>
+                            {moment().format(clientDateFormat)}
+                        </h3>
+                        <Divider/>
+                        <Icon icon={faUser}/>
+                        <h3>
+                            Luis Rivera
+                        </h3>
+                    </Container>
+                </Header>
+                <Content>
+                    {props.children}
+                </Content>
+            </Grid>
         </Layout>
     </>
 };
@@ -106,17 +134,50 @@ const MenuItem = styled.div`
   }
 `;
 
+const Grid = styled.section`
+  display: grid;
+  grid-template-rows: 3.5rem 1fr;
+  height: 100%;
+  flex: 3;
+`;
+
+const Header = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: inherit;
+  z-index: 999;
+  padding: 1rem;
+  background-color: #e9ecef;
+  
+  h2, h3 {
+    margin: 0;
+  }
+`;
+
+const Divider = styled.div`
+  border-left: 1px solid #38546d; 
+  border-right: 1px solid #16222c; 
+  height: 100%;
+  margin: 0 1rem;
+`;
+
 const Trigger = styled(FontAwesomeIcon)`
   cursor: pointer;
   font-size: 1.5rem;
-  margin-bottom: 1rem;
+  margin-right: 1rem;
 `;
 
-const Content = styled.section`
-  flex: 3;
+const Icon = styled(FontAwesomeIcon)`
+  font-size: 1rem;
+  margin-right: 0.5rem;
+`;
+
+const Content = styled.main`
+  overflow: scroll;
+  position: relative;
   margin: 0;
   height: 100%;
-  padding: 1rem;
   
   h1 {
     margin: 0;
