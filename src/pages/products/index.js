@@ -1,10 +1,11 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/router";
-import {Container, Grid, Select} from "../../components";
+import {Button, Container, Grid, Select} from "../../components";
 import {Input, notification, Table} from "antd";
 import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "../../providers";
 import {urlQueryParams} from "../../util";
 import {get} from "lodash";
+import {AddProduct} from "./AddProduct";
 
 export default ({setPageTitle}) => {
     let columns;
@@ -274,6 +275,7 @@ export default ({setPageTitle}) => {
     };
 
     return <>
+        <AddProduct/>
         <Container height="25%">
             <Grid gridTemplateColumns="repeat(3, 1fr)"
                   gridTemplateRows="repeat(2, 1fr)"
@@ -292,6 +294,7 @@ export default ({setPageTitle}) => {
                             }
                         ]}/>
                 <Input value={code}
+                       type="number"
                        onChange={event => updateState(setCode, event.target.value)}
                        addonBefore="Código de inventario"/>
                 <Select value={familyId}
@@ -316,8 +319,21 @@ export default ({setPageTitle}) => {
                bordered
                scrollToFirstRowOnChange
                pagination={pagination}
-               scroll={{y: (windowHeight * 0.6) - 40}}
+               scroll={{y: windowHeight * 0.3}}
                onChange={pagination => updateState(setPage, pagination.current)}
                dataSource={products}/>
+        <Container height="15%"
+                   justifyContent="space-around">
+            <Button size="large"
+                    width="30%"
+                    type="primary">
+                Nuevo Ìtem Inventario
+            </Button>
+            <Button size="large"
+                    width="30%"
+                    type="primary">
+                Mover Caja
+            </Button>
+        </Container>
     </>
 };

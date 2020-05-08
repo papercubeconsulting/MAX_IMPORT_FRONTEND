@@ -2,7 +2,6 @@ import {serverUrl} from "../config";
 import {urlQueryParams} from "../util";
 
 const getProducts = async params => {
-    console.log("params", params);
     const url = `${serverUrl}/products${urlQueryParams(params)}`;
 
     const response = await fetch(url, {method: "GET"});
@@ -16,6 +15,26 @@ const getProducts = async params => {
     return responseJson.data;
 };
 
+const postProduct = async body => {
+    const url = `${serverUrl}/products`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            "accept": "*/*",
+            "Content-Type": "application/json",
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(response.statusText);
+    }
+
+    return response.json();
+};
+
 export {
-    getProducts
+    getProducts,
+    postProduct
 };

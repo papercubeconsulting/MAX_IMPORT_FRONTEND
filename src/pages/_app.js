@@ -45,4 +45,9 @@ const GlobalStyle = createGlobalStyle`
   .ant-input-group-addon {
     font-size: 1rem !important;
   }
+  
+  .ant-upload-wrapper {
+    overflow: hidden;
+    display: flex;
+  }
 `;
