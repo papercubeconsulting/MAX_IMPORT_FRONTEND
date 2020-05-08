@@ -1,19 +1,19 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
 import moment from "moment";
-import { Breadcrumb, BreadcrumbItem } from "reactstrap";
-import { withRouter, NextRouter } from "next/router";
+import {Breadcrumb, BreadcrumbItem} from "reactstrap";
+import {NextRouter, withRouter} from "next/router";
+import ProductsProvider, {Product} from "../../providers/ProductsProvider";
+import FieldGroup from "../../components/FieldGroup";
+
 moment.locale("es");
 
-import ProductsProvider, { Product } from "../../providers/ProductsProvider";
-import FieldGroup from "../../components/FieldGroup";
-class Inventory extends React.Component<
-  { router: NextRouter },
-  {
-    data: Product | null;
-    page: number;
-    maxPage: number;
-    isOpen:boolean;
+class Inventory extends React.Component<{ router: NextRouter },
+    {
+        data: Product | null;
+        page: number;
+        maxPage: number;
+        isOpen: boolean;
   }
 > {
   constructor(props: any) {
@@ -58,7 +58,7 @@ class Inventory extends React.Component<
       data?.stockByWarehouseType?.filter(
         (x) => x.warehouseType == "Averiado"
       )[0]?.stock || 0;
-    
+
     return (
       <>
         <Breadcrumb tag="nav" listTag="div">
@@ -71,7 +71,7 @@ class Inventory extends React.Component<
         </Breadcrumb>
 
         <div className="container" style={{ maxWidth: "100%" }}>
-     
+
           <div className="row" style={{ alignItems: "center" }}>
             <div className="col-sm-3">
               <FieldGroup
@@ -206,15 +206,15 @@ class Inventory extends React.Component<
               }}
             >
               <img
-                style={{
+                  style={{
                   flexShrink: 0,
                   width: "70%",
                   height: "70%",
                   objectFit: "contain",
-                 
-                }}
-                onClick={this.handleShowDialog}
-                src={data?.imageBase64 || "/static/imagen-no-disponible.png"}
+
+                  }}
+                  onClick={this.handleShowDialog}
+                  src={data?.imageBase64 || "/static/imagePlaceholder.png"}
               />
                 {this.state.isOpen && (
                   <dialog
@@ -224,18 +224,18 @@ class Inventory extends React.Component<
                     onClick={this.handleShowDialog}
                   >
                     <img
-                      className="image"
-                      src={data?.imageBase64 || "/static/imagen-no-disponible.png"}
-                      onClick={this.handleShowDialog}
-                      alt="no image"
+                        className="image"
+                        src={data?.imageBase64 || "/static/imagePlaceholder.png"}
+                        onClick={this.handleShowDialog}
+                        alt="no image"
                     />
                   </dialog>
                 )}
             </div>
           </div>
         </div>
-    
-        <div
+
+          <div
           className="col-sm-12"
           style={{
             textAlign: "center",

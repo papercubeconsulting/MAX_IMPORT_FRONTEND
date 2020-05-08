@@ -8,4 +8,5 @@ export const Container = styled.div`
   align-items: ${props => props.alignItems || "initial"};
   justify-content: ${props => props.justifyContent || "initial"};
   padding: ${props => props.padding || "1rem"};
+  text-align: ${props => props.textAlign || "left"};
 `;

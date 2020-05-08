@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/router";
-import {Button, Container, Grid, Select} from "../../components";
+import {Button, Container, Grid, Icon, Select} from "../../components";
 import {Input, notification, Table} from "antd";
 import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "../../providers";
 import {urlQueryParams} from "../../util";
 import {get} from "lodash";
 import {AddProduct} from "./AddProduct";
+import {faEye} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {
     let columns;
@@ -47,6 +48,19 @@ export default ({setPageTitle}) => {
             dataIndex: "totalStock",
             width: "fit-content",
             align: "center"
+        },
+        {
+            title: "",
+            dataIndex: "id",
+            width: "fit-content",
+            align: "center",
+            render: productId => (
+                <Button onClick={async () => router.push(`/products/${productId}`)}
+                        type="primary">
+                    <Icon icon={faEye}/>
+                    Ver
+                </Button>
+            )
         },
         {
             title: "En Tienda",

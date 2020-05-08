@@ -15,6 +15,20 @@ const getProducts = async params => {
     return responseJson.data;
 };
 
+const getProduct = async productId => {
+    const url = `${serverUrl}/products/${productId}`;
+
+    const response = await fetch(url, {method: "GET"});
+
+    if (!response.ok) {
+        throw new Error(response.statusText);
+    }
+
+    const responseJson = await response.json();
+
+    return responseJson.data;
+};
+
 const postProduct = async body => {
     const url = `${serverUrl}/products`;
 
@@ -38,5 +52,6 @@ const postProduct = async body => {
 
 export {
     getProducts,
+    getProduct,
     postProduct
 };
