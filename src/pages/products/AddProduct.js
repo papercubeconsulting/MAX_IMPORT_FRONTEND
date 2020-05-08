@@ -180,6 +180,7 @@ export const AddProduct = props => {
     };
 
     const submitProduct = async () => {
+        console.log(family.id);
         try {
             const body = {
                 familyId: family.id,
@@ -192,7 +193,7 @@ export const AddProduct = props => {
                 modelName: model.name,
                 compatibility,
                 suggestedPrice,
-                imageBase64
+                imageBase64: imageBase64 || undefined
             };
 
             props.trigger(false);
@@ -202,13 +203,13 @@ export const AddProduct = props => {
             Modal.success({
                 title: "Producto creado correctamente",
                 content: `Código de inventario: ${response.data.id}`,
-                onOk: () => location.reload()
+                onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         } catch (error) {
             Modal.error({
                 title: "Error al intentar subir producto",
                 content: error.message,
-                onOk: () => location.reload()
+                onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         }
 

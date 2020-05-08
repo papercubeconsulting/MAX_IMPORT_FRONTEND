@@ -9,10 +9,9 @@ import {AddProduct} from "./AddProduct";
 import {faEye} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {
-    let columns;
     setPageTitle("Inventario");
 
-    columns = [
+    const columns = [
         {
             title: "Cód. Inv.",
             dataIndex: "id",
@@ -122,6 +121,8 @@ export default ({setPageTitle}) => {
 
     const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(false);
 
+    const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+
     const stateUpdateOrigin = useRef("url");
 
     const router = useRouter();
@@ -153,7 +154,7 @@ export default ({setPageTitle}) => {
 
         if (stateUpdateOrigin.current === "url") urlToState();
         fetchProducts();
-    }, [queryParams]);
+    }, [queryParams, toggleUpdateTable]);
 
     useEffect(() => {
         if (stateUpdateOrigin.current === "manual")
@@ -294,6 +295,7 @@ export default ({setPageTitle}) => {
         {
             isModalAddProductVisible &&
             <AddProduct visible={isModalAddProductVisible}
+                        toggleUpdateTable={setToggleUpdateTable}
                         trigger={setIsModalAddProductVisible}/>
         }
         <Container height="20%">

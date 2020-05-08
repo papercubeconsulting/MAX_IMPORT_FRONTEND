@@ -5,3 +5,4 @@ export * from "./Icon";
 export * from "./Select";
 export * from "./Button";
 export * from "./AutoComplete";
+export * from "./DatePicker";

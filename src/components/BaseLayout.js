@@ -62,7 +62,7 @@ export const BaseLayout = props => {
                             Inventario
                         </MenuItem>
                     </Link>
-                    <Link href="/">
+                    <Link href="/supplies">
                         <MenuItem>
                             Abastecimientos
                         </MenuItem>
