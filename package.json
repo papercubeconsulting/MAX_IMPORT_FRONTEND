@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "next ./src",
     "build": "next build ./src",
-    "start": "next start -p 8080",
+    "start": "next start ./src -p 8080",
     "export": "next export"
   },
   "author": "",
