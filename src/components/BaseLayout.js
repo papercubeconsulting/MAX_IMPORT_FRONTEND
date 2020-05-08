@@ -7,7 +7,7 @@ import {clientDateFormat} from "../util";
 import moment from "moment";
 import {useRouter} from "next/router";
 import {Icon} from "./Icon";
-import Link from "next/Link";
+import Link from "next/link";
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
