@@ -106,6 +106,8 @@ export default ({setPageTitle}) => {
     const [elementId, setElementId] = useState(null);
     const [modelId, setModelId] = useState(null);
 
+    const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(false);
+
     const stateUpdateOrigin = useRef("url");
 
     const router = useRouter();
@@ -275,8 +277,12 @@ export default ({setPageTitle}) => {
     };
 
     return <>
-        <AddProduct/>
-        <Container height="25%">
+        {
+            isModalAddProductVisible &&
+            <AddProduct visible={isModalAddProductVisible}
+                        trigger={setIsModalAddProductVisible}/>
+        }
+        <Container height="20%">
             <Grid gridTemplateColumns="repeat(3, 1fr)"
                   gridTemplateRows="repeat(2, 1fr)"
                   gridGap="2rem">
@@ -319,15 +325,16 @@ export default ({setPageTitle}) => {
                bordered
                scrollToFirstRowOnChange
                pagination={pagination}
-               scroll={{y: windowHeight * 0.3}}
+               scroll={{y: (windowHeight * 0.5) - 32}}
                onChange={pagination => updateState(setPage, pagination.current)}
                dataSource={products}/>
         <Container height="15%"
                    justifyContent="space-around">
-            <Button size="large"
+            <Button onClick={() => setIsModalAddProductVisible(true)}
+                    size="large"
                     width="30%"
                     type="primary">
-                Nuevo Ìtem Inventario
+                Nuevo ítem Inventario
             </Button>
             <Button size="large"
                     width="30%"

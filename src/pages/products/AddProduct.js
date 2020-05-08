@@ -130,6 +130,7 @@ export const AddProduct = props => {
         Modal.confirm({
             width: "90%",
             title: "¿Está seguro de que desea crear este ítem en el inventario?",
+            onOk: async () => submitProduct(),
             content: (
                 <ModalConfirmContainer padding="0px"
                                        flexDirection="column">
@@ -148,17 +149,30 @@ export const AddProduct = props => {
                             {model.name}
                         </Tag>
                     </Container>
-                    <Container padding="0px"
+                    <Container padding="1rem 0"
                                flexDirection="column">
                         <h3>
-                            <b>Precio:</b>
-                            {suggestedPrice}
+                            <b>Precio:&nbsp;</b>
+                            S/ {suggestedPrice}
                         </h3>
                         <h3>
-                            <b>Compatibilidad:</b>
+                            <b>Compatibilidad:&nbsp;</b>
                             {compatibility}
                         </h3>
                     </Container>
+                    {
+                        imageBase64 &&
+                        <Container padding="0px"
+                                   alignItems="center"
+                                   flexDirection="column">
+                            <h3>
+                                <b>Vista previa imagen:</b>
+                            </h3>
+                            <img src={imageBase64}
+                                 height="120px"
+                                 alt="uploaded-image"/>
+                        </Container>
+                    }
                 </ModalConfirmContainer>
             )
         })
@@ -181,21 +195,29 @@ export const AddProduct = props => {
                 imageBase64
             };
 
+            props.trigger(false);
+
             const response = await postProduct(body);
 
-            console.log(response);
+            Modal.success({
+                title: "Producto creado correctamente",
+                content: `Código de inventario: ${response.data.id}`,
+                onOk: () => location.reload()
+            });
         } catch (error) {
-            notification.error({
-                message: "Error al intentar subir producto",
-                description: error.message
+            Modal.error({
+                title: "Error al intentar subir producto",
+                content: error.message,
+                onOk: () => location.reload()
             });
         }
 
     };
 
     return (
-        <Modal visible
+        <Modal visible={props.visible}
                onOk={() => confirmAddProduct()}
+               onCancel={() => props.trigger && props.trigger(false)}
                width="90%"
                title="Nuevo ítem inventario">
             <Grid gridTemplateRows="repeat(2, 1fr)"
@@ -288,9 +310,8 @@ export const AddProduct = props => {
                     <h3>
                         Leyenda:
                     </h3>
-                    <Container padding="0px"
-                               width="30%"
-                               justifyContent="space-between">
+                    <LegendsContainer justifyContent="space-around"
+                                      padding="0px">
                         <Tag color={colors[0]}>
                             No seleccionado
                         </Tag>
@@ -300,19 +321,30 @@ export const AddProduct = props => {
                         <Tag color={colors[2]}>
                             Nuevo
                         </Tag>
-                    </Container>
+                    </LegendsContainer>
                 </div>
             </Grid>
         </Modal>
     )
 };
 
-const ModalConfirmContainer = styled(Container)`
+const LegendsContainer = styled(Container)`
   .ant-tag {
     font-size: 1rem;
     margin: 0;
     padding: 1rem;
     text-align: center;
     min-width: 20%;
+    border-radius: 1rem;
+  }
+`;
+
+const ModalConfirmContainer = styled(LegendsContainer)`
+  h3 {
+    color: #404040;
+    
+    b {
+      color: black;
+    }
   }
 `;

@@ -27,11 +27,13 @@ const postProduct = async body => {
         }
     });
 
+    const responseJson = await response.json();
+
     if (!response.ok) {
-        throw new Error(response.statusText);
+        throw new Error(responseJson.userMessage);
     }
 
-    return response.json();
+    return responseJson;
 };
 
 export {
