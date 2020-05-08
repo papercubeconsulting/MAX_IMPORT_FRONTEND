@@ -14,7 +14,7 @@ export default ({setPageTitle}) => {
     const columns = [
         {
             title: "Cód. Inv.",
-            dataIndex: "id",
+            dataIndex: "code",
             width: "fit-content",
             align: "center"
         },
@@ -286,9 +286,10 @@ export default ({setPageTitle}) => {
         return [defaultOption, ...options];
     };
 
-    const updateState = (setState, value) => {
+    const updateState = (setState, value, isPagination) => {
         stateUpdateOrigin.current = "manual";
         setState(value);
+        !isPagination && setPage(undefined);
     };
 
     return <>
@@ -342,7 +343,7 @@ export default ({setPageTitle}) => {
                scrollToFirstRowOnChange
                pagination={pagination}
                scroll={{y: (windowHeight * 0.5) - 32}}
-               onChange={pagination => updateState(setPage, pagination.current)}
+               onChange={pagination => updateState(setPage, pagination.current, true)}
                dataSource={products}/>
         <Container height="15%"
                    justifyContent="space-around">

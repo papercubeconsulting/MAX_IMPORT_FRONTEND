@@ -50,4 +50,11 @@ const GlobalStyle = createGlobalStyle`
     overflow: hidden;
     display: flex;
   }
+  
+  .ant-table-thead {
+    .ant-table-cell {
+      background-color: #1890ff;
+      color: white;
+    }
+  }
 `;

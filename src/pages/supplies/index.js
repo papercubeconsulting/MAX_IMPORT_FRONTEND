@@ -14,19 +14,21 @@ export default ({setPageTitle}) => {
         {
             title: "Movimiento",
             dataIndex: "id",
-            width: "fit-content",
+            width: "100px",
             align: "center",
             render: (supplyId, supply) => supply.status === "Pendiente" && (
                 <Container justifyContent="space-between"
-                           padding="0px"
-                           width="110px">
-                    <Button>
+                           padding="0px">
+                    <Button padding="0 0.5rem">
                         <Icon marginRight="0px"
+                              fontSize="0.8rem"
                               icon={faEdit}/>
                     </Button>
-                    <Button onClick={() => confirmCancelSupply(supplyId)}
+                    <Button padding="0 0.5rem"
+                            onClick={() => confirmCancelSupply(supplyId)}
                             type="primary">
                         <Icon marginRight="0px"
+                              fontSize="0.8rem"
                               icon={faTrash}/>
                     </Button>
                 </Container>
@@ -35,47 +37,42 @@ export default ({setPageTitle}) => {
         {
             title: "Proveedor",
             dataIndex: "provider",
-            width: "fit-content",
             align: "center",
             render: provider => provider.name
         },
         {
             title: "Cod. Carga",
-            dataIndex: "id",
-            width: "fit-content",
+            dataIndex: "code",
             align: "center"
         },
         {
             title: "Almacén",
             dataIndex: "warehouse",
-            width: "fit-content",
             align: "center",
             render: warehouse => warehouse.name
         },
         {
             title: "Fecha Reg.",
             dataIndex: "createdAt",
-            width: "fit-content",
             align: "center",
             render: createdAt => moment(createdAt, serverDateFormat).format(clientDateFormat)
         },
         {
             title: "Estado",
             dataIndex: "status",
-            width: "fit-content",
             align: "center"
         },
         {
             title: "Acción",
             dataIndex: "status",
-            width: "fit-content",
+            width: "150px",
             align: "center",
             render: status => status === "Atendido"
-                ? <Button width="100%">
+                ? <Button width="fit-content">
                     <Icon icon={faEye}/>
                     Ver
                 </Button>
-                : <Button width="100%"
+                : <Button width="fit-content"
                           type="primary">
                     <Icon icon={faCheck}/>
                     Atender
@@ -84,14 +81,12 @@ export default ({setPageTitle}) => {
         {
             title: "Responsable",
             dataIndex: "id",
-            width: "fit-content",
             align: "center",
             render: () => "Luis Rivera"
         },
         {
             title: "Fecha Aten.",
             dataIndex: "attentionDate",
-            width: "fit-content",
             align: "center",
             render: (attentionDate, supply) =>
                 attentionDate
