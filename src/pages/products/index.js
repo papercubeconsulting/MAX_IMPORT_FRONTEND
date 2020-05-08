@@ -5,7 +5,7 @@ import {Input, notification, Table} from "antd";
 import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "../../providers";
 import {urlQueryParams} from "../../util";
 import {get} from "lodash";
-import {AddProduct} from "./AddProduct";
+import {AddProduct} from "../../components/products";
 import {faEye} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {

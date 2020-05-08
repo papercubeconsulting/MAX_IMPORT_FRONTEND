@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Input, Modal, notification, Tag, Upload} from "antd";
-import {AutoComplete, Button, Container, Grid, Icon} from "../../components";
+import {AutoComplete, Button, Container, Grid, Icon} from "../index";
 import {faUpload} from "@fortawesome/free-solid-svg-icons";
 import {getElements, getFamilies, getModels, getSubfamilies, postProduct} from "../../providers";
 import {toBase64} from "../../util";
