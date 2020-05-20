@@ -19,7 +19,8 @@ export default ({setPageTitle}) => {
             render: (supplyId, supply) => supply.status === "Pendiente" && (
                 <Container justifyContent="space-between"
                            padding="0px">
-                    <Button padding="0 0.5rem">
+                    <Button padding="0 0.5rem"
+                            onClick={async () => router.push(`/supplies/${supplyId}`)}>
                         <Icon marginRight="0px"
                               fontSize="0.8rem"
                               icon={faEdit}/>
@@ -67,13 +68,15 @@ export default ({setPageTitle}) => {
             dataIndex: "status",
             width: "150px",
             align: "center",
-            render: status => status === "Atendido"
-                ? <Button width="fit-content">
+            render: (status, supply) => status === "Atendido"
+                ? <Button width="fit-content"
+                          onClick={async () => router.push(`/supplies/${supply.id}`)}>
                     <Icon icon={faEye}/>
                     Ver
                 </Button>
                 : <Button width="fit-content"
-                          type="primary">
+                          type="primary"
+                          onClick={async () => router.push(`/supplies/${supply.id}`)}>
                     <Icon icon={faCheck}/>
                     Atender
                 </Button>

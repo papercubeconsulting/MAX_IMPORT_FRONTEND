@@ -1,6 +1,6 @@
 import {serverUrl} from "../config";
 
-const getElements = async subfamilyId => {
+const getElements = async ºº => {
     const url = `${serverUrl}/elements?subfamilyId=${subfamilyId}`;
 
     const response = await fetch(url, {method: "GET"});

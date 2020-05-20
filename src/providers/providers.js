@@ -1,7 +1,7 @@
 import {serverUrl} from "../config";
 
-const getSubfamilies = async familyId => {
-    const url = familyId ? `${serverUrl}/subfamilies?familyId=${familyId}` : `${serverUrl}/subfamilies`;
+const getProviders = async () => {
+    const url = `${serverUrl}/providers`;
 
     const response = await fetch(url, {method: "GET"});
 
@@ -15,5 +15,5 @@ const getSubfamilies = async familyId => {
 };
 
 export {
-    getSubfamilies
+    getProviders
 };

@@ -4,3 +4,5 @@ export * from "./elements";
 export * from "./models";
 export * from "./products";
 export * from "./supplies";
+export * from "./providers";
+export * from "./warehouses";

@@ -15,21 +15,20 @@ const getSupplies = async params => {
     return responseJson.data;
 };
 
+const getSupply = async supplyId => {
+    const url = `${serverUrl}/supplies/${supplyId}`;
 
-// const getProduct = async productId => {
-//     const url = `${serverUrl}/products/${productId}`;
-//
-//     const response = await fetch(url, {method: "GET"});
-//
-//     if (!response.ok) {
-//         throw new Error(response.statusText);
-//     }
-//
-//     const responseJson = await response.json();
-//
-//     return responseJson.data;
-// };
-//
+    const response = await fetch(url, {method: "GET"});
+
+    if (!response.ok) {
+        throw new Error(response.statusText);
+    }
+
+    const responseJson = await response.json();
+
+    return responseJson.data;
+};
+
 const putSupplyStatus = async (supplyId, status) => {
     const url = `${serverUrl}/supplies/${supplyId}/status`;
 
@@ -52,6 +51,7 @@ const putSupplyStatus = async (supplyId, status) => {
 };
 
 export {
+    getSupply,
     getSupplies,
     putSupplyStatus
 };
