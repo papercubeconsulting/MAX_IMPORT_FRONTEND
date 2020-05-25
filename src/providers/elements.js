@@ -1,7 +1,7 @@
 import {serverUrl} from "../config";
 
-const getElements = async ºº => {
-    const url = `${serverUrl}/elements?subfamilyId=${subfamilyId}`;
+const getElements = async subfamilyId => {
+    const url = subfamilyId ? `${serverUrl}/elements?subfamilyId=${subfamilyId}` : `${serverUrl}/elements`;
 
     const response = await fetch(url, {method: "GET"});
 

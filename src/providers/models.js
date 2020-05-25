@@ -1,7 +1,7 @@
 import {serverUrl} from "../config";
 
 const getModels = async elementId => {
-    const url = `${serverUrl}/models?elementId=${elementId}`;
+    const url = elementId ? `${serverUrl}/models?elementId=${elementId}` : `${serverUrl}/models`;
 
     const response = await fetch(url, {method: "GET"});
 
