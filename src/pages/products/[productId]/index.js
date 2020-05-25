@@ -125,9 +125,15 @@ export default ({setPageTitle}) => {
                            addonBefore="Averiados"
                            value={stockByType("Averiado")}/>
                 </Grid>
-                <Input disabled
-                       addonBefore="Compatibilidad"
-                       value={get(product, "compatibility", "-")}/>
+                <Grid gridTemplateColumns="repeat(2, 1fr)"
+                      gridGap="1rem">                    
+                    <Input disabled
+                        addonBefore="Compatibilidad"
+                        value={get(product, "compatibility", "-")}/>
+                    <Input disabled
+                            addonBefore="Nombre comercial"
+                            value={get(product, "tradename", "-")}/>
+                </Grid>
             </Grid>
         </Container>
         <Container height="80%"

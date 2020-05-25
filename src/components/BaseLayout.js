@@ -124,7 +124,7 @@ const Sidebar = styled.div`
   display: inline;
   height: 100vh;
   flex: ${props => props.collapsed ? 0 : 1};
-  background: linear-gradient(to left, #2193b0, #6dd5ed);
+  background: linear-gradient(to left, #1890ff, #6dd5ed);
   overflow: hidden;
 `;
 

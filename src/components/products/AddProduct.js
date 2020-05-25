@@ -19,6 +19,7 @@ export const AddProduct = props => {
     const [model, setModel] = useState({});
     const [suggestedPrice, setSuggestedPrice] = useState(0);
     const [compatibility, setCompatibility] = useState(null);
+    const [tradename, setTradename] = useState(null);
     const [imageBase64, setImageBase64] = useState(null);
 
     useEffect(() => {
@@ -120,7 +121,7 @@ export const AddProduct = props => {
             });
         }
 
-        if (!family || !subfamily || !element || !model || !compatibility || !suggestedPrice) {
+        if (!family || !subfamily || !element || !model || !compatibility || !tradename || !suggestedPrice) {
             return notification.error({
                 message: "Error al intentar subir producto",
                 description: "Verifique que todos los campos se hallan rellenado"
@@ -159,6 +160,10 @@ export const AddProduct = props => {
                             <b>Compatibilidad:&nbsp;</b>
                             {compatibility}
                         </h3>
+                        <h3>
+                            <b>Nombre comercial:&nbsp;</b>
+                            {tradename}
+                        </h3>
                     </Container>
                     {
                         imageBase64 &&
@@ -191,6 +196,7 @@ export const AddProduct = props => {
                 subfamilyName: subfamily.name,
                 elementName: element.name,
                 modelName: model.name,
+                tradename,
                 compatibility,
                 suggestedPrice,
                 imageBase64: imageBase64 || undefined
@@ -286,7 +292,7 @@ export const AddProduct = props => {
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
                                   }/>
                 </Grid>
-                <Grid gridTemplateColumns="1fr 2fr 40%"
+                <Grid gridTemplateColumns="1fr 2fr 2fr 20%"
                       gridGap="1rem">
                     <Input value={suggestedPrice}
                            onChange={event => setSuggestedPrice(event.target.value)}
@@ -294,7 +300,10 @@ export const AddProduct = props => {
                            addonBefore="Precio S/"/>
                     <Input value={compatibility}
                            onChange={event => setCompatibility(event.target.value)}
-                           addonBefore="Compatibilidad"/>
+                           addonBefore="Compatibilidad"/>                           
+                    <Input value={tradename}
+                           onChange={event => setTradename(event.target.value)}
+                           addonBefore="Nombre comercial"/>
                     <Upload className="ant-upload-wrapper"
                             beforeUpload={async file => {
                                 const encodedImage = await toBase64(file);
