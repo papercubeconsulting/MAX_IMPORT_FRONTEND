@@ -66,7 +66,6 @@ export default ({setPageTitle}) => {
             try {
 
                 const _product = await getProduct(productId);
-
                 setProduct(_product);
             } catch (error) {
                 router.back();
@@ -111,10 +110,10 @@ export default ({setPageTitle}) => {
                            value={get(product, "subfamilyName", "-")}/>
                     <Input disabled
                            addonBefore="Elemento"
-                           value={get(product, "element", "-")}/>
+                           value={get(product, "elementName", "-")}/>
                     <Input disabled
                            addonBefore="Modelo"
-                           value={get(product, "model", "-")}/>
+                           value={get(product, "modelName", "-")}/>
                     <Input disabled
                            addonBefore="Código Inventario"
                            value={get(product, "code", "-")}/>
