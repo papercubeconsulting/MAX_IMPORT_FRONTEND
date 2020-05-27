@@ -9,10 +9,13 @@ import styled from "styled-components";
 export const AddProduct = props => {
     const colors = ["#dc3546", "#28a746", "#17a3b8"];
 
+    // * List of sources from database
     const [families, setFamilies] = useState([]);
     const [subfamilies, setSubfamilies] = useState([]);
     const [elements, setElements] = useState([]);
     const [models, setModels] = useState([]);
+
+    // * Fields to create source
     const [family, setFamily] = useState({});
     const [subfamily, setSubfamily] = useState({});
     const [element, setElement] = useState({});
@@ -138,16 +141,16 @@ export const AddProduct = props => {
                     <Container justifyContent="space-around"
                                padding="1rem 0">
                         <Tag>
-                            {family.name}
+                            {`${family.name} (${family.code})`}
                         </Tag>
                         <Tag>
-                            {subfamily.name}
+                            {`${subfamily.name} (${subfamily.code})`}
                         </Tag>
                         <Tag>
-                            {element.name}
+                            {`${element.name} (${element.code})`}
                         </Tag>
                         <Tag>
-                            {model.name}
+                            {`${model.name}`}
                         </Tag>
                     </Container>
                     <Container padding="1rem 0"
@@ -185,7 +188,6 @@ export const AddProduct = props => {
     };
 
     const submitProduct = async () => {
-        console.log(family.id);
         try {
             const body = {
                 familyId: family.id,
@@ -195,7 +197,11 @@ export const AddProduct = props => {
                 familyName: family.name,
                 subfamilyName: subfamily.name,
                 elementName: element.name,
-                modelName: model.name,
+                modelName: model.name,                
+                familyCode: family.code,
+                subfamilyCode: subfamily.code,
+                elementCode: element.code,
+                providerId: 1, // TODO: Update
                 tradename,
                 compatibility,
                 suggestedPrice,
@@ -220,7 +226,6 @@ export const AddProduct = props => {
         }
 
     };
-
     return (
         <Modal visible={props.visible}
                onOk={() => confirmAddProduct()}
@@ -231,6 +236,30 @@ export const AddProduct = props => {
                   gridGap="1rem">
                 <Grid gridTemplateColumns="repeat(4, 1fr)"
                       gridGap="1rem">
+                    <Input  value={family.code}
+                            disabled={family.id}
+                            onChange={event => {
+                                const newValue = event.target.value;
+                                setFamily(prevValue => ({name: prevValue.name, code: newValue}))
+                            }}
+                            addonBefore="Código"/>
+                    <Input value={subfamily.code}
+                            disabled={subfamily.id}
+                            onChange={event => {
+                                const newValue = event.target.value;
+                                setSubfamily(prevValue => ({name: prevValue.name, code: newValue}))
+                            }}
+                            addonBefore="Código"/>
+                    <Input value={element.code}
+                            disabled={element.id}
+                            onChange={event => {
+                                const newValue = event.target.value;
+                                setElement(prevValue => ({name: prevValue.name, code: newValue}))
+                            }}
+                            addonBefore="Código"/>
+                </Grid>
+                <Grid gridTemplateColumns="repeat(4, 1fr)"
+                      gridGap="1rem">
                     <AutoComplete label="Familia"
                                   color={autoCompleteColor(family.id, family.name)}
                                   value={family.name}
@@ -239,9 +268,10 @@ export const AddProduct = props => {
                                       setFamily(_family);
                                   }}
                                   onSearch={value => {
-                                      setFamily({
+                                      setFamily(prevValue => ({
                                           name: value,
-                                      });
+                                          code: (prevValue.id) ? '' : prevValue.code
+                                      }));
                                   }}
                                   _options={selectOptions(families)}
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
@@ -254,9 +284,10 @@ export const AddProduct = props => {
                                       setSubfamily(_subfamily);
                                   }}
                                   onSearch={value => {
-                                      setSubfamily({
-                                          name: value,
-                                      });
+                                      setSubfamily(prevValue => ({
+                                        name: value,
+                                        code: (prevValue.id) ? '' : prevValue.code
+                                    }));
                                   }}
                                   _options={selectOptions(subfamilies)}
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
@@ -269,9 +300,10 @@ export const AddProduct = props => {
                                       setElement(_element);
                                   }}
                                   onSearch={value => {
-                                      setElement({
-                                          name: value,
-                                      });
+                                      setElement(prevValue => ({
+                                        name: value,
+                                        code: (prevValue.id) ? '' : prevValue.code
+                                    }));
                                   }}
                                   _options={selectOptions(elements)}
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
