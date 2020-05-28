@@ -115,6 +115,9 @@ export default ({setPageTitle}) => {
                            addonBefore="Modelo"
                            value={get(product, "modelName", "-")}/>
                     <Input disabled
+                           addonBefore="Proveedor"
+                           value={get(product, "provider.name", "-")}/>
+                    <Input disabled
                            addonBefore="Código Inventario"
                            value={get(product, "code", "-")}/>
                     <Input disabled

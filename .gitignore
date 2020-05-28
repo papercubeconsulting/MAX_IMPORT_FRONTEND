@@ -20,3 +20,5 @@ yarn-debug.log*
 yarn-error.log*
 scss/**/*.css
 src/.next/
+
+/.vscode

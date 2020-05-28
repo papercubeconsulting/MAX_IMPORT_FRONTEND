@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {Input, Modal, notification, Tag, Upload} from "antd";
-import {AutoComplete, Button, Container, Grid, Icon} from "../index";
+import {AutoComplete, Button, Container, Grid, Icon, Select} from "../index";
 import {faUpload} from "@fortawesome/free-solid-svg-icons";
-import {getElements, getFamilies, getModels, getSubfamilies, postProduct} from "../../providers";
+import {getElements, getFamilies, getModels, getSubfamilies, getProviders, postProduct} from "../../providers";
 import {toBase64} from "../../util";
 import styled from "styled-components";
 
@@ -14,12 +14,14 @@ export const AddProduct = props => {
     const [subfamilies, setSubfamilies] = useState([]);
     const [elements, setElements] = useState([]);
     const [models, setModels] = useState([]);
+    const [providers, setProviders] = useState([]);
 
     // * Fields to create source
     const [family, setFamily] = useState({});
     const [subfamily, setSubfamily] = useState({});
     const [element, setElement] = useState({});
     const [model, setModel] = useState({});
+    const [provider, setProvider] = useState({});
     const [suggestedPrice, setSuggestedPrice] = useState(0);
     const [compatibility, setCompatibility] = useState(null);
     const [tradename, setTradename] = useState(null);
@@ -31,6 +33,10 @@ export const AddProduct = props => {
                 const _families = await getFamilies();
 
                 setFamilies(_families);
+
+                const _providers = await getProviders();
+
+                setProviders(_providers);
             } catch (error) {
                 notification.error({
                     message: "Error en el servidor",
@@ -124,7 +130,14 @@ export const AddProduct = props => {
             });
         }
 
-        if (!family || !subfamily || !element || !model || !compatibility || !tradename || !suggestedPrice) {
+        if (!provider.id) {
+            return notification.error({
+                message: "Error al intentar subir producto",
+                description: "Elija un proveedor de la lista indicada"
+            });
+        }
+
+        if (!provider || !family || !subfamily || !element || !model || !compatibility || !tradename || !suggestedPrice) {
             return notification.error({
                 message: "Error al intentar subir producto",
                 description: "Verifique que todos los campos se hallan rellenado"
@@ -155,6 +168,10 @@ export const AddProduct = props => {
                     </Container>
                     <Container padding="1rem 0"
                                flexDirection="column">
+                        <h3>
+                            <b>Proveedor:&nbsp;</b>
+                            {provider.name}
+                        </h3>
                         <h3>
                             <b>Precio:&nbsp;</b>
                             S/ {suggestedPrice}
@@ -201,7 +218,7 @@ export const AddProduct = props => {
                 familyCode: family.code,
                 subfamilyCode: subfamily.code,
                 elementCode: element.code,
-                providerId: 1, // TODO: Update
+                providerId: provider.id,
                 tradename,
                 compatibility,
                 suggestedPrice,
@@ -324,8 +341,16 @@ export const AddProduct = props => {
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
                                   }/>
                 </Grid>
-                <Grid gridTemplateColumns="1fr 2fr 2fr 20%"
+                <Grid gridTemplateColumns="2fr 1fr 2fr 2fr 20%"
                       gridGap="1rem">
+                    
+                    <Select value={provider.name}
+                            label="Proveedor"                            
+                            onChange={value => {
+                                const _provider = providers.find(provider => provider.id === value);
+                                setProvider(_provider);
+                            }}
+                            options={selectOptions(providers)}/>
                     <Input value={suggestedPrice}
                            onChange={event => setSuggestedPrice(event.target.value)}
                            type="number"

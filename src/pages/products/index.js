@@ -317,7 +317,7 @@ export default ({setPageTitle}) => {
                             }
                         ]}/>
                 <Input value={code}
-                       type="number"
+                       type="text"
                        onChange={event => updateState(setCode, event.target.value)}
                        addonBefore="Código de inventario"/>
                 <Select value={familyId}
