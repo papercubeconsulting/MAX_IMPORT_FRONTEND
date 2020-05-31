@@ -170,7 +170,7 @@ export const AddProduct = props => {
                                flexDirection="column">
                         <h3>
                             <b>Proveedor:&nbsp;</b>
-                            {provider.name}
+                            {provider.name} ({provider.code})
                         </h3>
                         <h3>
                             <b>Precio:&nbsp;</b>
@@ -231,7 +231,7 @@ export const AddProduct = props => {
 
             Modal.success({
                 title: "Producto creado correctamente",
-                content: `Código de inventario: ${response.data.id}`,
+                content: `Código de inventario: ${response.data.code}`,
                 onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         } catch (error) {
@@ -399,10 +399,9 @@ const LegendsContainer = styled(Container)`
   .ant-tag {
     font-size: 1rem;
     margin: 0;
-    padding: 1rem;
+    padding: 0.5rem;
     text-align: center;
-    min-width: 20%;
-    border-radius: 1rem;
+    min-width: 15%;
   }
 `;
 
