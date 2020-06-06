@@ -232,13 +232,13 @@ export const AddProduct = props => {
             Modal.success({
                 title: "Producto creado correctamente",
                 content: `Código de inventario: ${response.data.code}`,
-                onOk: () => props.toggleUpdateTable(prevState => !prevState)
+                // onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         } catch (error) {
             Modal.error({
-                title: "Error al intentar subir producto",
+                title: "Error al intentar mover la caja",
                 content: error.message,
-                onOk: () => props.toggleUpdateTable(prevState => !prevState)
+                // onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         }
 

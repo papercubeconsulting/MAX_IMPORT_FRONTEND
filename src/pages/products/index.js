@@ -6,6 +6,7 @@ import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "
 import {urlQueryParams} from "../../util";
 import {get} from "lodash";
 import {AddProduct} from "../../components/products";
+import {ReadProductCode} from "../../components/productBoxes/ReadProductCode";
 import {faEye} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {
@@ -120,6 +121,7 @@ export default ({setPageTitle}) => {
     const [modelId, setModelId] = useState(null);
 
     const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(false);
+    const [isModalReadProductBoxCodeVisible, setIsModalReadProductBoxCodeVisible] = useState(false);
 
     const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
@@ -298,6 +300,12 @@ export default ({setPageTitle}) => {
             <AddProduct visible={isModalAddProductVisible}
                         toggleUpdateTable={setToggleUpdateTable}
                         trigger={setIsModalAddProductVisible}/>
+        },
+        {
+            isModalReadProductBoxCodeVisible &&
+            <ReadProductCode visible={isModalReadProductBoxCodeVisible}
+                        toggleUpdateTable={setToggleUpdateTable}
+                        trigger={setIsModalReadProductBoxCodeVisible}/>
         }
         <Container height="20%">
             <Grid gridTemplateColumns="repeat(3, 1fr)"
@@ -353,7 +361,8 @@ export default ({setPageTitle}) => {
                     type="primary">
                 Nuevo ítem Inventario
             </Button>
-            <Button size="large"
+            <Button onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+                    size="large"
                     width="30%"
                     type="primary">
                 Mover Caja
