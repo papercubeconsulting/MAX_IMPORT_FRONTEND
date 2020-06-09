@@ -1,19 +1,23 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useRouter} from "next/router";
-import {Input, Modal, notification, Tag, Upload} from "antd";
-import {AutoComplete, Button, Container, Grid, Icon, Select} from "../index";
-import {faUpload} from "@fortawesome/free-solid-svg-icons";
-import {getElements, getFamilies, getModels, getSubfamilies, getProviders, postProduct} from "../../providers";
-import {toBase64} from "../../util";
+import {Input, Modal} from "antd";
+import {Container, Grid} from "../index";
 import styled from "styled-components";
+import {Button} from "../Button";
 
 export const ReadProductCode = props => {
-
-    // * Fields to create source
     const [productBoxCode, setProductBoxCode] = useState(null);
 
-    
     const router = useRouter();
+
+    const scanBarcode = () => navigator.getUserMedia({video: true}, stream => {
+        console.log(stream);
+
+        const video = document.getElementById("camera");
+
+        video.srcObject = stream;
+        video.play();
+    }, error => alert("there was an error " + error));
 
     return (
         <Modal visible={props.visible}
@@ -25,14 +29,19 @@ export const ReadProductCode = props => {
                   gridGap="1rem">
                 <Grid gridTemplateColumns="repeat(4, 1fr)"
                       gridGap="1rem">
-                    <Input  value={productBoxCode}
-                            justify="center"
-                            onChange={event => 
-                                setProductBoxCode(event.target.value)                                
-                            }
-                            addonBefore="Código de caja"/>
+                    <Input value={productBoxCode}
+                           justify="center"
+                           onChange={event =>
+                               setProductBoxCode(event.target.value)
+                           }
+                           addonBefore="Código de caja"/>
+                    <Button onClick={scanBarcode}>
+                        Leer Código de barras
+                    </Button>
+                    <video id="camera"
+                           width="300"
+                           height="300"/>
                 </Grid>
-                
             </Grid>
         </Modal>
     )
