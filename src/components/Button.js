@@ -5,4 +5,5 @@ export const Button = styled(AntButton)`
   width: ${props => props.width || "auto"};
   height: ${props => props.height || "2rem"} !important;
   padding: ${props => props.padding || "0 1rem"} !important;
+  margin: ${props => props.margin || 0} !important;
 `;

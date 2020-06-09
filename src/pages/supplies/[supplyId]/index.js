@@ -1,17 +1,20 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Button, Container, Grid, Icon, Select} from "../../../components";
 import {useRouter} from "next/router";
 import {
     getElements,
     getFamilies,
     getModels,
+    getProducts,
     getProviders,
     getSubfamilies,
     getSupply,
-    getWarehouses
+    getWarehouses,
+    postSupply,
+    putSupply
 } from "../../../providers";
 import {get, orderBy} from "lodash";
-import {Input, Table} from "antd";
+import {Input, notification, Table} from "antd";
 import {faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {
@@ -211,10 +214,13 @@ export default ({setPageTitle}) => {
     const [elements, setElements] = useState([]);
     const [models, setModels] = useState([]);
 
+    const [loadingSupply, setLoadingSupply] = useState(false);
+
     const router = useRouter();
     const {supplyId} = router.query;
 
-    const disabled = get(supply, "status", null) !== "Pendiente";
+    const disabled = get(supply, "status", null) !== "Pendiente" && supplyId !== "new";
+    const isEdit = get(supply, "status", null) === "Pendiente";
 
     useEffect(() => {
         const fetchProviders = async () => {
@@ -266,11 +272,14 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchSupply = async supplyId => {
+            if (supplyId === "new") return;
+
             const _supply = await getSupply(supplyId);
 
             setSupply(_supply);
             setProviderId(get(_supply, "providerId", null));
             setWarehouseId(get(_supply, "warehouseId", null));
+            setCode(get(_supply, "code", null));
             setSuppliedProducts(get(_supply, "suppliedProducts", [])
                 .map((suppliedProduct, index) => ({
                     id: index + 1,
@@ -291,12 +300,70 @@ export default ({setPageTitle}) => {
         console.log(suppliedProducts);
     }, [suppliedProducts]);
 
+    const enablePost = useMemo(() => {
+        if (!suppliedProducts.length) return false;
+
+        return suppliedProducts.reduce((accumulator, suppliedProduct) => {
+            const {familyId, subfamilyId, elementId, modelId, boxSize, quantity} = suppliedProduct;
+
+            return accumulator && !!(familyId && subfamilyId && elementId && modelId && boxSize && quantity) && providerId && warehouseId && code;
+        }, true);
+    }, [suppliedProducts, providerId, warehouseId, code]);
+
     const selectOptions = collection => collection
         .map(document => ({
                 value: document.id,
                 label: document.name
             })
         );
+
+    const onSubmit = async () => {
+        try {
+            setLoadingSupply(true);
+            const mappedSuppliedProducts = await mapSuppliedProducts(suppliedProducts);
+
+            const body = {
+                suppliedProducts: mappedSuppliedProducts,
+                providerId,
+                warehouseId,
+                code
+            };
+
+            if (isEdit)
+                await putSupply(supplyId, body);
+            else
+                await postSupply(body);
+
+            await router.push("/supplies");
+            setLoadingSupply(false);
+        } catch (error) {
+            notification.error({
+                message: "No se pudo crear abastecimiento",
+                description: error.message
+            })
+            setLoadingSupply(false);
+        }
+    };
+
+    const mapSuppliedProducts = async (products, index = 0, mappedSuppliedProducts = []) => {
+        if (products.length === index) return mappedSuppliedProducts;
+
+        const currentProduct = products[index];
+        const {familyId, subfamilyId, elementId, modelId, boxSize, quantity} = currentProduct;
+
+        const productsResult = await getProducts({
+            familyId,
+            subfamilyId,
+            elementId,
+            modelId
+        });
+
+        return mapSuppliedProducts(products, index + 1, [...mappedSuppliedProducts, {
+            productId: productsResult.rows[0].id,
+            boxSize,
+            quantity
+        }])
+    }
 
     return <>
         <Container height="10%">
@@ -322,23 +389,41 @@ export default ({setPageTitle}) => {
                bordered
                pagination={false}
                dataSource={orderBy(suppliedProducts, "id", "asc")}/>
-        <Container height="5rem">
-            <Button padding="0 0.5rem"
-                    onClick={() => setSuppliedProducts(prevState => [...prevState, {id: suppliedProducts.length + 1}])}
-                    type="primary">
-                <Icon fontSize="1rem"
-                      icon={faPlus}/>
-                Agregar columna
-            </Button>
-
-        </Container>
+        {
+            !disabled &&
+            <Container height="5rem">
+                <Button padding="0 0.5rem"
+                        onClick={() => setSuppliedProducts(prevState => [...prevState, {id: suppliedProducts.length + 1}])}
+                        type="primary">
+                    <Icon fontSize="1rem"
+                          icon={faPlus}/>
+                    Agregar columna
+                </Button>
+            </Container>
+        }
         <Container height="20%"
-                   justifyContent="space-around">
-            <Button size="large"
-                    width="80%"
-                    type="primary">
-                Mover Caja
-            </Button>
+                   alignItems="center"
+                   flexDirection="column">
+            {
+                (isEdit || supplyId === "new") &&
+                <Button size="large"
+                        disabled={!enablePost}
+                        loading={loadingSupply}
+                        onClick={onSubmit}
+                        margin="0 0 1rem 0"
+                        width="80%"
+                        type="primary">
+                    {isEdit ? "Actualizar" : "Crear"} abastecimiento
+                </Button>
+            }
+            {
+                supplyId !== "new" &&
+                <Button size="large"
+                        width="80%"
+                        type="primary">
+                    Atender
+                </Button>
+            }
         </Container>
     </>
 };

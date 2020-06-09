@@ -29,6 +29,48 @@ const getSupply = async supplyId => {
     return responseJson.data;
 };
 
+const postSupply = async body => {
+    const url = `${serverUrl}/supplies`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            "accept": "*/*",
+            "Content-Type": "application/json",
+        }
+    });
+
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+        throw new Error(responseJson.userMessage);
+    }
+
+    return responseJson;
+}
+
+const putSupply = async (supplyId, body) => {
+    const url = `${serverUrl}/supplies/${supplyId}`;
+
+    const response = await fetch(url, {
+        method: "PUT",
+        body: JSON.stringify(body),
+        headers: {
+            "accept": "*/*",
+            "Content-Type": "application/json",
+        }
+    });
+
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+        throw new Error(responseJson.userMessage);
+    }
+
+    return responseJson;
+}
+
 const putSupplyStatus = async (supplyId, status) => {
     const url = `${serverUrl}/supplies/${supplyId}/status`;
 
@@ -53,5 +95,7 @@ const putSupplyStatus = async (supplyId, status) => {
 export {
     getSupply,
     getSupplies,
+    postSupply,
+    putSupply,
     putSupplyStatus
 };
