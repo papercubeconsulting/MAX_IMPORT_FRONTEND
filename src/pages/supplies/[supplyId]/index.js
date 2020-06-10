@@ -15,7 +15,8 @@ import {
 } from "../../../providers";
 import {get, orderBy} from "lodash";
 import {Input, notification, Table} from "antd";
-import {faPlus, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {faPlus, faPrint, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {Attend} from "../../../components/supplies/[supplyId]";
 
 export default ({setPageTitle}) => {
     setPageTitle("Abastecimiento");
@@ -25,18 +26,25 @@ export default ({setPageTitle}) => {
             dataIndex: "id",
             width: "fit-content",
             align: "center",
-            render: id => disabled
-                ? null
-                : <Button padding="0 0.5rem"
-                          onClick={() => setSuppliedProducts(prevState => prevState
-                              .filter((suppliedProduct => suppliedProduct.id !== id))
-                              .map((suppliedProduct, index) => ({...suppliedProduct, id: index + 1}))
-                          )}
-                          type="primary">
+            render: (id, suppliedProduct) => (
+                <Button padding="0 0.5rem"
+                        onClick={() => {
+                            if (isAttend) {
+                                setAttendedProduct(suppliedProduct);
+                                return setVisibleAttendModal(true);
+                            }
+
+                            setSuppliedProducts(prevState => prevState
+                                .filter((suppliedProduct => suppliedProduct.id !== id))
+                                .map((suppliedProduct, index) => ({...suppliedProduct, id: index + 1}))
+                            )
+                        }}
+                        type="primary">
                     <Icon marginRight="0px"
                           fontSize="0.8rem"
-                          icon={faTrash}/>
+                          icon={isAttend ? faPrint : faTrash}/>
                 </Button>
+            )
         },
         {
             dataIndex: "id",
@@ -216,11 +224,16 @@ export default ({setPageTitle}) => {
 
     const [loadingSupply, setLoadingSupply] = useState(false);
 
-    const router = useRouter();
-    const {supplyId} = router.query;
+    const [attendedProduct, setAttendedProduct] = useState(null);
+    const [visibleAttendModal, setVisibleAttendModal] = useState(false);
 
-    const disabled = get(supply, "status", null) !== "Pendiente" && supplyId !== "new";
-    const isEdit = get(supply, "status", null) === "Pendiente";
+    const router = useRouter();
+    const {supplyId, operation} = router.query;
+
+    const isNew = supplyId === "new";
+    const isAttend = operation === "attend";
+    const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
+    const disabled = !isEdit && !isNew;
 
     useEffect(() => {
         const fetchProviders = async () => {
@@ -272,7 +285,7 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchSupply = async supplyId => {
-            if (supplyId === "new") return;
+            if (isNew) return;
 
             const _supply = await getSupply(supplyId);
 
@@ -405,7 +418,7 @@ export default ({setPageTitle}) => {
                    alignItems="center"
                    flexDirection="column">
             {
-                (isEdit || supplyId === "new") &&
+                (isEdit || isNew) &&
                 <Button size="large"
                         disabled={!enablePost}
                         loading={loadingSupply}
@@ -417,13 +430,18 @@ export default ({setPageTitle}) => {
                 </Button>
             }
             {
-                supplyId !== "new" &&
+                operation === "attend" &&
                 <Button size="large"
                         width="80%"
                         type="primary">
-                    Atender
+                    Finalizar atención
                 </Button>
             }
         </Container>
+        {
+            visibleAttendModal &&
+            <Attend visible={visibleAttendModal}
+                    product={attendedProduct}/>
+        }
     </>
 };

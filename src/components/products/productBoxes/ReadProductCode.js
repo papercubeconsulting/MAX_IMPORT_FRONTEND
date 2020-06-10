@@ -1,9 +1,9 @@
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import {Input, Modal} from "antd";
-import {Container, Grid} from "../index";
+import {Container, Grid} from "../../index";
 import styled from "styled-components";
-import {Button} from "../Button";
+import {Button} from "../../Button";
 
 export const ReadProductCode = props => {
     const [productBoxCode, setProductBoxCode] = useState(null);

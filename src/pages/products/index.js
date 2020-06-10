@@ -6,7 +6,7 @@ import {getElements, getFamilies, getModels, getProducts, getSubfamilies} from "
 import {urlQueryParams} from "../../util";
 import {get} from "lodash";
 import {AddProduct} from "../../components/products";
-import {ReadProductCode} from "../../components/productBoxes/ReadProductCode";
+import {ReadProductCode} from "../../components/products/productBoxes/ReadProductCode";
 import {faEye} from "@fortawesome/free-solid-svg-icons";
 
 export default ({setPageTitle}) => {
