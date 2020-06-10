@@ -10,14 +10,18 @@ export const ReadProductCode = props => {
 
     const router = useRouter();
 
-    const scanBarcode = () => navigator.getUserMedia({video: true}, stream => {
-        console.log(stream);
+    const scanBarcode = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({video: true});
 
-        const video = document.getElementById("camera");
+            const video = document.getElementById("camera");
 
-        video.srcObject = stream;
-        video.play();
-    }, error => alert("there was an error " + error));
+            video.srcObject = stream;
+            video.play();
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <Modal visible={props.visible}
@@ -39,8 +43,7 @@ export const ReadProductCode = props => {
                         Leer Código de barras
                     </Button>
                     <video id="camera"
-                           width="300"
-                           height="300"/>
+                           height="100"/>
                 </Grid>
             </Grid>
         </Modal>
