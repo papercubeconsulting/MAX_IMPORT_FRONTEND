@@ -4,23 +4,38 @@ import {Input, Modal} from "antd";
 import {Container, Grid} from "../index";
 import styled from "styled-components";
 import {Button} from "../Button";
+import Quagga from "quagga";
+import {get} from "lodash";
 
 export const ReadProductCode = props => {
     const [productBoxCode, setProductBoxCode] = useState(null);
 
     const router = useRouter();
 
-    const scanBarcode = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({video: true});
-
-            const video = document.getElementById("camera");
-
-            video.srcObject = stream;
-            video.play();
-        } catch (error) {
-            console.log(error);
-        }
+    const scanBarcode = () => {
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream"
+            },
+            decoder: {
+                readers: ["code_128_reader"]
+            }
+        }, error => {
+            if (error) {
+                console.log(error);
+                return
+            }
+            console.log("Initialization finished. Ready to start");
+            Quagga.start();
+        });
+        Quagga.onProcessed(data => {
+            if (get(data, "codeResult", null)) {
+                setProductBoxCode(get(data, "codeResult.code", null));
+                console.log(get(data, "codeResult.code", null));
+                Quagga.stop()
+            }
+        });
     }
 
     return (
@@ -31,7 +46,7 @@ export const ReadProductCode = props => {
                title="Escanear o ingresar código de caja">
             <Grid gridTemplateRows="repeat(2, 1fr)"
                   gridGap="1rem">
-                <Grid gridTemplateColumns="repeat(4, 1fr)"
+                <Grid gridTemplateColumns="1fr 1fr"
                       gridGap="1rem">
                     <Input value={productBoxCode}
                            justify="center"
@@ -42,8 +57,13 @@ export const ReadProductCode = props => {
                     <Button onClick={scanBarcode}>
                         Leer Código de barras
                     </Button>
-                    <video id="camera"
-                           height="100"/>
+                    <div id="interactive"
+                         style={{height: "100px"}}
+                         className="viewport">
+                        <video autoPlay="true"
+                               style={{height: "100px"}}
+                               preload="auto"/>
+                    </div>
                 </Grid>
             </Grid>
         </Modal>
