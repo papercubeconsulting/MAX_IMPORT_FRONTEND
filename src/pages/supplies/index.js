@@ -76,7 +76,7 @@ export default ({setPageTitle}) => {
                 </Button>
                 : <Button width="fit-content"
                           type="primary"
-                          onClick={async () => router.push(`/supplies/${supply.id}`)}>
+                          onClick={async () => router.push(`/supplies/${supply.id}?operation=attend`)}>
                     <Icon icon={faCheck}/>
                     Atender
                 </Button>
