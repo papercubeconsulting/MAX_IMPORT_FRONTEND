@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Input, Modal, notification, Tag, Upload} from "antd";
 import {AutoComplete, Button, Container, Grid, Icon, Select} from "../index";
 import {faUpload} from "@fortawesome/free-solid-svg-icons";
-import {getElements, getFamilies, getModels, getSubfamilies, getProviders, postProduct} from "../../providers";
+import {getElements, getFamilies, getModels, getProviders, getSubfamilies, postProduct} from "../../providers";
 import {toBase64} from "../../util";
 import styled from "styled-components";
 
@@ -214,7 +214,7 @@ export const AddProduct = props => {
                 familyName: family.name,
                 subfamilyName: subfamily.name,
                 elementName: element.name,
-                modelName: model.name,                
+                modelName: model.name,
                 familyCode: family.code,
                 subfamilyCode: subfamily.code,
                 elementCode: element.code,
@@ -232,13 +232,11 @@ export const AddProduct = props => {
             Modal.success({
                 title: "Producto creado correctamente",
                 content: `Código de inventario: ${response.data.code}`,
-                // onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         } catch (error) {
             Modal.error({
                 title: "Error al intentar mover la caja",
                 content: error.message,
-                // onOk: () => props.toggleUpdateTable(prevState => !prevState)
             });
         }
 
@@ -343,9 +341,9 @@ export const AddProduct = props => {
                 </Grid>
                 <Grid gridTemplateColumns="2fr 1fr 2fr 2fr 20%"
                       gridGap="1rem">
-                    
+
                     <Select value={provider.name}
-                            label="Proveedor"                            
+                            label="Proveedor"
                             onChange={value => {
                                 const _provider = providers.find(provider => provider.id === value);
                                 setProvider(_provider);
@@ -357,7 +355,7 @@ export const AddProduct = props => {
                            addonBefore="Precio S/"/>
                     <Input value={compatibility}
                            onChange={event => setCompatibility(event.target.value)}
-                           addonBefore="Compatibilidad"/>                           
+                           addonBefore="Compatibilidad"/>
                     <Input value={tradename}
                            onChange={event => setTradename(event.target.value)}
                            addonBefore="Nombre comercial"/>

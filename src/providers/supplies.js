@@ -50,6 +50,27 @@ const postSupply = async body => {
     return responseJson;
 }
 
+const postSupplyAttend = async (supplyId, suppliedProductId, body) => {
+    const url = `${serverUrl}/supplies/${supplyId}/attend/${suppliedProductId}`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            "accept": "*/*",
+            "Content-Type": "application/json",
+        }
+    });
+
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+        throw new Error(responseJson.userMessage);
+    }
+
+    return responseJson;
+}
+
 const putSupply = async (supplyId, body) => {
     const url = `${serverUrl}/supplies/${supplyId}`;
 
@@ -96,6 +117,7 @@ export {
     getSupply,
     getSupplies,
     postSupply,
+    postSupplyAttend,
     putSupply,
     putSupplyStatus
 };

@@ -1,9 +1,10 @@
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import {Input, Modal} from "antd";
-import {Container, Grid} from "../index";
+import {Container} from "../../Container";
+import {Grid} from "../../Grid";
 import styled from "styled-components";
-import {Button} from "../Button";
+import {Button} from "../../Button";
 import Quagga from "quagga";
 import {get} from "lodash";
 

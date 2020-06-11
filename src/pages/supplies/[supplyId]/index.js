@@ -68,6 +68,7 @@ export default ({setPageTitle}) => {
                                 ...remainingSuppliedProducts,
                                 {
                                     id: suppliedProduct.id,
+                                    dbId: suppliedProduct.dbId,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: value
@@ -92,6 +93,7 @@ export default ({setPageTitle}) => {
                                 ...remainingSuppliedProducts,
                                 {
                                     id: suppliedProduct.id,
+                                    dbId: suppliedProduct.dbId,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -117,6 +119,7 @@ export default ({setPageTitle}) => {
                                 ...remainingSuppliedProducts,
                                 {
                                     id: suppliedProduct.id,
+                                    dbId: suppliedProduct.dbId,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -143,6 +146,7 @@ export default ({setPageTitle}) => {
                                 ...remainingSuppliedProducts,
                                 {
                                     id: suppliedProduct.id,
+                                    dbId: suppliedProduct.dbId,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -296,6 +300,7 @@ export default ({setPageTitle}) => {
             setSuppliedProducts(get(_supply, "suppliedProducts", [])
                 .map((suppliedProduct, index) => ({
                     id: index + 1,
+                    dbId: suppliedProduct.id,
                     familyId: get(suppliedProduct, "product.familyId", null),
                     subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
                     elementId: get(suppliedProduct, "product.elementId", null),
@@ -441,6 +446,8 @@ export default ({setPageTitle}) => {
         {
             visibleAttendModal &&
             <Attend visible={visibleAttendModal}
+                    supplyId={supplyId}
+                    trigger={setVisibleAttendModal}
                     product={attendedProduct}/>
         }
     </>
