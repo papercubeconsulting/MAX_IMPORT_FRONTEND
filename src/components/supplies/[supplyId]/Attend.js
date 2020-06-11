@@ -5,11 +5,13 @@ import styled from "styled-components";
 import {Button} from "../../Button";
 import {useRouter} from "next/router";
 import {postSupplyAttend} from "../../../providers";
+import Barcode from "react-barcode";
 
 export const Attend = props => {
     const [boxesText, setBoxesText] = useState("");
     const [boxes, setBoxes] = useState([]);
     const [loadingAttend, setLoadingAttend] = useState(false);
+    const [code, setCode] = useState(null);
 
     const router = useRouter();
 
@@ -84,18 +86,31 @@ export const Attend = props => {
                    onChange={event => setBoxesText(event.target.value)}/>
             <BoxContainer>
                 {
-                    Array.from(Array(get(props, "product.quantity", 0)).keys()).map(value =>
-                        <Box selected={!!boxes.find(box => box === value + 1)}>
-                            {value + 1}
-                        </Box>
+                    Array.from(Array(get(props, "product.quantity", 0)).keys()).map(value => {
+                            const product = get(props, "product.productBoxes", [])
+                                .find(productBox => productBox.indexFromSupliedProduct === value + 1);
+                            return <Box attended={!!product}
+                                        onClick={() => product && setCode(product.trackingCode)}
+                                        selected={!!boxes.find(box => box === value + 1)}>
+                                {value + 1}
+                            </Box>;
+                        }
                     )
                 }
             </BoxContainer>
+            {
+                !!code &&
+                <BarcodeContainer>
+                    <Barcode value={code}
+                             width={2}/>
+                </BarcodeContainer>
+
+            }
             <Button disabled={!boxesText || !validInput}
                     loading={loadingAttend}
                     onClick={onSubmit}
                     width="100%">
-                Atender
+                Generar Tickets
             </Button>
         </Modal>
     </>
@@ -119,5 +134,13 @@ const Box = styled.div`
   background-color: ${props => props.attended ? "#52c41a" : "#7ec1ff"};
   border: 3px solid black;
   font-size: 16px;
+  cursor: ${props => props.attended ? "pointer" : "initial"};
   color: ${props => props.selected ? "white" : "black"};
+`;
+
+const BarcodeContainer = styled.div`
+  padding: 1rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 `;

@@ -11,7 +11,8 @@ import {
     getSupply,
     getWarehouses,
     postSupply,
-    putSupply
+    putSupply,
+    putSupplyStatus
 } from "../../../providers";
 import {get, orderBy} from "lodash";
 import {Input, notification, Table} from "antd";
@@ -29,7 +30,7 @@ export default ({setPageTitle}) => {
             render: (id, suppliedProduct) => (
                 <Button padding="0 0.5rem"
                         onClick={() => {
-                            if (isAttend) {
+                            if (disabled) {
                                 setAttendedProduct(suppliedProduct);
                                 return setVisibleAttendModal(true);
                             }
@@ -42,7 +43,7 @@ export default ({setPageTitle}) => {
                         type="primary">
                     <Icon marginRight="0px"
                           fontSize="0.8rem"
-                          icon={isAttend ? faPrint : faTrash}/>
+                          icon={disabled ? faPrint : faTrash}/>
                 </Button>
             )
         },
@@ -69,6 +70,7 @@ export default ({setPageTitle}) => {
                                 {
                                     id: suppliedProduct.id,
                                     dbId: suppliedProduct.dbId,
+                                    productBoxes: suppliedProduct.productBoxes,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: value
@@ -94,6 +96,7 @@ export default ({setPageTitle}) => {
                                 {
                                     id: suppliedProduct.id,
                                     dbId: suppliedProduct.dbId,
+                                    productBoxes: suppliedProduct.productBoxes,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -120,6 +123,7 @@ export default ({setPageTitle}) => {
                                 {
                                     id: suppliedProduct.id,
                                     dbId: suppliedProduct.dbId,
+                                    productBoxes: suppliedProduct.productBoxes,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -147,6 +151,7 @@ export default ({setPageTitle}) => {
                                 {
                                     id: suppliedProduct.id,
                                     dbId: suppliedProduct.dbId,
+                                    productBoxes: suppliedProduct.productBoxes,
                                     quantity: suppliedProduct.quantity,
                                     boxSize: suppliedProduct.boxSize,
                                     familyId: suppliedProduct.familyId,
@@ -301,6 +306,7 @@ export default ({setPageTitle}) => {
                 .map((suppliedProduct, index) => ({
                     id: index + 1,
                     dbId: suppliedProduct.id,
+                    productBoxes: suppliedProduct.productBoxes,
                     familyId: get(suppliedProduct, "product.familyId", null),
                     subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
                     elementId: get(suppliedProduct, "product.elementId", null),
@@ -383,6 +389,23 @@ export default ({setPageTitle}) => {
         }])
     }
 
+    const finishAttend = async () => {
+        try {
+            setLoadingSupply(true);
+
+            await putSupplyStatus(supplyId, "Atendido");
+            await router.push("/supplies");
+
+            setLoadingSupply(false);
+        } catch (error) {
+            setLoadingSupply(false);
+            notification.error({
+                message: "No se pudo finalizar atención",
+                description: error.message
+            })
+        }
+    }
+
     return <>
         <Container height="10%">
             <Grid gridTemplateColumns="1fr 1fr 2fr"
@@ -438,6 +461,8 @@ export default ({setPageTitle}) => {
                 operation === "attend" &&
                 <Button size="large"
                         width="80%"
+                        onClick={finishAttend}
+                        loading={loadingSupply}
                         type="primary">
                     Finalizar atención
                 </Button>
