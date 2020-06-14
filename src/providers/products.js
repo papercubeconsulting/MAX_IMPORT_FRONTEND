@@ -15,8 +15,8 @@ const getProducts = async params => {
     return responseJson.data;
 };
 
-const getProduct = async productId => {
-    const url = `${serverUrl}/products/${productId}`;
+const getProduct = async (productId, params) => {
+    const url = `${serverUrl}/products/${productId}${urlQueryParams(params)}`;
 
     const response = await fetch(url, {method: "GET"});
 

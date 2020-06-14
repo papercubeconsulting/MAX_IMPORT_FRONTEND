@@ -44,13 +44,9 @@ export const Attend = props => {
     const onSubmit = async () => {
         try {
             setLoadingAttend(true);
-
             const response = await postSupplyAttend(props.supplyId, props.product.dbId, {boxes});
-
-            const suppliedProduct = get(response, "data.suppliedProducts[0]", {});
-
+            const suppliedProduct = get(response, "data.suppliedProducts", []).find(obj=>obj.id === props.product.dbId);
             const {familyName, subfamilyName, elementName, modelName} = suppliedProduct.product;
-
             await router.push({
                 pathname: `/supplies/${props.supplyId}/tickets`,
                 query: {
@@ -60,7 +56,8 @@ export const Attend = props => {
                     modelName,
                     boxes,
                     boxSize: suppliedProduct.boxSize,
-                    productBoxesCodes: get(suppliedProduct, "productBoxes", [])
+                    productBoxesCodes: boxes.map(box=> get(suppliedProduct, "productBoxes", [])
+                        .find( obj=>obj.indexFromSupliedProduct===box ) )
                         .map(productBox => productBox.trackingCode)
                 }
             });
@@ -69,7 +66,7 @@ export const Attend = props => {
         } catch (error) {
             alert(error.message);
             Modal.error({
-                title: "Error al intentar mover la caja",
+                title: "Error al atender cajas",
                 content: error.message,
             });
             setLoadingAttend(false);

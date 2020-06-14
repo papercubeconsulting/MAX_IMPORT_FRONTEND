@@ -18,14 +18,20 @@ Tickets.getInitialProps = async ({req, res, query}) => {
         const isServer = !!req;
 
         const {familyName, subfamilyName, elementName, modelName, boxSize} = query;
+        let  {boxes, productBoxesCodes} = query;
 
         if (isServer) {
+            //? Para caso en el que se pide solo un ticket y el query parameter no se genera como arreglo
+            if (boxes.constructor !== Array) {
+                boxes = [boxes];
+                productBoxesCodes = [productBoxesCodes];
+            }
 
             const buffer = await componentToPDFBuffer(
                 <div>
                     {
-                        get(query, "boxes", []).map(box => {
-                            const productBoxCode = get(query, `productBoxesCodes[${box - 1}]`, null);
+                        boxes.map((box, index) => {
+                            const productBoxCode = productBoxesCodes[index];
 
                             const data8 = codes.create("code128", productBoxCode);
 

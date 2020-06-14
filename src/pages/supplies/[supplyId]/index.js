@@ -5,6 +5,7 @@ import {
     getElements,
     getFamilies,
     getModels,
+    getProduct,
     getProducts,
     getProviders,
     getSubfamilies,
@@ -142,26 +143,38 @@ export default ({setPageTitle}) => {
             render: (modelId, suppliedProduct) =>
                 <Select value={modelId}
                         disabled={disabled}
-                        onChange={value => setSuppliedProducts(prevState => {
-                            const remainingSuppliedProducts = prevState
-                                .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
+                        onChange={async value => {
 
-                            return [
-                                ...remainingSuppliedProducts,
-                                {
-                                    id: suppliedProduct.id,
-                                    dbId: suppliedProduct.dbId,
-                                    productBoxes: suppliedProduct.productBoxes,
-                                    quantity: suppliedProduct.quantity,
-                                    boxSize: suppliedProduct.boxSize,
-                                    familyId: suppliedProduct.familyId,
-                                    subfamilyId: suppliedProduct.subfamilyId,
-                                    elementId: suppliedProduct.elementId,
-                                    modelId: value
-                                }
-                            ]
-                        })}
+                            const product = await getProduct(value, {noStock: true});
+
+                            setSuppliedProducts( prevState => {
+                                const remainingSuppliedProducts = prevState
+                                    .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
+
+                                return [
+                                    ...remainingSuppliedProducts,
+                                    {
+                                        id: suppliedProduct.id,
+                                        dbId: suppliedProduct.dbId,
+                                        productBoxes: suppliedProduct.productBoxes,
+                                        quantity: suppliedProduct.quantity,
+                                        boxSize: suppliedProduct.boxSize,
+                                        familyId: suppliedProduct.familyId,
+                                        subfamilyId: suppliedProduct.subfamilyId,
+                                        elementId: suppliedProduct.elementId,
+                                        modelId: value,
+                                        product
+                                    }
+                                ];
+                        })}}
                         options={selectOptions(models.filter(model => model.elementId === suppliedProduct.elementId))}/>
+        },
+        {
+            title: "Código de producto",
+            dataIndex: "product",
+            width: "fit-content",
+            align: "center",
+            render: product => get(product, 'code', null)
         },
         {
             title: "Unidades por caja",
@@ -238,7 +251,6 @@ export default ({setPageTitle}) => {
 
     const router = useRouter();
     const {supplyId, operation} = router.query;
-
     const isNew = supplyId === "new";
     const isAttend = operation === "attend";
     const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
@@ -262,35 +274,35 @@ export default ({setPageTitle}) => {
 
     useEffect(() => {
         const fetchFamilies = async () => {
-            const _families = await getFamilies();
+            const _families = await getFamilies(providerId);
             setFamilies(_families);
         };
-        fetchFamilies();
-    }, []);
+        if (providerId) fetchFamilies();
+    }, [providerId]);
 
     useEffect(() => {
         const fetchSubfamilies = async () => {
-            const _subfamilies = await getSubfamilies();
+            const _subfamilies = await getSubfamilies(null, providerId);
             setSubfamilies(_subfamilies);
         };
-        fetchSubfamilies();
-    }, []);
+        if (providerId) fetchSubfamilies();
+    }, [providerId]);
 
     useEffect(() => {
         const fetchElements = async () => {
-            const _elements = await getElements();
+            const _elements = await getElements(null, providerId);
             setElements(_elements);
         };
-        fetchElements();
-    }, []);
+        if (providerId) fetchElements();
+    }, [providerId]);
 
     useEffect(() => {
         const fetchModels = async () => {
-            const _models = await getModels();
+            const _models = await getModels(null, providerId);
             setModels(_models);
         };
-        fetchModels();
-    }, []);
+        if (providerId) fetchModels();
+    }, [providerId]);
 
     useEffect(() => {
         const fetchSupply = async supplyId => {
@@ -313,6 +325,7 @@ export default ({setPageTitle}) => {
                     modelId: get(suppliedProduct, "product.modelId", null),
                     quantity: get(suppliedProduct, "quantity", null),
                     boxSize: get(suppliedProduct, "boxSize", null),
+                    product: get(suppliedProduct, "product", null),
                 }))
             )
         };
@@ -405,13 +418,12 @@ export default ({setPageTitle}) => {
             })
         }
     }
-
     return <>
         <Container height="10%">
             <Grid gridTemplateColumns="1fr 1fr 2fr"
                   gridGap="2rem">
                 <Select value={providerId}
-                        disabled={disabled}
+                        disabled={disabled || suppliedProducts.length}
                         label="Proveedor"
                         onChange={value => setProviderId(value)}
                         options={selectOptions(providers)}/>
@@ -434,11 +446,12 @@ export default ({setPageTitle}) => {
             !disabled &&
             <Container height="5rem">
                 <Button padding="0 0.5rem"
+                        disabled={!providerId}
                         onClick={() => setSuppliedProducts(prevState => [...prevState, {id: suppliedProducts.length + 1}])}
                         type="primary">
                     <Icon fontSize="1rem"
                           icon={faPlus}/>
-                    Agregar columna
+                    Agregar producto
                 </Button>
             </Container>
         }

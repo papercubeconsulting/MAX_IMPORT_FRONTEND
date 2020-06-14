@@ -185,7 +185,8 @@ export default ({setPageTitle}) => {
                                     Fecha Fin
                                 </>
                             }/>
-                <Button type="primary">
+                <Button type="primary" 
+                        onClick={async () => router.push(`/supplies/new`)}>
                     Nuevo abastecimiento
                 </Button>
             </Grid>

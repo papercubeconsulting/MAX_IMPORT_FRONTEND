@@ -1,8 +1,13 @@
 import {serverUrl} from "../config";
+import {urlQueryParams} from "../util";
 
-const getModels = async elementId => {
-    const url = elementId ? `${serverUrl}/models?elementId=${elementId}` : `${serverUrl}/models`;
-
+const getModels = async (elementId, providerId) => {
+    const params = {}
+    if (elementId) params.elementId = elementId;
+    if (providerId) params.providerId = providerId;
+    
+    const url = `${serverUrl}/models${urlQueryParams(params)}`;
+    
     const response = await fetch(url, {method: "GET"});
 
     if (!response.ok) {

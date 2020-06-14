@@ -1,7 +1,10 @@
 import {serverUrl} from "../config";
+import {urlQueryParams} from "../util";
 
-const getFamilies = async () => {
-    const url = `${serverUrl}/families`;
+const getFamilies = async providerId => {
+    const params = {}
+    if (providerId) params.providerId = providerId;
+    const url = `${serverUrl}/families${urlQueryParams(params)}`;
 
     const response = await fetch(url, {method: "GET"});
 

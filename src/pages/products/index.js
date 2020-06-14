@@ -322,6 +322,10 @@ export default ({setPageTitle}) => {
                             {
                                 value: "yes",
                                 label: "Sí"
+                            },
+                            {
+                                value: "no",
+                                label: "No"
                             }
                         ]}/>
                 <Input value={code}

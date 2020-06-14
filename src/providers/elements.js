@@ -1,7 +1,12 @@
 import {serverUrl} from "../config";
+import {urlQueryParams} from "../util";
 
-const getElements = async subfamilyId => {
-    const url = subfamilyId ? `${serverUrl}/elements?subfamilyId=${subfamilyId}` : `${serverUrl}/elements`;
+const getElements = async (subfamilyId, providerId) => {
+    const params = {}
+    if (subfamilyId) params.subfamilyId = subfamilyId;
+    if (providerId) params.providerId = providerId;
+
+    const url = `${serverUrl}/elements${urlQueryParams(params)}`;
 
     const response = await fetch(url, {method: "GET"});
 
