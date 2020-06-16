@@ -205,15 +205,17 @@ export default ({setPageTitle}) => {
             </Grid>
         </Container>
         <Container height="20%"
-                   width="50%"
+                //    width="50%"
                    flexDirection="column"
                    textAlign="center"
+                   justifyContent="center"
+                   alignItems="center"
                    padding="1rem">
                       
                 <h3>
                     Movimiento de caja
                 </h3> 
-                <Grid gridTemplateColumns="repeat(3, 1fr)"
+                <Grid gridTemplateColumns="2fr 1fr"
                     gridTemplateRows="repeat(1, 1fr)"
                     justifyContent="center"
                     gridGap="1rem">

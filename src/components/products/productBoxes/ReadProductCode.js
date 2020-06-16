@@ -45,10 +45,11 @@ export const ReadProductCode = props => {
                onCancel={() => props.trigger && props.trigger(false)}
                width="90%"
                title="Escanear o ingresar código de caja">
-            <Grid gridTemplateRows="repeat(2, 1fr)"
-                  gridGap="1rem">
+            {/* <Grid gridTemplateRows="repeat(2, 1fr)"
+                  gridGap="1rem"> */}
                 <Grid gridTemplateColumns="1fr 1fr"
-                      gridGap="1rem">
+                      gridGap="1rem"
+                      marginBottom="1rem">
                     <Input value={productBoxCode}
                            justify="center"
                            onChange={event =>
@@ -58,35 +59,29 @@ export const ReadProductCode = props => {
                     <Button onClick={scanBarcode}>
                         Leer Código de barras
                     </Button>
-                    <div id="interactive"
-                         style={{height: "100px"}}
-                         className="viewport">
-                        <video autoPlay="true"
-                               style={{height: "100px"}}
-                               preload="auto"/>
-                    </div>
                 </Grid>
-            </Grid>
+                <QRScanner>
+                    <Grid gridTemplateRows="1fr"
+                        gridGap="1rem"
+                        justifyItems="center">
+                        <div id="interactive"
+                            className="viewport">
+                            <video autoPlay="true"
+                                preload="auto"/>
+                        </div>
+                        
+                        <canvas className="drawingBuffer"></canvas>
+                    </Grid>
+                </QRScanner>
+            {/* </Grid> */}
         </Modal>
     )
 };
 
-const LegendsContainer = styled(Container)`
-  .ant-tag {
-    font-size: 1rem;
-    margin: 0;
-    padding: 0.5rem;
-    text-align: center;
-    min-width: 15%;
-  }
-`;
-
-const ModalConfirmContainer = styled(LegendsContainer)`
-  h3 {
-    color: #404040;
-    
-    b {
-      color: black;
-    }
+const QRScanner = styled(Container)`
+  .drawingBuffer {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 `;
