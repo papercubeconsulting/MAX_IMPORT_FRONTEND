@@ -1,11 +1,12 @@
-import React, {useEffect} from "react";
+import React from "react";
+import {useGlobal} from "reactn";
 import {Container, Grid} from "../components";
 import {Login} from "../components/auth"
-import { Button } from "antd";
-import {get} from "lodash";
 
 export default ({setPageTitle}) => {
     setPageTitle("Home");
+
+    const [globalAuthUser, ] = useGlobal("authUser");
 
     return (
         <Container alignItems="center"
@@ -18,8 +19,7 @@ export default ({setPageTitle}) => {
                   alignItems="center"
                   >
                 
-                {/* {!globalAuthUser && <Login/>} */}
-                <Login/>
+                {!globalAuthUser && <Login/>}
 
             </Grid>
 

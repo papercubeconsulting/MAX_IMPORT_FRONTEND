@@ -9,6 +9,7 @@ import {useRouter} from "next/router";
 import {Icon} from "./Icon";
 import Link from "next/link";
 import { useGlobal } from 'reactn';
+import {get} from 'lodash';
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
@@ -104,7 +105,7 @@ export const BaseLayout = props => {
                         <Divider/>
                         <Icon icon={faUser}/>
                         <h3>
-                            Luis Rivera
+                            {get(globalAuthUser, 'name', 'Bienvenido')}
                         </h3>
                     </Container>
                 </Header>

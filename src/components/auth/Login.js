@@ -1,13 +1,8 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/router";
-import {Button, Container, Grid, Icon, Select} from "../../components";
-import {Input, notification, Modal, Form,  Alert } from "antd";
+import {Button, Container} from "../../components";
+import {Input, notification, Modal, Form} from "antd";
 import {login, forgotPassword} from "../../providers";
-import {urlQueryParams} from "../../util";
-import {get} from "lodash";
-import {AddProduct} from "../../components/products";
-import {ReadProductCode} from "../../components/products/productBoxes/ReadProductCode";
-import {faEye} from "@fortawesome/free-solid-svg-icons";
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 export const Login = props => {
@@ -15,59 +10,49 @@ export const Login = props => {
     const [email, setEmail] = useState(null)
 
     const [isModalResetPasswordVisible, setIsModalResetPasswordVisible] = useState(false)
-      
+        
     const onFinish = async values => {
         try {
-          const response = await login(values);  
-          // TODO: Setear usuario y token
-          
-          notification.success({
-            message: `Bienvenido`,
-            description: response.user.name,
-          });
-          router.push('/');
+            const response = await login(values);  
+            // TODO: Setear usuario y token en funcion de la respuesta
+            notification.success({
+                message: `Bienvenido`,
+                description: response.user.name,
+            });
+            // TODO: Validar si es la forma correcta de redreccionar a home
+            router.push('/'); 
         } catch (error) {
-          notification.error({
-            message: "Error al identificarse",
-            description: error.message,
-          });
+            notification.error({
+                message: "Error al identificarse",
+                description: error.message,
+            });
         }
     };
     
-    const onFinishFailed = errorInfo => {
-        notification.error({
-          message: "Error al identificarse",
-          description: errorInfo,
-        });
-    };
-
     const submitForgotPassword = async () =>{
         try {
-          const response = await forgotPassword({email});  
-          notification.success({
-            message: `Revise su bandeja de entrada`,
-            description: `Se ha enviado un correo a ${email}`,
-          });
-          setIsModalResetPasswordVisible(false)
+            const response = await forgotPassword({email});  
+            notification.success({
+                message: `Revise su bandeja de entrada`,
+                description: `Se ha enviado un correo a ${email}`,
+            });
+            setIsModalResetPasswordVisible(false)
         } catch (error) {
             notification.error({
-              message: "Error al identificarse",
-              description: error.message,
+                message: "Error al identificarse",
+                description: error.message,
             });
         }        
       }
     return <>
         {
-            isModalResetPasswordVisible &&
-            
+            isModalResetPasswordVisible &&            
             <Modal visible={isModalResetPasswordVisible}
                 onOk={() => submitForgotPassword()}
                 onCancel={() => setIsModalResetPasswordVisible(false)}
                 width="40%"
                 title="Recuperar contraseña">
-                
                 Enviaremos un correo con un link para que pueda cambiar su contraseña al email que ingresó en la casilla correo: {email}
-
             </Modal>
         }
         <Container 
@@ -81,10 +66,8 @@ export const Login = props => {
                 </h3>
 
                 <Form
-                name="login"
-                onFinish={onFinish}
-                onFinishFailed={onFinishFailed}
-
+                    name="login"
+                    onFinish={onFinish}
                 >
                     <Form.Item
                         name="email"
@@ -99,6 +82,7 @@ export const Login = props => {
                             onChange={event => setEmail(event.target.value)}
                             />
                     </Form.Item>
+
                     <Form.Item
                         name="password"
                         rules={[{ required: true, message: 'Por favor ingrese su contraseña' }]}

@@ -6,6 +6,7 @@ import {userProvider} from "../providers";
 import {BaseLayout} from "../components";
 import {createGlobalStyle} from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
+import { notification } from "antd";
 
 export default ({Component, pageProps}) => {
     const [title, setTitle] = useState(null);
@@ -21,6 +22,11 @@ export default ({Component, pageProps}) => {
                 await setGlobalAuthUser(authUser);
             } catch (error) {
                 await setGlobalAuthUser(null);
+                if (error.message === 'Failed to fetch')
+                  notification.error({
+                    message: "Error al identificarse",
+                    description: "Error en el servidor"
+                  })
             }
         };
         if (!prevGlobalAuthUser || !globalAuthUser) initializeApp();
