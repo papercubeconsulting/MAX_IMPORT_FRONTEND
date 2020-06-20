@@ -33,6 +33,7 @@ export default ({setPageTitle}) => {
             title: "Usuario",
             dataIndex: "user",
             align: "center",
+            render: user => `${user.name} ${user.lastname}`,
         },
         {
             width: '20%',
