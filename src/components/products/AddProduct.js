@@ -231,7 +231,7 @@ export const AddProduct = props => {
 
             Modal.success({
                 title: "Producto creado correctamente",
-                content: `Código de inventario: ${response.data.code}`,
+                content: `Código de inventario: ${response.code}`,
             });
         } catch (error) {
             Modal.error({
