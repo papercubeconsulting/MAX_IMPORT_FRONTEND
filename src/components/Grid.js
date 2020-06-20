@@ -8,4 +8,5 @@ export const Grid = styled.div`
   grid-template-areas: ${props => props.gridTemplateAreas || "initial"};
   grid-gap: ${props => props.gridGap || 0};
   margin-bottom: ${props => props.marginBottom || 0};
+  justify-items: ${props => props.justifyItems || "initial"};
 `;
