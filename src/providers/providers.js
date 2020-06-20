@@ -1,18 +1,6 @@
-import {serverUrl} from "../config";
+import {baseProvider} from "./baseProvider";
 
-const getProviders = async () => {
-    const url = `${serverUrl}/providers`;
-
-    const response = await fetch(url, {method: "GET"});
-
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
-
-    const responseJson = await response.json();
-
-    return responseJson.data;
-};
+const getProviders = async () => baseProvider.httpGet("providers");
 
 export {
     getProviders

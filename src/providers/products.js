@@ -1,54 +1,8 @@
-import {serverUrl} from "../config";
-import {urlQueryParams} from "../util";
+import {baseProvider} from "./baseProvider";
 
-const getProducts = async params => {
-    const url = `${serverUrl}/products${urlQueryParams(params)}`;
-
-    const response = await fetch(url, {method: "GET"});
-
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
-
-    const responseJson = await response.json();
-
-    return responseJson.data;
-};
-
-const getProduct = async (productId, params) => {
-    const url = `${serverUrl}/products/${productId}${urlQueryParams(params)}`;
-
-    const response = await fetch(url, {method: "GET"});
-
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
-
-    const responseJson = await response.json();
-
-    return responseJson.data;
-};
-
-const postProduct = async body => {
-    const url = `${serverUrl}/products`;
-
-    const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers: {
-            "accept": "*/*",
-            "Content-Type": "application/json",
-        }
-    });
-
-    const responseJson = await response.json();
-
-    if (!response.ok) {
-        throw new Error(responseJson.userMessage);
-    }
-
-    return responseJson;
-};
+const getProducts = async params => baseProvider.httpGet(`products`, params);
+const getProduct = async (productId, params) => baseProvider.httpGet(`products/${productId}`, params);
+const postProduct = async body => baseProvider.httpPost("products", body);
 
 export {
     getProducts,

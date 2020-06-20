@@ -1,41 +1,7 @@
-import {serverUrl} from "../config";
-import {urlQueryParams} from "../util";
+import {baseProvider} from "./baseProvider";
 
-const getProductBox = async productId => {
-    const url = `${serverUrl}/productboxes/${productId}`;
-
-    const response = await fetch(url, {method: "GET"});
-
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
-
-    const responseJson = await response.json();
-
-    return responseJson.data;
-};
-
-const putProductBox = async (productId, body) => {
-    const url = `${serverUrl}/productboxes/${productId}`;
-
-    const response = await fetch(url, {
-        method: "PUT",
-        body: JSON.stringify(body),
-        headers: {
-            "accept": "*/*",
-            "Content-Type": "application/json",
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(response.statusText);
-    }
-
-    const responseJson = await response.json();
-
-    return responseJson.data;
-};
-
+const getProductBox = async productId => baseProvider.httpGet(`productboxes/${productId}`);
+const putProductBox = async (productId, body) => baseProvider.httpPut(`productboxes/${productId}`, body);
 
 export {
     getProductBox,

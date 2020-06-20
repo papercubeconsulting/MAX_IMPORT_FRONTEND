@@ -79,7 +79,7 @@ Tickets.getInitialProps = async ({req, res, query}) => {
                 </div>
             );
 
-            res.setHeader("Content-disposition", 'attachment; filename="article.pdf"');
+            res.setHeader("Content-disposition", 'attachment; filename="tickets.pdf"');
 
             res.setHeader("Content-Type", "application/pdf");
 

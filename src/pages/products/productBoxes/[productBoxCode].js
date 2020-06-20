@@ -130,7 +130,7 @@ export default ({setPageTitle}) => {
     const moveProductBox = async () => {
         try {
             const body = {
-                message: 'Movimiento de caja',
+                message: 'MOVEMENT',
                 warehouseId: newWarehouse.id
             };
 

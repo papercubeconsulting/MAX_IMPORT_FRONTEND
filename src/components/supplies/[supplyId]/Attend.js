@@ -45,7 +45,7 @@ export const Attend = props => {
         try {
             setLoadingAttend(true);
             const response = await postSupplyAttend(props.supplyId, props.product.dbId, {boxes});
-            const suppliedProduct = get(response, "data.suppliedProducts", []).find(obj=>obj.id === props.product.dbId);
+            const suppliedProduct = get(response, "suppliedProducts", []).find(obj=>obj.id === props.product.dbId);
             const {familyName, subfamilyName, elementName, modelName} = suppliedProduct.product;
             await router.push({
                 pathname: `/supplies/${props.supplyId}/tickets`,

@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const Grid = styled.div`
   display: grid;
-  width: 100%;
+  width: ${props => props.width || "100%"};
   grid-template-columns: ${props => props.gridTemplateColumns || "1fr"};
   grid-template-rows: ${props => props.gridTemplateRows || "1fr"};
   grid-template-areas: ${props => props.gridTemplateAreas || "initial"};

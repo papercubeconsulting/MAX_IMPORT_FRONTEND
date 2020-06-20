@@ -8,6 +8,7 @@ import moment from "moment";
 import {useRouter} from "next/router";
 import {Icon} from "./Icon";
 import Link from "next/link";
+import { useGlobal } from 'reactn';
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
@@ -23,9 +24,11 @@ export const BaseLayout = props => {
         return route === currentRoute;
     };
 
+    const [globalAuthUser, ] = useGlobal("authUser");
+
     return <>
         <Layout>
-            <Sidebar collapsed={!isVisibleMenu}>
+            {globalAuthUser && <Sidebar collapsed={!isVisibleMenu}>
                 <Menu>
                     <Link href="/">
                         <MenuItem>
@@ -79,7 +82,7 @@ export const BaseLayout = props => {
                     </Link>
                 </Menu>
             </Sidebar>
-            <Grid>
+            }<Grid>
                 <Header>
                     <Container padding="0px"
                                width="auto"

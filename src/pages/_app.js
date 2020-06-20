@@ -1,10 +1,30 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
+import {useGlobal} from "reactn";
+import {usePrevious} from "../util";
+
+import {userProvider} from "../providers";
 import {BaseLayout} from "../components";
 import {createGlobalStyle} from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
 
 export default ({Component, pageProps}) => {
     const [title, setTitle] = useState(null);
+
+    const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
+
+    const prevGlobalAuthUser = usePrevious(globalAuthUser);
+
+    useEffect(() => {
+        const initializeApp = async () => {
+            try {
+                const authUser = await userProvider.getUser();
+                await setGlobalAuthUser(authUser);
+            } catch (error) {
+                await setGlobalAuthUser(null);
+            }
+        };
+        if (!prevGlobalAuthUser || !globalAuthUser) initializeApp();
+    }, [globalAuthUser]);
 
     return <>
         <style dangerouslySetInnerHTML={{__html: stylesheet}}/>
@@ -51,6 +71,10 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
   }
   
+  .ant-input-affix-wrapper {
+    max-height: 2.5rem !important
+  }
+
   .ant-table-thead {
     .ant-table-cell {
       background-color: #1890ff;
