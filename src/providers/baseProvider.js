@@ -14,7 +14,7 @@ const buildUrl = (url, params = {}) => {
 
 const getToken = async () => {
     try {
-        // const token = localStorage.getItem('token');
+        // TODO: Aqui obtener el token guardado
         const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJudWV2b0Bjb3JyZW8uY29tIiwicm9sZSI6InN1cGVydXNlciIsImlhdCI6MTU5MjYzNDg5OH0.rWYOucFqOZLTOK-CDRs8H-P6K8N76fVZ5BLqc_YY0yM';
         // const token = null;
 
