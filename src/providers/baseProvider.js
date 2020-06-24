@@ -1,5 +1,5 @@
 import * as config from "../config";
-
+import {get} from "lodash";
 
 const buildUrl = (url, params = {}) => {
     const queries = Object
@@ -14,11 +14,11 @@ const buildUrl = (url, params = {}) => {
 
 const getToken = async () => {
     try {
-        // TODO: Aqui obtener el token guardado
-        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJudWV2b0Bjb3JyZW8uY29tIiwicm9sZSI6InN1cGVydXNlciIsImlhdCI6MTU5MjYzNDg5OH0.rWYOucFqOZLTOK-CDRs8H-P6K8N76fVZ5BLqc_YY0yM';
-        // const token = null;
+        const localAuthUser = localStorage.getItem("authUser") || null;
 
-        return token || null;
+        const authUser = JSON.parse(localAuthUser);
+
+        return get(authUser, "token", null);
     } catch (error) {
         console.log(`Error (token): ${error.message}`);
     }
@@ -48,7 +48,7 @@ export const baseProvider = {
     },
     httpPost: async (url, body = {}) => {
         const token = await getToken();
-        
+
         const response = await fetch(buildUrl(url), {
             method: "POST",
             body: JSON.stringify(body),

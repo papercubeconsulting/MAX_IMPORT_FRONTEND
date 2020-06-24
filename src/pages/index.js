@@ -5,7 +5,6 @@ import {Login} from "../components/auth"
 
 export default ({setPageTitle}) => {
     setPageTitle("Home");
-
     const [globalAuthUser] = useGlobal("authUser");
 
     return (

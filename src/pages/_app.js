@@ -1,10 +1,18 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
+import {useGlobal} from "reactn";
 import {BaseLayout} from "../components";
 import {createGlobalStyle} from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
 
 export default ({Component, pageProps}) => {
     const [title, setTitle] = useState(null);
+
+    const [, setGlobalAuthUser] = useGlobal("authUser");
+
+    useEffect(() => {
+        const localAuthUser = localStorage.getItem("authUser") || null;
+        setGlobalAuthUser(JSON.parse(localAuthUser));
+    }, []);
 
     return <>
         <style dangerouslySetInnerHTML={{__html: stylesheet}}/>

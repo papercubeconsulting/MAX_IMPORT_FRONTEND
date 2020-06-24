@@ -5,7 +5,7 @@ import {Form, Input, Modal, notification} from "antd";
 import {forgotPassword, login} from "../../providers";
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 
-export const Login = props => {
+export const Login = () => {
     const [email, setEmail] = useState(null)
     const [isModalResetPasswordVisible, setIsModalResetPasswordVisible] = useState(false)
 
@@ -15,6 +15,7 @@ export const Login = props => {
         try {
             const authUser = await login(values);
 
+            localStorage.setItem("authUser", JSON.stringify(authUser));
             await setGlobalAuthUser(authUser);
 
             notification.success({

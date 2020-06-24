@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from "react";
+import {useGlobal} from "reactn";
 import styled from "styled-components";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faCalendarAlt, faIndent, faUser} from "@fortawesome/free-solid-svg-icons";
@@ -8,12 +9,13 @@ import moment from "moment";
 import {useRouter} from "next/router";
 import {Icon} from "./Icon";
 import Link from "next/link";
-import {useGlobal} from 'reactn';
 import {get} from 'lodash';
 
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
-    const [globalAuthUser] = useGlobal("authUser");
+
+    const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
+
     const router = useRouter();
 
     useEffect(() => {
@@ -29,10 +31,9 @@ export const BaseLayout = props => {
         return route === currentRoute;
     };
 
-
     return <>
         <Layout>
-            <Sidebar collapsed={!isVisibleMenu}>
+            <Sidebar collapsed={!globalAuthUser || !isVisibleMenu}>
                 <Menu>
                     <Link href="/">
                         <MenuItem>
@@ -107,8 +108,11 @@ export const BaseLayout = props => {
                         </h3>
                         <Divider/>
                         <Icon icon={faUser}/>
-                        <h3>
-                            {get(globalAuthUser, 'name', 'Bienvenido')}
+                        <h3 onClick={async () => {
+                            await setGlobalAuthUser(null);
+                            localStorage.removeItem("authUser");
+                        }}>
+                            {get(globalAuthUser, "user.name", "Bienvenido")}
                         </h3>
                     </Container>
                 </Header>

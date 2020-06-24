@@ -5,7 +5,7 @@ import {Modal, notification, Table} from "antd";
 import {faCalendarAlt, faCheck, faEdit, faEye, faTrash} from "@fortawesome/free-solid-svg-icons";
 import moment from "moment";
 import {clientDateFormat, serverDateFormat} from "../../util";
-import {getSupplies, putSupplyStatus} from "../../providers/supplies";
+import {getSupplies, putSupplyStatus} from "../../providers";
 
 export default ({setPageTitle}) => {
     setPageTitle("Abastecimiento");
@@ -185,7 +185,7 @@ export default ({setPageTitle}) => {
                                     Fecha Fin
                                 </>
                             }/>
-                <Button type="primary" 
+                <Button type="primary"
                         onClick={async () => router.push(`/supplies/new`)}>
                     Nuevo abastecimiento
                 </Button>
