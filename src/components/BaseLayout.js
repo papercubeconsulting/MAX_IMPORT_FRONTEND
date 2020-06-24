@@ -11,6 +11,10 @@ import {Icon} from "./Icon";
 import Link from "next/link";
 import {get} from 'lodash';
 
+const noTokenPath = [
+    '/resetpassword'
+];
+
 export const BaseLayout = props => {
     const [isVisibleMenu, setIsVisibleMenu] = useState(true);
 
@@ -20,7 +24,7 @@ export const BaseLayout = props => {
 
     useEffect(() => {
         router.pathname !== "/" && setIsVisibleMenu(false);
-        if (!globalAuthUser) {
+        if (!globalAuthUser && !noTokenPath.includes(router.pathname)) {
             router.push("/");
         }
     }, [router.pathname, globalAuthUser]);

@@ -1,17 +1,18 @@
 import React from "react";
 import {useRouter} from "next/router";
+import {useGlobal} from "reactn";
 import {Container, Grid} from "../components";
 import {ResetPassword} from "../components/auth"
-import {useAuthUser} from "../util";
 
 export default ({setPageTitle}) => {
     setPageTitle("Recuperar contraseña");
-
+    
     const router = useRouter();
     const {email, token} = router.query
-    const {authUser} = useAuthUser();
+    const [globalAuthUser, ] = useGlobal("authUser");
 
-    const displayForm = !authUser && token && email;
+    const displayForm = !globalAuthUser && token && email;
+
 
     return (
         <Container alignItems="center"

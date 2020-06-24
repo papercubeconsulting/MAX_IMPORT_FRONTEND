@@ -11,7 +11,7 @@ export default ({setPageTitle}) => {
         <Container alignItems="center"
                    justifyContent="center"
                    flexDirection="column">
-            <h1>Sistema de Gestión, Logística y Venta Max Import s</h1>
+            <h1>Sistema de Gestión, Logística y Venta Max Import</h1>
             <Grid gridTemplateColumns="repeat(1, 1fr)"
                   gridTemplateRows="repeat(1, 1fr)"
                   gridGap="2rem"
