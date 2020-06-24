@@ -1,26 +1,26 @@
-import React, {useEffect, useRef, useState} from "react";
-import {useRouter} from "next/router";
+import React, {useState} from "react";
+import {useGlobal} from "reactn";
 import {Button, Container} from "../../components";
-import {Input, notification, Modal, Form} from "antd";
-import {login, forgotPassword} from "../../providers";
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import {Form, Input, Modal, notification} from "antd";
+import {forgotPassword, login} from "../../providers";
+import {LockOutlined, UserOutlined} from '@ant-design/icons';
 
 export const Login = props => {
-    const router = useRouter();
     const [email, setEmail] = useState(null)
-
     const [isModalResetPasswordVisible, setIsModalResetPasswordVisible] = useState(false)
-        
+
+    const [, setGlobalAuthUser] = useGlobal("authUser");
+
     const onFinish = async values => {
         try {
-            const response = await login(values);  
-            // TODO: Setear usuario y token en funcion de la respuesta
+            const authUser = await login(values);
+
+            await setGlobalAuthUser(authUser);
+
             notification.success({
                 message: `Bienvenido`,
-                description: response.user.name,
+                description: authUser.user.name,
             });
-            // TODO: Validar si es la forma correcta de redreccionar a home
-            router.push('/'); 
         } catch (error) {
             notification.error({
                 message: "Error al identificarse",
@@ -28,10 +28,10 @@ export const Login = props => {
             });
         }
     };
-    
+
     const submitForgotPassword = async () =>{
         try {
-            const response = await forgotPassword({email});  
+            const response = await forgotPassword({email});
             notification.success({
                 message: `Revise su bandeja de entrada`,
                 description: `Se ha enviado un correo a ${email}`,
@@ -42,30 +42,31 @@ export const Login = props => {
                 message: "Error al identificarse",
                 description: error.message,
             });
-        }        
+        }
       }
     return <>
         {
-            isModalResetPasswordVisible &&            
+            isModalResetPasswordVisible &&
             <Modal visible={isModalResetPasswordVisible}
-                onOk={() => submitForgotPassword()}
-                onCancel={() => setIsModalResetPasswordVisible(false)}
-                width="40%"
-                title="Recuperar contraseña">
-                Enviaremos un correo con un link para que pueda cambiar su contraseña al email que ingresó en la casilla correo: {email}
+                   onOk={() => submitForgotPassword()}
+                   onCancel={() => setIsModalResetPasswordVisible(false)}
+                   width="40%"
+                   title="Recuperar contraseña">
+                Enviaremos un correo con un link para que pueda cambiar su contraseña al email que ingresó en la casilla
+                correo: {email}
             </Modal>
         }
-        <Container 
+        <Container
             flexDirection="column"
             justifyContent="center"
             textAlign="center"
             alignItems="center"
             padding="2rem 0">
-                <h3>
-                    Bienvenido, por favor ingrese su usuario y contraseña
-                </h3>
+            <h3>
+                Bienvenido, por favor ingrese su usuario y contraseña
+            </h3>
 
-                <Form
+            <Form
                     name="login"
                     onFinish={onFinish}
                 >
@@ -73,14 +74,14 @@ export const Login = props => {
                         name="email"
                         rules={[{ type: 'email', required: true, message: 'Por favor ingrese un correo válido' }]}
                     >
-                        <Input 
+                        <Input
                             prefix={
-                                <UserOutlined 
-                                className="site-form-item-icon" />
-                            } 
+                                <UserOutlined
+                                    className="site-form-item-icon"/>
+                            }
                             placeholder="Correo electrónico"
                             onChange={event => setEmail(event.target.value)}
-                            />
+                        />
                     </Form.Item>
 
                     <Form.Item
