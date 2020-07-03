@@ -52,7 +52,7 @@ export const AddProduct = props => {
         const fetchSubfamilies = async () => {
             try {
                 setSubfamilies([]);
-                setSubfamily(prevState => ({...prevState, id: null}));
+                setSubfamily(prevState => ({...prevState, id: undefined}));
 
                 if (family.id) {
                     const _subfamilies = await getSubfamilies(family.id);
@@ -73,7 +73,7 @@ export const AddProduct = props => {
         const fetchElements = async () => {
             try {
                 setElements([]);
-                setElement(prevState => ({...prevState, id: null}));
+                setElement(prevState => ({...prevState, id: undefined}));
 
                 if (subfamily.id) {
                     const _elements = await getElements(subfamily.id);
@@ -94,7 +94,7 @@ export const AddProduct = props => {
         const fetchModels = async () => {
             try {
                 setModels([]);
-                setModel(prevState => ({...prevState, id: null}));
+                setModel(prevState => ({...prevState, id: undefined}));
 
                 if (element.id) {
                     const _models = await getModels(element.id);

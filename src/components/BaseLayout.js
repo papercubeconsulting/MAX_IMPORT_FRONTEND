@@ -24,9 +24,9 @@ export const BaseLayout = props => {
 
     useEffect(() => {
         router.pathname !== "/" && setIsVisibleMenu(false);
-        if (!globalAuthUser && !noTokenPath.includes(router.pathname)) {
-            router.push("/");
-        }
+        // if (!globalAuthUser && !noTokenPath.includes(router.pathname)) {
+        //     router.push("/asdfasd");
+        // }
     }, [router.pathname, globalAuthUser]);
 
     const isActiveLink = route => {
@@ -112,12 +112,22 @@ export const BaseLayout = props => {
                         </h3>
                         <Divider/>
                         <Icon icon={faUser}/>
-                        <h3 onClick={async () => {
-                            await setGlobalAuthUser(null);
-                            localStorage.removeItem("authUser");
-                        }}>
+                        <h3>
                             {get(globalAuthUser, "user.name", "Bienvenido")}
                         </h3>
+                        {
+                            globalAuthUser && 
+                            <> 
+                            <Divider/>
+                            <h3 onClick={async () => {
+                                await setGlobalAuthUser(null);
+                                localStorage.removeItem("authUser");
+                                router.push("/");
+                            }}>
+                                Cerrar sesión
+                            </h3>
+                            </>
+                        }
                     </Container>
                 </Header>
                 <Content>
