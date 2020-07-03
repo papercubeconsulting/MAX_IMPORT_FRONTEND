@@ -5,7 +5,7 @@ interface ServiceReponse<T> {
   message: string;
 }
 const root =
-  "http://maximport-backend.q3d2pmiqsz.us-east-1.elasticbeanstalk.com";
+  "https://apimaximport.papercube.pe";
 class GenericProvider {
   static buildUrl(url: string, params: any): string {
     var query = Object.keys(params)
