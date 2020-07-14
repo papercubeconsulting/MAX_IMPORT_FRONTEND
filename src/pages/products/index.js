@@ -44,6 +44,12 @@ export default ({setPageTitle}) => {
             align: "center"
         },
         {
+            title: "Nombre Comercial",
+            dataIndex: "tradename",
+            width: "fit-content",
+            align: "center"
+        },
+        {
             title: "Stock",
             dataIndex: "totalStock",
             width: "fit-content",

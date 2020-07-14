@@ -6,6 +6,8 @@ import {faCalendarAlt, faCheck, faEdit, faEye, faTrash} from "@fortawesome/free-
 import moment from "moment";
 import {clientDateFormat, serverDateFormat} from "../../util";
 import {getSupplies, putSupplyStatus} from "../../providers";
+import {useGlobal} from "reactn";
+import {get} from "lodash";
 
 export default ({setPageTitle}) => {
     setPageTitle("Abastecimiento");
@@ -85,7 +87,7 @@ export default ({setPageTitle}) => {
             title: "Responsable",
             dataIndex: "id",
             align: "center",
-            render: () => "Luis Rivera"
+            render: () => `${get(globalAuthUser, "user.name", "")} ${get(globalAuthUser, "user.lastname", "")}`
         },
         {
             title: "Fecha Aten.",
@@ -109,6 +111,8 @@ export default ({setPageTitle}) => {
     const [page, setPage] = useState(1);
 
     const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+
+    const [globalAuthUser] = useGlobal("authUser");
 
     const router = useRouter();
 

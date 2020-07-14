@@ -153,18 +153,38 @@ export const AddProduct = props => {
                                        flexDirection="column">
                     <Container justifyContent="space-around"
                                padding="1rem 0">
-                        <Tag>
-                            {`${family.name} (${family.code})`}
-                        </Tag>
-                        <Tag>
-                            {`${subfamily.name} (${subfamily.code})`}
-                        </Tag>
-                        <Tag>
-                            {`${element.name} (${element.code})`}
-                        </Tag>
-                        <Tag>
-                            {`${model.name}`}
-                        </Tag>
+                        <CategoryContainer>
+                            <CategoryTitle>
+                                FAMILIA
+                            </CategoryTitle>
+                            <Tag>
+                                {`${family.name} (${family.code})`}
+                            </Tag>
+                        </CategoryContainer>
+                        <CategoryContainer>
+                            <CategoryTitle>
+                                SUB-FAMILIA
+                            </CategoryTitle>
+                            <Tag>
+                                {`${subfamily.name} (${subfamily.code})`}
+                            </Tag>
+                        </CategoryContainer>
+                        <CategoryContainer>
+                            <CategoryTitle>
+                                ELEMENTO
+                            </CategoryTitle>
+                            <Tag>
+                                {`${element.name} (${element.code})`}
+                            </Tag>
+                        </CategoryContainer>
+                        <CategoryContainer>
+                            <CategoryTitle>
+                                MODELO
+                            </CategoryTitle>
+                            <Tag>
+                                {`${model.name}`}
+                            </Tag>
+                        </CategoryContainer>
                     </Container>
                     <Container padding="1rem 0"
                                flexDirection="column">
@@ -251,27 +271,27 @@ export const AddProduct = props => {
                   gridGap="1rem">
                 <Grid gridTemplateColumns="repeat(4, 1fr)"
                       gridGap="1rem">
-                    <Input  value={family.code}
-                            disabled={family.id}
-                            onChange={event => {
-                                const newValue = event.target.value;
-                                setFamily(prevValue => ({name: prevValue.name, code: newValue}))
-                            }}
-                            addonBefore="Código"/>
+                    <Input value={family.code}
+                           disabled={family.id}
+                           onChange={event => {
+                               const newValue = event.target.value;
+                               setFamily(prevValue => ({name: prevValue.name, code: newValue}))
+                           }}
+                           addonBefore="Código"/>
                     <Input value={subfamily.code}
-                            disabled={subfamily.id}
-                            onChange={event => {
-                                const newValue = event.target.value;
-                                setSubfamily(prevValue => ({name: prevValue.name, code: newValue}))
-                            }}
-                            addonBefore="Código"/>
+                           disabled={subfamily.id}
+                           onChange={event => {
+                               const newValue = event.target.value;
+                               setSubfamily(prevValue => ({name: prevValue.name, code: newValue}))
+                           }}
+                           addonBefore="Código"/>
                     <Input value={element.code}
-                            disabled={element.id}
-                            onChange={event => {
-                                const newValue = event.target.value;
-                                setElement(prevValue => ({name: prevValue.name, code: newValue}))
-                            }}
-                            addonBefore="Código"/>
+                           disabled={element.id}
+                           onChange={event => {
+                               const newValue = event.target.value;
+                               setElement(prevValue => ({name: prevValue.name, code: newValue}))
+                           }}
+                           addonBefore="Código"/>
                 </Grid>
                 <Grid gridTemplateColumns="repeat(4, 1fr)"
                       gridGap="1rem">
@@ -300,9 +320,9 @@ export const AddProduct = props => {
                                   }}
                                   onSearch={value => {
                                       setSubfamily(prevValue => ({
-                                        name: value,
-                                        code: (prevValue.id) ? '' : prevValue.code
-                                    }));
+                                          name: value,
+                                          code: (prevValue.id) ? '' : prevValue.code
+                                      }));
                                   }}
                                   _options={selectOptions(subfamilies)}
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
@@ -316,9 +336,9 @@ export const AddProduct = props => {
                                   }}
                                   onSearch={value => {
                                       setElement(prevValue => ({
-                                        name: value,
-                                        code: (prevValue.id) ? '' : prevValue.code
-                                    }));
+                                          name: value,
+                                          code: (prevValue.id) ? '' : prevValue.code
+                                      }));
                                   }}
                                   _options={selectOptions(elements)}
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
@@ -339,7 +359,7 @@ export const AddProduct = props => {
                                   filterOption={(input, option) => option.children.toLowerCase().includes(input.toLowerCase())
                                   }/>
                 </Grid>
-                <Grid gridTemplateColumns="2fr 1fr 2fr 2fr 20%"
+                <Grid gridTemplateColumns="3fr 2fr 3fr 3fr"
                       gridGap="1rem">
 
                     <Select value={provider.name}
@@ -392,6 +412,17 @@ export const AddProduct = props => {
         </Modal>
     )
 };
+
+const CategoryContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const CategoryTitle = styled(Tag)`
+  font-weight: bold;
+  border-width: 2px !important;
+  border-color: black !important;
+`;
 
 const LegendsContainer = styled(Container)`
   .ant-tag {

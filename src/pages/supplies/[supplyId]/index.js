@@ -147,7 +147,7 @@ export default ({setPageTitle}) => {
 
                             const product = await getProduct(value, {noStock: true});
 
-                            setSuppliedProducts( prevState => {
+                            setSuppliedProducts(prevState => {
                                 const remainingSuppliedProducts = prevState
                                     .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
 
@@ -166,7 +166,8 @@ export default ({setPageTitle}) => {
                                         product
                                     }
                                 ];
-                        })}}
+                            })
+                        }}
                         options={selectOptions(models.filter(model => model.elementId === suppliedProduct.elementId))}/>
         },
         {
@@ -175,6 +176,32 @@ export default ({setPageTitle}) => {
             width: "fit-content",
             align: "center",
             render: product => get(product, 'code', null)
+        },
+        {
+            title: "Cantidad Cajas",
+            dataIndex: "quantity",
+            width: "fit-content",
+            align: "center",
+            render: (quantity, suppliedProduct) =>
+                <Input key={suppliedProducts.length}
+                       defaultValue={quantity}
+                       disabled={disabled}
+                       onChange={event => {
+                           setSuppliedProducts(prevState => {
+                               const remainingSuppliedProducts = prevState
+                                   .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
+
+                               return [
+                                   ...remainingSuppliedProducts,
+                                   {
+                                       ...suppliedProduct,
+                                       quantity: parseFloat(event.nativeEvent.target.value || "0")
+                                   }
+                               ]
+                           });
+                           event.persist();
+                       }}
+                       type="number"/>
         },
         {
             title: "Unidades por caja",
@@ -202,32 +229,6 @@ export default ({setPageTitle}) => {
                        }}
                        type="number"/>
         },
-        {
-            title: "Cantidad Cajas",
-            dataIndex: "quantity",
-            width: "fit-content",
-            align: "center",
-            render: (quantity, suppliedProduct) =>
-                <Input key={suppliedProducts.length}
-                       defaultValue={quantity}
-                       disabled={disabled}
-                       onChange={event => {
-                           setSuppliedProducts(prevState => {
-                               const remainingSuppliedProducts = prevState
-                                   .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
-
-                               return [
-                                   ...remainingSuppliedProducts,
-                                   {
-                                       ...suppliedProduct,
-                                       quantity: parseFloat(event.nativeEvent.target.value || "0")
-                                   }
-                               ]
-                           });
-                           event.persist();
-                       }}
-                       type="number"/>
-        }
     ];
 
     const [providers, setProviders] = useState([]);
