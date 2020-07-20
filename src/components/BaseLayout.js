@@ -44,14 +44,14 @@ export const BaseLayout = props => {
                             Perfil
                         </MenuItem>
                     </Link>
-                    <Link href="/">
+                    <Link href="/proforma">
                         <MenuItem>
                             Nueva Proforma
                         </MenuItem>
                     </Link>
                     <Link href="/">
                         <MenuItem>
-                            Hiatorial Proformas
+                            Historial Proformas
                         </MenuItem>
                     </Link>
                     <Link href="/">
@@ -116,16 +116,16 @@ export const BaseLayout = props => {
                             {get(globalAuthUser, "user.name", "Bienvenido")}
                         </h3>
                         {
-                            globalAuthUser && 
-                            <> 
-                            <Divider/>
-                            <h3 onClick={async () => {
-                                await setGlobalAuthUser(null);
-                                localStorage.removeItem("authUser");
-                                router.push("/");
-                            }}>
-                                Cerrar sesión
-                            </h3>
+                            globalAuthUser &&
+                            <>
+                                <Divider/>
+                                <h3 onClick={async () => {
+                                    await setGlobalAuthUser(null);
+                                    localStorage.removeItem("authUser");
+                                    router.push("/");
+                                }}>
+                                    Cerrar sesión
+                                </h3>
                             </>
                         }
                     </Container>

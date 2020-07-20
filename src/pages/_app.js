@@ -62,6 +62,10 @@ const GlobalStyle = createGlobalStyle`
   .ant-input-affix-wrapper {
     max-height: 2.5rem !important
   }
+  
+  .ant-table-wrapper {
+    width: 100% !important;
+  }
 
   .ant-table-thead {
     .ant-table-cell {
