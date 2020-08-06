@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+
 import {
   Button,
   Container,
@@ -8,6 +10,8 @@ import {
   Select,
 } from "../../components";
 import {
+  getProformas,
+  //! exportadas
   getElements,
   getFamilies,
   getModels,
@@ -16,8 +20,13 @@ import {
 } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table } from "antd";
-import { clientDateFormat, serverDateFormat } from "../../util";
+
 import moment from "moment";
+import {
+  clientDateFormat,
+  serverDateFormat,
+  clientHourFormat,
+} from "../../util";
 import { faCalendarAlt, faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -31,35 +40,39 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      dataIndex: "",
+      dataIndex: "createdAt",
       title: "Fecha",
       width: "fit-content",
       align: "center",
+      render: (createdAt) =>
+        moment(createdAt, serverDateFormat).format(clientDateFormat),
     },
 
     {
-      dataIndex: "",
+      dataIndex: "createdAt",
       title: "Hora",
       width: "fit-content",
       align: "center",
+      render: (createdAt) => moment(createdAt).format(clientHourFormat),
     },
     {
-      dataIndex: "",
+      dataIndex: "id",
       title: "Proforma",
       width: "fit-content",
       align: "center",
     },
     {
-      dataIndex: "",
+      dataIndex: "statusDescription",
       title: "Estatus",
       width: "fit-content",
       align: "center",
     },
     {
-      dataIndex: "",
+      dataIndex: "client",
       title: "Cliente",
       width: "fit-content",
       align: "center",
+      render: (client) => client.name,
     },
     {
       dataIndex: "",
@@ -68,33 +81,35 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      dataIndex: "",
+      dataIndex: "user",
       title: "Vendedor",
       width: "fit-content",
       align: "center",
+      render: (user) => user.name,
     },
     {
-      dataIndex: "",
+      dataIndex: "subtotal",
       title: "Total Final",
       width: "fit-content",
       align: "center",
     },
 
     {
-      dataIndex: "",
+      dataIndex: "discount",
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
     },
 
     {
-      dataIndex: "",
+      dataIndex: "total",
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
     },
   ];
 
+  //!Exportadas
   const [code, setCode] = useState("Nº 12345");
 
   const [from, setFrom] = useState(moment().subtract(7, "days"));
@@ -110,12 +125,44 @@ export default ({ setPageTitle }) => {
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
 
+  //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
+  const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const stateUpdateOrigin = useRef("url");
+  const router = useRouter();
+  const queryParams = router.query;
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
+
+  useEffect(() => {
+    const fetchProformas = async () => {
+      try {
+        const _proformas = await getProformas(queryParams);
+        setPagination({
+          position: ["bottomCenter"],
+          total: _proformas.count,
+          current: _proformas.page,
+          pageSize: _proformas.pageSize,
+          showSizeChanger: false,
+        });
+        setProformas(_proformas.rows);
+      } catch (error) {
+        notification.error({
+          message: "Error en el servidor",
+          description: error.message,
+        });
+      }
+    };
+
+    //if (stateUpdateOrigin.current === "url") urlToState();
+    fetchProformas();
+  }, [queryParams, toggleUpdateTable]);
+
+  //! exportadas
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -276,6 +323,7 @@ export default ({ setPageTitle }) => {
           bordered
           pagination={pagination}
           //TODO: La pagination se mostrara cuando existan elementos
+          dataSource={proformas}
           //dataSource={orderBy(suppliedProducts, "id", "asc")}
         />
       </Container>

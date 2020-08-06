@@ -9,5 +9,6 @@ export * from "./productBoxes";
 export * from "./supplies";
 export * from "./providers";
 export * from "./warehouses";
+export * from "./proformas";
 
 export * from "./userProvider";
