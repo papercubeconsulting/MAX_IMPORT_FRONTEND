@@ -75,7 +75,7 @@ export default ({ setPageTitle }) => {
       render: (client) => client.name,
     },
     {
-      dataIndex: "",
+      dataIndex: "totalUnits",
       title: "Unidades",
       width: "fit-content",
       align: "center",
