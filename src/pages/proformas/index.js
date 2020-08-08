@@ -9,15 +9,7 @@ import {
   Icon,
   Select,
 } from "../../components";
-import {
-  getProformas,
-  //! exportadas
-  getElements,
-  getFamilies,
-  getModels,
-  getProducts,
-  getSubfamilies,
-} from "../../providers";
+import { getProformas } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table } from "antd";
 
@@ -28,7 +20,7 @@ import {
   serverDateFormat,
   clientHourFormat,
 } from "../../util";
-import { faCalendarAlt, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Historial");
@@ -112,14 +104,6 @@ export default ({ setPageTitle }) => {
   ];
 
   //!Exportadas
-  const [code, setCode] = useState("Nº 12345");
-
-  const [suppliedProducts, setSuppliedProducts] = useState([]);
-
-  const [families, setFamilies] = useState([]);
-  const [subfamilies, setSubfamilies] = useState([]);
-  const [elements, setElements] = useState([]);
-  const [models, setModels] = useState([]);
 
   //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
@@ -133,9 +117,13 @@ export default ({ setPageTitle }) => {
   const [to, setTo] = useState(moment());
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
- //para el filtro con datos de cliente
- const [clientName, setClientName] = useState(null);
- const [clientLastName, setClientLastName] = useState(null);
+  //para el filtro con datos de cliente
+  const [clientName, setClientName] = useState(null);
+  const [clientLastName, setClientLastName] = useState(null);
+  //para el filtro por status de proforma
+  const [status, setStatus] = useState(null);
+  const [saleStatus, setSaleStatus] = useState(null);
+  const [dispatchStatus, setDispatchStatus] = useState(null);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -165,9 +153,10 @@ export default ({ setPageTitle }) => {
         });
       }
     };
-
-    //if (stateUpdateOrigin.current === "url") urlToState();
     fetchProformas();
+    if (stateUpdateOrigin.current === "url") {
+      urlToState();
+    }
   }, [queryParams, toggleUpdateTable]); //Se ejecuta si los queryParams cambian
 
   /*useEffect(() => {
@@ -177,93 +166,81 @@ export default ({ setPageTitle }) => {
   const stateToUrl = async () => {
     const params = {};
     documentNumber && (params.id = documentNumber);
+    status && (params.status = status);
+    saleStatus && (params.saleStatus = saleStatus);
+    dispatchStatus && (params.dispatchStatus = dispatchStatus);
     clientName && (params.name = clientName);
     clientLastName && (params.lastname = clientLastName);
+
     //to && (params.to = to);
     //from && (params.from = from);
     await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
   const searchWithState = (isPagination) => {
-    //stateUpdateOrigin.current = "manual";
     stateToUrl();
-    //setState(value);
     !isPagination && setPage(undefined);
   };
 
-  //! exportadas
-
-  useEffect(() => {
-    const fetchFamilies = async () => {
-      const _families = await getFamilies();
-      setFamilies(_families);
-    };
-    fetchFamilies();
-  }, []);
-
-  useEffect(() => {
-    const fetchSubfamilies = async () => {
-      const _subfamilies = await getSubfamilies(null);
-      setSubfamilies(_subfamilies);
-    };
-    fetchSubfamilies();
-  }, []);
-
-  useEffect(() => {
-    const fetchElements = async () => {
-      const _elements = await getElements(null);
-      setElements(_elements);
-    };
-    fetchElements();
-  }, []);
-
-  useEffect(() => {
-    const fetchModels = async () => {
-      const _models = await getModels(null);
-      setModels(_models);
-    };
-    fetchModels();
-  }, []);
-
-  const selectOptions = (collection) =>
-    collection.map((document) => ({
-      value: document.id,
-      label: document.name,
-    }));
-
-  const mapSuppliedProducts = async (
-    products,
-    index = 0,
-    mappedSuppliedProducts = []
-  ) => {
-    if (products.length === index) return mappedSuppliedProducts;
-
-    const currentProduct = products[index];
-    const {
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-      boxSize,
-      quantity,
-    } = currentProduct;
-
-    const productsResult = await getProducts({
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-    });
-
-    return mapSuppliedProducts(products, index + 1, [
-      ...mappedSuppliedProducts,
-      {
-        productId: productsResult.rows[0].id,
-        boxSize,
-        quantity,
-      },
-    ]);
+  const urlToState = () => {
+    //TODO: Falta completar
+    setDocumentNumber(queryParams.id || null);
+    setStatus(queryParams.status || null);
+    setSaleStatus(queryParams.saleStatus || null);
+    setDispatchStatus(queryParams.dispatchStatus || null);
+    setClientName(queryParams.name || null);
+    setClientLastName(queryParams.lastname || null);
   };
+
+  // estados de proforma para los select inputs
+  const statusOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "OPEN",
+      label: "En cotización",
+    },
+    {
+      value: "CLOSED",
+      label: "Cerrada",
+    },
+  ];
+
+  const saleStatusOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "PENDING",
+      label: "Pendiente",
+    },
+    {
+      value: "PARTIAL",
+      label: "Parcial",
+    },
+    {
+      value: "PAID",
+      label: "Pagado",
+    },
+  ];
+
+  const dispatchStatusOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "PENDING",
+      label: "Pendiente",
+    },
+    {
+      value: "DISPATCHED",
+      label: "Despachado",
+    },
+  ];
 
   return (
     <>
@@ -335,27 +312,24 @@ export default ({ setPageTitle }) => {
           />
 
           <Select
-            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
-            //value={region}
+            value={status}
             label="Estatus"
-            //onChange={(value) => setRegion(value)}
-            options={[]}
+            onChange={(value) => setStatus(value)}
+            options={statusOptions}
           />
 
           <Select
-            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
-            //value={region}
+            value={saleStatus}
             label="Pago"
-            //onChange={(value) => setRegion(value)}
-            options={[]}
+            onChange={(value) => setSaleStatus(value)}
+            options={saleStatusOptions}
           />
 
           <Select
-            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
-            //value={region}
+            value={dispatchStatus}
             label="Despacho"
-            //onChange={(value) => setRegion(value)}
-            options={[]}
+            onChange={(value) => setDispatchStatus(value)}
+            options={dispatchStatusOptions}
           />
           <Button
             type="primary"
