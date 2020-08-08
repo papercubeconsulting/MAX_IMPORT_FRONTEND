@@ -114,9 +114,6 @@ export default ({ setPageTitle }) => {
   //!Exportadas
   const [code, setCode] = useState("Nº 12345");
 
-  const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
-
   const [suppliedProducts, setSuppliedProducts] = useState([]);
 
   const [families, setFamilies] = useState([]);
@@ -136,6 +133,10 @@ export default ({ setPageTitle }) => {
   const [to, setTo] = useState(moment());
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
+ //para el filtro con datos de cliente
+ const [clientName, setClientName] = useState(null);
+ const [clientLastName, setClientLastName] = useState(null);
+
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
@@ -176,6 +177,8 @@ export default ({ setPageTitle }) => {
   const stateToUrl = async () => {
     const params = {};
     documentNumber && (params.id = documentNumber);
+    clientName && (params.name = clientName);
+    clientLastName && (params.lastname = clientLastName);
     //to && (params.to = to);
     //from && (params.from = from);
     await router.push(`/proformas${urlQueryParams(params)}`);
@@ -262,16 +265,6 @@ export default ({ setPageTitle }) => {
     ]);
   };
 
-  const urlToState = () => {
-    setPage(Number.parseInt(queryParams.page) || null);
-    setStock(queryParams.stock || null);
-    setCode(Number.parseInt(queryParams.code) || null);
-    setFamilyId(Number.parseInt(queryParams.familyId) || null);
-    setSubfamilyId(Number.parseInt(queryParams.subfamilyId) || null);
-    setElementId(Number.parseInt(queryParams.elementId) || null);
-    setModelId(Number.parseInt(queryParams.modelId) || null);
-  };
-
   return (
     <>
       <Container height="20%">
@@ -323,14 +316,14 @@ export default ({ setPageTitle }) => {
           />
 
           <Input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            value={clientName}
+            onChange={(event) => setClientName(event.target.value)}
             addonBefore="Cliente"
           />
 
           <Input
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
+            value={clientLastName}
+            onChange={(event) => setClientLastName(event.target.value)}
           />
 
           <Select
