@@ -9,9 +9,9 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getProformas, getUsers } from "../../providers";
+import { getProformas, getUsers, userProvider } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table } from "antd";
+import { Input, notification, Table } from "antd";
 
 import moment from "moment";
 import {
@@ -103,8 +103,6 @@ export default ({ setPageTitle }) => {
     },
   ];
 
-  //!Exportadas
-
   //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
   const [proformas, setProformas] = useState([]);
@@ -127,6 +125,7 @@ export default ({ setPageTitle }) => {
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [me, setMe] = useState({ name: null });
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -143,6 +142,8 @@ export default ({ setPageTitle }) => {
       try {
         const _users = await getUsers();
         setUsers(_users);
+        const _me = await userProvider.getUser();
+        setMe(_me);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -154,6 +155,7 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
+  //Se buscan segun queryParams
   useEffect(() => {
     const fetchProformas = async () => {
       try {
@@ -177,10 +179,12 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]); //Se ejecuta si los queryParams cambian
+  }, [queryParams, toggleUpdateTable]);
 
   const stateToUrl = async () => {
     const params = {};
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     documentNumber && (params.id = documentNumber);
     userId && (params.userId = userId);
     status && (params.status = status);
@@ -188,19 +192,17 @@ export default ({ setPageTitle }) => {
     dispatchStatus && (params.dispatchStatus = dispatchStatus);
     clientName && (params.name = clientName);
     clientLastName && (params.lastname = clientLastName);
-
-    //to && (params.to = to);
-    //from && (params.from = from);
     await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
-  const searchWithState = (isPagination) => {
+  const searchWithState = () => {
     stateToUrl();
-    !isPagination && setPage(undefined);
   };
 
   const urlToState = () => {
-    //TODO: Falta completar
+    //TODO: No se realiza para el rango de fechas todavia
+    //setFrom(queryParams.from.format(clientDateFormat)|| null);
+    //setTo(queryParams.to.format(clientDateFormat) || null);
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
@@ -278,12 +280,7 @@ export default ({ setPageTitle }) => {
     <>
       <Container height="20%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input //value={code}
-            //TODO: campo de usuario sin metodo onChange solo de presentación
-            disabled
-            //onChange={event => setCode(event.target.value)}
-            addonBefore="Usuario"
-          />
+          <Input value={me.name} disabled addonBefore="Usuario" />
 
           <Grid
             gridTemplateColumns="repeat(2, 1fr)"
@@ -377,9 +374,10 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          //TODO: La pagination se mostrara cuando existan elementos
+          //TODO: Evaluar si la paginacion funciona correctamente
           dataSource={proformas}
-          //dataSource={orderBy(suppliedProducts, "id", "asc")}
+          onChange={(pagination) =>setPage(pagination.current)
+          }
         />
       </Container>
 
@@ -388,8 +386,8 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             style={{ "grid-column-start": "2" }}
-            //TODO: Falta setear la funcion onClick
-            //onClick={async () => router.push(`/supplies/new`)}
+            //TODO: Aun no queda claro que hace este boton, lo mande al root
+            onClick={async () => router.push(`/`)}
           >
             Salir
           </Button>
