@@ -1,9 +1,9 @@
 import { baseProvider } from "./baseProvider";
 
-const getFamilies = async (providerId) => {
+const getUsers = async (providerId) => {
   const params = {};
   if (providerId) params.providerId = providerId;
-  return baseProvider.httpGet("families", params);
+  return baseProvider.httpGet("users", params);
 };
 
-export { getFamilies };
+export { getUsers };

@@ -9,7 +9,7 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getProformas } from "../../providers";
+import { getProformas, getUsers } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table } from "antd";
 
@@ -124,6 +124,9 @@ export default ({ setPageTitle }) => {
   const [status, setStatus] = useState(null);
   const [saleStatus, setSaleStatus] = useState(null);
   const [dispatchStatus, setDispatchStatus] = useState(null);
+  //para el filtro por vendedor
+  const [users, setUsers] = useState([]);
+  const [userId, setUserId] = useState(null);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -132,6 +135,23 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
+  }, []);
+
+  //Obtiene a los vendedores
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        const _users = await getUsers();
+        setUsers(_users);
+      } catch (error) {
+        notification.error({
+          message: "Error en el servidor",
+          description: error.message,
+        });
+      }
+    };
+
+    initialize();
   }, []);
 
   useEffect(() => {
@@ -159,13 +179,10 @@ export default ({ setPageTitle }) => {
     }
   }, [queryParams, toggleUpdateTable]); //Se ejecuta si los queryParams cambian
 
-  /*useEffect(() => {
-    if (stateUpdateOrigin.current === "manual") stateToUrl();
-  }, [documentNumber, to, from]);
-*/
   const stateToUrl = async () => {
     const params = {};
     documentNumber && (params.id = documentNumber);
+    userId && (params.userId = userId);
     status && (params.status = status);
     saleStatus && (params.saleStatus = saleStatus);
     dispatchStatus && (params.dispatchStatus = dispatchStatus);
@@ -185,6 +202,7 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     //TODO: Falta completar
     setDocumentNumber(queryParams.id || null);
+    setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
     setSaleStatus(queryParams.saleStatus || null);
     setDispatchStatus(queryParams.dispatchStatus || null);
@@ -193,6 +211,20 @@ export default ({ setPageTitle }) => {
   };
 
   // estados de proforma para los select inputs
+  const usersList = () => {
+    const options = users.map((user) => ({
+      value: user.id,
+      label: user.name,
+    }));
+
+    const defaultOption = {
+      value: null,
+      label: "Todos",
+    };
+
+    return [defaultOption, ...options];
+  };
+
   const statusOptions = [
     {
       value: null,
@@ -304,11 +336,10 @@ export default ({ setPageTitle }) => {
           />
 
           <Select
-            //TODO: campo de vendedor, options debe venir de un listado, falta salesMan y setSalesMan)
-            //value={region}
+            value={userId}
             label="Vendedor"
-            //onChange={(value) => setRegion(value)}
-            options={[]}
+            onChange={(value) => setUserId(value)}
+            options={usersList()}
           />
 
           <Select

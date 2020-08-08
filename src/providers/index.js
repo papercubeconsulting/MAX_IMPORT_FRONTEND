@@ -11,4 +11,5 @@ export * from "./providers";
 export * from "./warehouses";
 export * from "./proformas";
 
+export * from "./users";
 export * from "./userProvider";
