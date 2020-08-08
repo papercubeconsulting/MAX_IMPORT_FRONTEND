@@ -38,6 +38,7 @@ export default ({ setPageTitle }) => {
       title: "Nro",
       width: "fit-content",
       align: "center",
+      render: (text, record, index) => index + 1,
     },
     {
       dataIndex: "createdAt",
@@ -112,9 +113,6 @@ export default ({ setPageTitle }) => {
   //!Exportadas
   const [code, setCode] = useState("Nº 12345");
 
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
-
   const [name, setName] = useState(null);
   const [lastName, setLastName] = useState(null);
 
@@ -130,6 +128,13 @@ export default ({ setPageTitle }) => {
   const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+
+  //para el filtro por fecha
+  const [from, setFrom] = useState(moment().subtract(7, "days"));
+  const [to, setTo] = useState(moment());
+  //para el filtro por nro doc
+  const [documentNumber, setDocumentNumber] = useState(null);
+  //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
@@ -160,7 +165,25 @@ export default ({ setPageTitle }) => {
 
     //if (stateUpdateOrigin.current === "url") urlToState();
     fetchProformas();
-  }, [queryParams, toggleUpdateTable]);
+  }, [queryParams, toggleUpdateTable]); //Se ejecuta si los queryParams cambian
+
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [documentNumber, to, from]);
+
+  const stateToUrl = async () => {
+    const params = {};
+    documentNumber && (params.id = documentNumber);
+    to && (params.to = to);
+    from && (params.from = from);
+    await router.push(`/products${urlQueryParams(params)}`);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
+  };
 
   //! exportadas
 
@@ -236,9 +259,19 @@ export default ({ setPageTitle }) => {
     ]);
   };
 
+  const urlToState = () => {
+    setPage(Number.parseInt(queryParams.page) || null);
+    setStock(queryParams.stock || null);
+    setCode(Number.parseInt(queryParams.code) || null);
+    setFamilyId(Number.parseInt(queryParams.familyId) || null);
+    setSubfamilyId(Number.parseInt(queryParams.subfamilyId) || null);
+    setElementId(Number.parseInt(queryParams.elementId) || null);
+    setModelId(Number.parseInt(queryParams.modelId) || null);
+  };
+
   return (
     <>
-      <Container height="fit-content">
+      <Container height="20%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input //value={code}
             //TODO: campo de usuario sin metodo onChange solo de presentación
@@ -247,42 +280,40 @@ export default ({ setPageTitle }) => {
             addonBefore="Usuario"
           />
 
-          <DatePicker
-            value={from}
-            onChange={(value) => setFrom(value)}
-            format={clientDateFormat}
-            disabledDate={(value) => value >= to}
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Inicio
-              </>
-            }
-          />
-          <DatePicker
-            value={to}
-            onChange={(value) => setTo(value)}
-            format={clientDateFormat}
-            disabledDate={(value) => value <= from}
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Fin
-              </>
-            }
-          />
-
-          <Select
-            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
-            //value={region}
-            label="Estatus"
-            //onChange={(value) => setRegion(value)}
-            options={[]}
-          />
+          <Grid
+            gridTemplateColumns="repeat(2, 1fr)"
+            gridGap="1rem"
+            style={{ "grid-column-start": "5", "grid-column-end": "2" }}
+          >
+            <DatePicker
+              value={from}
+              onChange={(value) => setFrom(value)}
+              format={clientDateFormat}
+              disabledDate={(value) => value >= to}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Inicio
+                </>
+              }
+            />
+            <DatePicker
+              value={to}
+              onChange={(value) => setTo(value)}
+              format={clientDateFormat}
+              disabledDate={(value) => value <= from}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Fin
+                </>
+              }
+            />
+          </Grid>
 
           <Input
-            //value={documentNumber}
-            //onChange={(event) => setDocumentNumber(event.target.value)}
+            value={documentNumber}
+            onChange={(event) => setDocumentNumber(event.target.value)}
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
@@ -306,6 +337,29 @@ export default ({ setPageTitle }) => {
             options={[]}
           />
 
+          <Select
+            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
+            //value={region}
+            label="Estatus"
+            //onChange={(value) => setRegion(value)}
+            options={[]}
+          />
+
+          <Select
+            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
+            //value={region}
+            label="Pago"
+            //onChange={(value) => setRegion(value)}
+            options={[]}
+          />
+
+          <Select
+            //TODO: campo de estatus, options debe venir de un listado, falta set estatus y setEstatus ("Todos","En cotización","Pagado Cancelado","Pagado a Cuenta","Despachado")
+            //value={region}
+            label="Despacho"
+            //onChange={(value) => setRegion(value)}
+            options={[]}
+          />
           <Button
             type="primary"
             style={{ "grid-column-start": "4" }}
@@ -316,7 +370,7 @@ export default ({ setPageTitle }) => {
           </Button>
         </Grid>
       </Container>
-      <Container padding="0px" width="100vw" height="35%">
+      <Container height="fit-content">
         <Table
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
@@ -328,7 +382,7 @@ export default ({ setPageTitle }) => {
         />
       </Container>
 
-      <Container height="fit-content">
+      <Container height="15%">
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Button
             type="primary"
