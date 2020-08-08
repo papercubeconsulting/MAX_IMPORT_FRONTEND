@@ -48,7 +48,7 @@ export const BaseLayout = (props) => {
             <Link href="/proforma">
               <MenuItem>Nueva Proforma</MenuItem>
             </Link>
-            <Link href="/historial">
+            <Link href="/proformas">
               <MenuItem>Historial Proformas</MenuItem>
             </Link>
             <Link href="/">

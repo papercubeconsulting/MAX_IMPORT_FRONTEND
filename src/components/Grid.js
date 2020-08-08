@@ -9,4 +9,6 @@ export const Grid = styled.div`
   grid-gap: ${props => props.gridGap || 0};
   margin-bottom: ${props => props.marginBottom || 0};
   justify-items: ${props => props.justifyItems || "initial"};
+  grid-column-end:${props => props.gridColumnEnd || ""};
+  grid-column-start:${props => props.gridColumnStart || ""};
 `;

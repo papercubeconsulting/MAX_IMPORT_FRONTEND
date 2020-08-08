@@ -23,6 +23,7 @@ import { Input, Table } from "antd";
 
 import moment from "moment";
 import {
+  urlQueryParams,
   clientDateFormat,
   serverDateFormat,
   clientHourFormat,
@@ -128,6 +129,7 @@ export default ({ setPageTitle }) => {
   const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [page, setPage] = useState(null);
 
   //para el filtro por fecha
   const [from, setFrom] = useState(moment().subtract(7, "days"));
@@ -167,21 +169,22 @@ export default ({ setPageTitle }) => {
     fetchProformas();
   }, [queryParams, toggleUpdateTable]); //Se ejecuta si los queryParams cambian
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
   }, [documentNumber, to, from]);
-
+*/
   const stateToUrl = async () => {
     const params = {};
     documentNumber && (params.id = documentNumber);
-    to && (params.to = to);
-    from && (params.from = from);
-    await router.push(`/products${urlQueryParams(params)}`);
+    //to && (params.to = to);
+    //from && (params.from = from);
+    await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
-  const updateState = (setState, value, isPagination) => {
-    stateUpdateOrigin.current = "manual";
-    setState(value);
+  const searchWithState = (isPagination) => {
+    //stateUpdateOrigin.current = "manual";
+    stateToUrl();
+    //setState(value);
     !isPagination && setPage(undefined);
   };
 
@@ -283,7 +286,8 @@ export default ({ setPageTitle }) => {
           <Grid
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
-            style={{ "grid-column-start": "5", "grid-column-end": "2" }}
+            gridColumnStart="2"
+            gridColumnEnd="5"
           >
             <DatePicker
               value={from}
@@ -363,8 +367,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             style={{ "grid-column-start": "4" }}
-            //TODO: Falta setear la funcion onClick
-            //onClick={async () => router.push(`/supplies/new`)}
+            onClick={async () => searchWithState()}
           >
             Buscar
           </Button>
