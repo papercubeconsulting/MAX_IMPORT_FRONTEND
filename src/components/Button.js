@@ -6,4 +6,5 @@ export const Button = styled(AntButton)`
   height: ${props => props.height || "2rem"} !important;
   padding: ${props => props.padding || "0 1rem"} !important;
   margin: ${props => props.margin || 0} !important;
+  grid-column-start: ${props => props.gridColumnStart || 0} !important;
 `;

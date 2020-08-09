@@ -24,7 +24,6 @@ import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Historial");
-
   const columns = [
     {
       dataIndex: "id",
@@ -86,6 +85,7 @@ export default ({ setPageTitle }) => {
       title: "Total Final",
       width: "fit-content",
       align: "center",
+      render: (subtotal) => subtotal/100,
     },
 
     {
@@ -93,6 +93,7 @@ export default ({ setPageTitle }) => {
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
+      render: (discount) => discount/100,
     },
 
     {
@@ -100,6 +101,7 @@ export default ({ setPageTitle }) => {
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
+      render: (total) => total/100,
     },
   ];
 
@@ -108,7 +110,7 @@ export default ({ setPageTitle }) => {
   const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
-  const [page, setPage] = useState(null);
+  const [page, setPage] = useState(1);
 
   //para el filtro por fecha
   const [from, setFrom] = useState(moment().subtract(7, "days"));
@@ -185,6 +187,7 @@ export default ({ setPageTitle }) => {
     const params = {};
     from && (params.from = from.format(serverDateFormat));
     to && (params.to = to.format(serverDateFormat));
+    page && (params.page = page);
     documentNumber && (params.id = documentNumber);
     userId && (params.userId = userId);
     status && (params.status = status);
@@ -201,8 +204,11 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     //TODO: No se realiza para el rango de fechas todavia
-    //setFrom(queryParams.from.format(clientDateFormat)|| null);
-    //setTo(queryParams.to.format(clientDateFormat) || null);
+    // const from ="";
+    // try{ from = moment(queryParams.from,serverDateFormat).toDate();}catch{}
+    // setFrom(from|| moment().subtract(7, "days"));
+    // setTo(moment(queryParams.to,serverDateFormat).toDate() || moment());
+    setPage(queryParams.page || null);
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
@@ -281,7 +287,6 @@ export default ({ setPageTitle }) => {
       <Container height="20%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
-
           <Grid
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
@@ -313,46 +318,39 @@ export default ({ setPageTitle }) => {
               }
             />
           </Grid>
-
           <Input
             value={documentNumber}
             onChange={(event) => setDocumentNumber(event.target.value)}
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-
           <Input
             value={clientName}
             onChange={(event) => setClientName(event.target.value)}
             addonBefore="Cliente"
           />
-
           <Input
             value={clientLastName}
             onChange={(event) => setClientLastName(event.target.value)}
           />
-
           <Select
             value={userId}
             label="Vendedor"
             onChange={(value) => setUserId(value)}
             options={usersList()}
           />
-
           <Select
             value={status}
             label="Estatus"
             onChange={(value) => setStatus(value)}
             options={statusOptions}
           />
-
           <Select
             value={saleStatus}
             label="Pago"
             onChange={(value) => setSaleStatus(value)}
             options={saleStatusOptions}
           />
-
           <Select
             value={dispatchStatus}
             label="Despacho"
@@ -374,19 +372,16 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          //TODO: Evaluar si la paginacion funciona correctamente
           dataSource={proformas}
-          onChange={(pagination) =>setPage(pagination.current)
-          }
+          onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
-
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Button
             type="primary"
-            style={{ "grid-column-start": "2" }}
-            //TODO: Aun no queda claro que hace este boton, lo mande al root
+            gridColumnStart="2"
+            //! Aun no queda claro que hace este boton, lo mande al root
             onClick={async () => router.push(`/`)}
           >
             Salir
