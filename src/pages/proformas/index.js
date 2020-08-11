@@ -10,7 +10,7 @@ import {
   Select,
 } from "../../components";
 import { getProformas, getUsers, userProvider } from "../../providers";
-import { get, orderBy } from "lodash";
+//import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -20,7 +20,7 @@ import {
   serverDateFormat,
   clientHourFormat,
 } from "../../util";
-import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Historial");
@@ -30,7 +30,15 @@ export default ({ setPageTitle }) => {
       title: "Nro",
       width: "fit-content",
       align: "center",
-      render: (text, record, index) => index + 1,
+      render: (id, record, index) => (
+        <Button
+          onClick={async () => router.push(`/proformas/${id}`)}
+          type="primary"
+        >
+          <Icon icon={faEye} />
+          {index + 1}
+        </Button>
+      ),
     },
     {
       dataIndex: "createdAt",
@@ -61,6 +69,12 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
+      dataIndex: "dispatchStatusDescription",
+      title: "Despacho",
+      width: "fit-content",
+      align: "center",
+    },
+    {
       dataIndex: "client",
       title: "Cliente",
       width: "fit-content",
@@ -85,7 +99,7 @@ export default ({ setPageTitle }) => {
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => subtotal/100,
+      render: (subtotal) => subtotal / 100,
     },
 
     {
@@ -93,7 +107,7 @@ export default ({ setPageTitle }) => {
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
-      render: (discount) => discount/100,
+      render: (discount) => discount / 100,
     },
 
     {
@@ -101,7 +115,7 @@ export default ({ setPageTitle }) => {
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
-      render: (total) => total/100,
+      render: (total) => total / 100,
     },
   ];
 

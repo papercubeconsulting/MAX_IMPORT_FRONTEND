@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Button, Container, Grid, Icon, Select } from "../../components";
+import React, { useMemo, useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { Button, Container, Grid, Icon, Select } from "../../../components";
 import {
   getElements,
   getFamilies,
@@ -7,13 +8,19 @@ import {
   getProduct,
   getProducts,
   getSubfamilies,
-} from "../../providers";
+  getProforma,
+} from "../../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table } from "antd";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Abastecimiento");
+  setPageTitle("Proforma");
+
+  //extraccion de params de url
+  //const stateUpdateOrigin = useRef("url");
+  const router = useRouter();
+  const { proformaId } = router.query;
 
   const columns = [
     {
@@ -239,16 +246,9 @@ export default ({ setPageTitle }) => {
     },
   ];
 
-  const [code, setCode] = useState("Nº 12345");
-  const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
-  const [documentNumber, setDocumentNumber] = useState(null);
-  const [email, setEmail] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState(null);
-  const [region, setRegion] = useState(null);
-  const [province, setProvince] = useState(null);
-  const [district, setDistrict] = useState(null);
-  const [direction, setDirection] = useState(null);
+  //costumizadas por JM
+  const [proforma, setProforma] = useState([]);
+  //!importadas
   const [suppliedProducts, setSuppliedProducts] = useState([]);
 
   const [families, setFamilies] = useState([]);
@@ -260,6 +260,27 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
+  }, []);
+
+  useMemo(() => {
+    const fetchProforma = async () => {
+      try {
+        const _proforma = await getProforma(proformaId);
+        setProforma(_proforma);
+      } catch (error) {
+        router.back();
+      }
+    };
+
+    proformaId && fetchProforma();
+  }, [router]);
+
+  useEffect(() => {
+    const fetchFamilies = async () => {
+      const _families = await getFamilies();
+      setFamilies(_families);
+    };
+    fetchFamilies();
   }, []);
 
   useEffect(() => {
@@ -338,61 +359,66 @@ export default ({ setPageTitle }) => {
     <>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+          <Input value={proformaId} disabled addonBefore="Proforma" />
           <Input
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            addonBefore="Proforma"
+            value={proforma.statusDescription}
+            disabled
+            addonBefore="Estatus"
           />
-          <Input value="En cotización" addonBefore="Estatus" />
           <Input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            value={proforma.dispatchStatusDescription}
+            disabled
+            addonBefore="Despacho"
+          />
+
+          <Input
+            value={proforma.client ? proforma.client.idNumber : ""}
+            disabled
+            addonBefore="DNI/RUC"
+          />
+
+          <Input
+            value={proforma.client ? proforma.client.name : ""}
+            disabled
             addonBefore="Cliente"
           />
           <Input
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
+            value={proforma.client ? proforma.client.lastname : ""}
+            disabled
           />
+
           <Input
-            value={documentNumber}
-            onChange={(event) => setDocumentNumber(event.target.value)}
-            addonBefore="DNI/RUC"
-          />
-          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-            <Button type="primary">Buscar</Button>
-            <Button type="primary">Check RUC</Button>
-          </Grid>
-          <Input
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={proforma.client ? proforma.client.email : ""}
+            disabled
             addonBefore="Correo"
           />
           <Input
-            value={phoneNumber}
-            onChange={(event) => setPhoneNumber(event.target.value)}
+            value={proforma.client ? proforma.client.phoneNumber : ""}
+            disabled
             addonBefore="Teléfono"
           />
-          <Select
-            value={region}
-            label="Departamento"
-            onChange={(value) => setRegion(value)}
-            options={[]}
-          />
-          <Select
-            value={province}
-            label="Provincia"
-            onChange={(value) => setProvince(value)}
-            options={[]}
-          />
-          <Select
-            value={district}
-            label="Distrito"
-            onChange={(value) => setDistrict(value)}
-            options={[]}
-          />
+
           <Input
-            value={direction}
-            onChange={(event) => setDirection(event.target.value)}
+            value={proforma.client ? proforma.client.region : ""}
+            disabled
+            addonBefore="Departamento"
+          />
+
+          <Input
+            value={proforma.client ? proforma.client.province : ""}
+            disabled
+            addonBefore="Provincia"
+          />
+
+          <Input
+            value={proforma.client ? proforma.client.district : ""}
+            disabled
+            addonBefore="Distrito"
+          />
+
+          <Input
+            value={proforma.client ? proforma.client.address : ""}
+            disabled
             addonBefore="Dirección"
           />
         </Grid>
@@ -406,30 +432,19 @@ export default ({ setPageTitle }) => {
           dataSource={orderBy(suppliedProducts, "id", "asc")}
         />
       </Container>
-      <Container height="fit-content" padding="2rem 1rem 1rem">
-        <Button
-          padding="0 0.5rem"
-          onClick={() =>
-            setSuppliedProducts((prevState) => [
-              ...prevState,
-              { id: suppliedProducts.length + 1 },
-            ])
-          }
-          type="primary"
-        >
-          <Icon fontSize="1rem" icon={faPlus} />
-          Agregar producto
-        </Button>
-      </Container>
+      <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
             <Input value="S/.0.00" addonBefore="A Cuenta" />
             <Input value="S/.0.00" addonBefore="Deuda" />
             <br />
-            <Button type="primary">Guardar</Button>
-            <Button type="primary">Venta en Tienda</Button>
-            <Button type="primary">Venta No Presencial</Button>
+            <Button
+              type="primary"
+              onClick={async () => router.push(`/proformas`)}
+            >
+              Retroceder
+            </Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input value="S/.0.00" addonBefore="Total" />
