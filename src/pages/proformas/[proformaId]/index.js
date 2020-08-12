@@ -1,24 +1,13 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, Icon, Select } from "../../../components";
-import {
-  getElements,
-  getFamilies,
-  getModels,
-  getProduct,
-  getProducts,
-  getSubfamilies,
-  getProforma,
-} from "../../../providers";
-import { get, orderBy } from "lodash";
+import { Button, Container, Grid } from "../../../components";
+import { getProforma } from "../../../providers";
+import { get } from "lodash";
 import { Input, Table } from "antd";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Proforma");
-
   //extraccion de params de url
-  //const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const { proformaId } = router.query;
 
@@ -28,6 +17,7 @@ export default ({ setPageTitle }) => {
       title: "",
       width: "fit-content",
       align: "center",
+      render: (id, record, index) => index + 1,
     },
     {
       title: "Cód. Inventario",
@@ -38,194 +28,51 @@ export default ({ setPageTitle }) => {
     },
     {
       title: "Familia",
-      dataIndex: "familyId",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (familyId, suppliedProduct) => (
-        <Select
-          value={familyId}
-          onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(families)}
-        />
-      ),
+      render: (product) => get(product, "familyName", null),
     },
     {
       title: "Sub-Familia",
-      dataIndex: "subfamilyId",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (subfamilyId, suppliedProduct) => (
-        <Select
-          value={subfamilyId}
-          onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
-                  subfamilyId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(
-            subfamilies.filter(
-              (subFamily) => subFamily.familyId === suppliedProduct.familyId
-            )
-          )}
-        />
-      ),
+      render: (product) => get(product, "subfamilyName", null),
     },
     {
       title: "Elemento",
-      dataIndex: "elementId",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (elementId, suppliedProduct) => (
-        <Select
-          value={elementId}
-          onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
-                  subfamilyId: suppliedProduct.subfamilyId,
-                  elementId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(
-            elements.filter(
-              (element) => element.subfamilyId === suppliedProduct.subfamilyId
-            )
-          )}
-        />
-      ),
+      render: (product) => get(product, "elementName", null),
     },
     {
       title: "Modelo",
-      dataIndex: "modelId",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (modelId, suppliedProduct) => (
-        <Select
-          value={modelId}
-          onChange={async (value) => {
-            const product = await getProduct(value, { noStock: true });
-
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
-                  subfamilyId: suppliedProduct.subfamilyId,
-                  elementId: suppliedProduct.elementId,
-                  modelId: value,
-                  product,
-                },
-              ];
-            });
-          }}
-          options={selectOptions(
-            models.filter(
-              (model) => model.elementId === suppliedProduct.elementId
-            )
-          )}
-        />
-      ),
+      render: (product) => get(product, "modelName", null),
     },
     {
       title: "Cantidad",
       dataIndex: "quantity",
       width: "fit-content",
       align: "center",
-      render: (quantity, suppliedProduct) => (
-        <Input
-          key={suppliedProducts.length}
-          defaultValue={quantity}
-          onChange={(event) => {
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  ...suppliedProduct,
-                  quantity: parseFloat(event.nativeEvent.target.value || "0"),
-                },
-              ];
-            });
-            event.persist();
-          }}
-          type="number"
-        />
-      ),
     },
     {
       title: "Precio",
-      dataIndex: "product",
+      dataIndex: "unitPrice",
       width: "fit-content",
       align: "center",
-      render: (product) => `S/.${get(product, "suggestedPrice", 0).toFixed(2)}`,
+      render: (unitPrice) => `S/.${(unitPrice / 100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
-      dataIndex: "id",
+      dataIndex: "subtotal",
       width: "fit-content",
       align: "center",
-      render: (id, row) =>
-        `S/.${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
-        ).toFixed(2)}`,
+      render: (subtotal) => `S/.${subtotal.toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
@@ -248,20 +95,14 @@ export default ({ setPageTitle }) => {
 
   //costumizadas por JM
   const [proforma, setProforma] = useState([]);
-  //!importadas
-  const [suppliedProducts, setSuppliedProducts] = useState([]);
-
-  const [families, setFamilies] = useState([]);
-  const [subfamilies, setSubfamilies] = useState([]);
-  const [elements, setElements] = useState([]);
-  const [models, setModels] = useState([]);
-
   const [windowHeight, setWindowHeight] = useState(0);
 
+  //para setear el tamaño de pantalla
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
 
+  //para setear la info de la proforma
   useMemo(() => {
     const fetchProforma = async () => {
       try {
@@ -271,89 +112,8 @@ export default ({ setPageTitle }) => {
         router.back();
       }
     };
-
     proformaId && fetchProforma();
   }, [router]);
-
-  useEffect(() => {
-    const fetchFamilies = async () => {
-      const _families = await getFamilies();
-      setFamilies(_families);
-    };
-    fetchFamilies();
-  }, []);
-
-  useEffect(() => {
-    const fetchFamilies = async () => {
-      const _families = await getFamilies();
-      setFamilies(_families);
-    };
-    fetchFamilies();
-  }, []);
-
-  useEffect(() => {
-    const fetchSubfamilies = async () => {
-      const _subfamilies = await getSubfamilies(null);
-      setSubfamilies(_subfamilies);
-    };
-    fetchSubfamilies();
-  }, []);
-
-  useEffect(() => {
-    const fetchElements = async () => {
-      const _elements = await getElements(null);
-      setElements(_elements);
-    };
-    fetchElements();
-  }, []);
-
-  useEffect(() => {
-    const fetchModels = async () => {
-      const _models = await getModels(null);
-      setModels(_models);
-    };
-    fetchModels();
-  }, []);
-
-  const selectOptions = (collection) =>
-    collection.map((document) => ({
-      value: document.id,
-      label: document.name,
-    }));
-
-  const mapSuppliedProducts = async (
-    products,
-    index = 0,
-    mappedSuppliedProducts = []
-  ) => {
-    if (products.length === index) return mappedSuppliedProducts;
-
-    const currentProduct = products[index];
-    const {
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-      boxSize,
-      quantity,
-    } = currentProduct;
-
-    const productsResult = await getProducts({
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-    });
-
-    return mapSuppliedProducts(products, index + 1, [
-      ...mappedSuppliedProducts,
-      {
-        productId: productsResult.rows[0].id,
-        boxSize,
-        quantity,
-      },
-    ]);
-  };
 
   return (
     <>
@@ -429,15 +189,38 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={false}
-          dataSource={orderBy(suppliedProducts, "id", "asc")}
+          dataSource={
+            proforma.proformaProducts ? proforma.proformaProducts : []
+          }
         />
       </Container>
       <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
-            <Input value="S/.0.00" addonBefore="A Cuenta" />
-            <Input value="S/.0.00" addonBefore="Deuda" />
+          <Grid gridTemplateColumns="2fr 5fr" gridGap="2rem">
+            <br />
+            <Input
+              value={
+                proforma.credit
+                  ? `S/.${(proforma.credit / 100).toFixed(2)}`
+                  : `S/.0.00`
+              }
+              disabled
+              addonBefore="A Cuenta"
+            />
+            <br />
+
+            <Input
+              value={
+                proforma.total
+                  ? `S/.${((proforma.total - proforma.credit) / 100).toFixed(
+                      2
+                    )}`
+                  : `S/.0.00`
+              }
+              disabled
+              addonBefore="Deuda"
+            />
             <br />
             <Button
               type="primary"
@@ -447,11 +230,44 @@ export default ({ setPageTitle }) => {
             </Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
-            <Input value="S/.0.00" addonBefore="Total" />
+            <Input
+              value={
+                proforma.subtotal
+                  ? `S/.${(proforma.subtotal / 100).toFixed(2)}`
+                  : `S/.0.00`
+              }
+              disabled
+              addonBefore="Total"
+            />
             <br />
-            <Input value="S/.0.00" addonBefore="Descuento" />
-            <Input value="0%" />
-            <Input value="S/.0.00" addonBefore="Total Final" />
+            <Input
+              value={
+                proforma.discount
+                  ? `S/.${(proforma.discount / 100).toFixed(2)}`
+                  : `S/.0.00`
+              }
+              disabled
+              addonBefore="Descuento"
+            />
+            <Input
+              value={
+                proforma.discount
+                  ? `${((proforma.discount * 100) / proforma.total).toFixed(
+                      2
+                    )}%`
+                  : `0.00%`
+              }
+              disabled
+            />
+            <Input
+              value={
+                proforma.total
+                  ? `S/.${(proforma.total / 100).toFixed(2)}`
+                  : `S/.0.00`
+              }
+              disabled
+              addonBefore="Total Final"
+            />
             <br />
           </Grid>
         </Grid>
