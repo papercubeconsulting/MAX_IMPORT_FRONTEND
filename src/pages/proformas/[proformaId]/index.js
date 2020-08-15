@@ -6,7 +6,7 @@ import { get } from "lodash";
 import { Input, Table } from "antd";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Proforma");
+  setPageTitle("Información de proforma");
   //extraccion de params de url
   const router = useRouter();
   const { proformaId } = router.query;

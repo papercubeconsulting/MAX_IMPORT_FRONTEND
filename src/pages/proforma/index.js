@@ -13,7 +13,7 @@ import { Input, Table } from "antd";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Abastecimiento");
+  setPageTitle("Nueva Proforma");
 
   const columns = [
     {

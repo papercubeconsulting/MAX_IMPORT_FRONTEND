@@ -23,7 +23,7 @@ import {
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Historial");
+  setPageTitle("Historial de proformas");
   const columns = [
     {
       dataIndex: "id",
