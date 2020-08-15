@@ -137,7 +137,7 @@ export const AddProduct = props => {
             });
         }
 
-        if (!provider || !family || !subfamily || !element || !model || !compatibility || !tradename || !suggestedPrice) {
+        if (!provider || !family || !subfamily || !element || !model || !tradename || !suggestedPrice) {
             return notification.error({
                 message: "Error al intentar subir producto",
                 description: "Verifique que todos los campos se hallan rellenado"
@@ -240,8 +240,8 @@ export const AddProduct = props => {
                 elementCode: element.code,
                 providerId: provider.id,
                 tradename,
-                compatibility,
                 suggestedPrice,
+                compatibility: compatibility || undefined,
                 imageBase64: imageBase64 || undefined
             };
 
