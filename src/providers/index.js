@@ -13,3 +13,6 @@ export * from "./proformas";
 
 export * from "./users";
 export * from "./userProvider";
+
+export * from "./clients";
+export * from "./geography";

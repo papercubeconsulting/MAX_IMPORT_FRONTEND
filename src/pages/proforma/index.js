@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button, Container, Grid, Icon, Select } from "../../components";
 import {
   getElements,
@@ -7,9 +7,13 @@ import {
   getProduct,
   getProducts,
   getSubfamilies,
+  getClientPerCode,
+  getRegions,
+  getProvinces,
+  getDistricts
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table } from "antd";
+import { Input, Table, notification } from "antd";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -239,16 +243,16 @@ export default ({ setPageTitle }) => {
     },
   ];
 
-  const [code, setCode] = useState("Nº 12345");
+  const [clientId, setClientId] = useState(null);
   const [name, setName] = useState(null);
   const [lastName, setLastName] = useState(null);
   const [documentNumber, setDocumentNumber] = useState(null);
   const [email, setEmail] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
-  const [region, setRegion] = useState(null);
-  const [province, setProvince] = useState(null);
-  const [district, setDistrict] = useState(null);
-  const [direction, setDirection] = useState(null);
+  const [regionId, setRegionId] = useState(null);
+  const [provinceId, setProvinceId] = useState(null);
+  const [districtId, setDistrictId] = useState(null);
+  const [address, setAddress] = useState(null);
   const [suppliedProducts, setSuppliedProducts] = useState([]);
 
   const [families, setFamilies] = useState([]);
@@ -256,7 +260,16 @@ export default ({ setPageTitle }) => {
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
 
+  const [regions, setRegions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+
   const [windowHeight, setWindowHeight] = useState(0);
+
+  const [loadingSearchClient, setLoadingSearchClient] = useState(false);
+
+  const [totalPaid, setTotalPaid] = useState(0);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -293,6 +306,44 @@ export default ({ setPageTitle }) => {
     };
     fetchModels();
   }, []);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      const _regions = await getRegions();
+
+      setRegions(_regions);
+    }
+    fetchRegions();
+  }, []);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const _provinces = await getProvinces(regionId);
+
+      setProvinces(_provinces);
+    }
+    regionId && fetchProvinces();
+  }, [regionId]);
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      const _districts = await getDistricts(regionId, provinceId);
+
+      setDistricts(_districts);
+    }
+    regionId && provinceId && fetchDistricts();
+  }, [regionId, provinceId]);
+
+  const totalPrice = useMemo(() => {
+
+    const _totalPrice = suppliedProducts.reduce((accumulator, suppliedProduct) => accumulator + get(suppliedProduct, "quantity", 0) * get(suppliedProduct, "product.suggestedPrice", 0), 0);
+
+    return _totalPrice;
+  }, [suppliedProducts]);
+
+  const finalPrice = useMemo(() => totalPrice * (1 - (discountPercentage / 100))
+  , [totalPrice, discountPercentage])
+
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -334,65 +385,121 @@ export default ({ setPageTitle }) => {
     ]);
   };
 
+  const onSearchClient = async () => {
+    try {
+      setLoadingSearchClient(true);
+      const client = await getClientPerCode(documentNumber);
+      
+      console.log(client);
+      const {id, active, name, lastname, email, phoneNumber, address, regionId, provinceId, districtId} = client;
+      
+      if(!active) throw Error("Usuario inactivo");
+
+      notification.success({
+        message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`
+      })
+      
+      setName(name);
+      setLastName(lastname);
+      setEmail(email);
+      setPhoneNumber(phoneNumber);
+      setAddress(address);
+      setRegionId(regionId);
+      setProvinceId(provinceId);
+      setDistrictId(districtId);
+
+      setLoadingSearchClient(false);
+    } catch (error) {
+      notification.error({
+        message: error.message
+      })
+      setLoadingSearchClient(false);
+    }
+
+  }
+
   return (
     <>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            addonBefore="Proforma"
-          />
           <Input value="En cotización" addonBefore="Estatus" />
           <Input
+            placeholder="Documento de Identidad"
+            value={documentNumber}
+            onChange={(event) => setDocumentNumber(event.target.value)}
+            addonBefore="DNI/RUC"
+          />
+          <Button 
+            loading={loadingSearchClient}
+            type="primary"
+            onClick={onSearchClient}
+          >
+            Buscar
+          </Button>
+          <Button type="primary">Check RUC</Button>
+          <Input
+            placeholder="Nombres"
             value={name}
             onChange={(event) => setName(event.target.value)}
             addonBefore="Cliente"
           />
           <Input
+            placeholder="Apellidos"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
           />
           <Input
-            value={documentNumber}
-            onChange={(event) => setDocumentNumber(event.target.value)}
-            addonBefore="DNI/RUC"
-          />
-          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-            <Button type="primary">Buscar</Button>
-            <Button type="primary">Check RUC</Button>
-          </Grid>
-          <Input
+            placeholder="Correo electrónico"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             addonBefore="Correo"
           />
           <Input
+            placeholder="Número de teléfono"
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
             addonBefore="Teléfono"
           />
           <Select
-            value={region}
+            value={regionId}
+            autoComplete="new-password"
             label="Departamento"
-            onChange={(value) => setRegion(value)}
-            options={[]}
+            showSearch
+            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            onChange={(value) => setRegionId(value)}
+            options={regions.map(region => ({
+              value: region.id,
+              label: region.name
+            }))}
           />
           <Select
-            value={province}
+            value={provinceId}
+            autoComplete="new-password"
             label="Provincia"
-            onChange={(value) => setProvince(value)}
-            options={[]}
+            showSearch
+            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            onChange={(value) => setProvinceId(value)}
+            options={provinces.map(province => ({
+              value: province.id,
+              label: province.name
+            }))}
           />
           <Select
-            value={district}
+            value={districtId}
+            autoComplete="new-password"
             label="Distrito"
-            onChange={(value) => setDistrict(value)}
-            options={[]}
+            showSearch
+            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            onChange={(value) => setDistrictId(value)}
+            options={districts.map(district => ({
+              value: district.id,
+              label: district.name
+            }))}
           />
           <Input
-            value={direction}
-            onChange={(event) => setDirection(event.target.value)}
+            placeholder="Domicilio"
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
             addonBefore="Dirección"
           />
         </Grid>
@@ -424,19 +531,39 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
-            <Input value="S/.0.00" addonBefore="A Cuenta" />
-            <Input value="S/.0.00" addonBefore="Deuda" />
+            <Input
+              value={totalPaid}
+              onChange={(event) => setTotalPaid(event.target.value)}
+             addonBefore="A Cuenta S/." 
+            />
+            <Input
+              value={(finalPrice - totalPaid)} 
+              disabled 
+              addonBefore="Deuda S/." 
+            />
             <br />
             <Button type="primary">Guardar</Button>
             <Button type="primary">Venta en Tienda</Button>
             <Button type="primary">Venta No Presencial</Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
-            <Input value="S/.0.00" addonBefore="Total" />
+            <Input disabled value={totalPrice.toFixed(2)} addonBefore="Total S/." />
             <br />
-            <Input value="S/.0.00" addonBefore="Descuento" />
-            <Input value="0%" />
-            <Input value="S/.0.00" addonBefore="Total Final" />
+            <Input 
+              disabled 
+              value={(totalPrice * discountPercentage / 100).toFixed(2)}
+              addonBefore="Descuento S/." 
+            />
+            <Input
+              addonBefore="%"
+              value={discountPercentage}
+              onChange={(event) => setDiscountPercentage(event.target.value)}
+            />
+            <Input 
+              disabled 
+              value={finalPrice.toFixed(2)} 
+              addonBefore="Total Final S/." 
+            />
             <br />
           </Grid>
         </Grid>
