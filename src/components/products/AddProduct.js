@@ -249,6 +249,8 @@ export const AddProduct = props => {
 
             const response = await postProduct(body);
 
+            props.toggleUpdateTable(prevState => !prevState);
+
             Modal.success({
                 title: "Producto creado correctamente",
                 content: `Código de inventario: ${response.code}`,
