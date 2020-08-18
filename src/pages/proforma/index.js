@@ -10,11 +10,12 @@ import {
   getClientPerCode,
   getRegions,
   getProvinces,
-  getDistricts
+  getDistricts,
+  postProforma
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table, notification } from "antd";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { Input, Table, notification, message } from "antd";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Nueva Proforma");
@@ -38,23 +39,23 @@ export default ({ setPageTitle }) => {
       dataIndex: "familyId",
       width: "fit-content",
       align: "center",
-      render: (familyId, suppliedProduct) => (
+      render: (familyId, proformaProduct) => (
         <Select
           value={familyId}
           onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
               );
 
               return [
-                ...remainingSuppliedProducts,
+                ...remainingproformaProducts,
                 {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
+                  id: proformaProduct.id,
+                  dbId: proformaProduct.dbId,
+                  productBoxes: proformaProduct.productBoxes,
+                  quantity: proformaProduct.quantity,
+                  boxSize: proformaProduct.boxSize,
                   familyId: value,
                 },
               ];
@@ -69,24 +70,24 @@ export default ({ setPageTitle }) => {
       dataIndex: "subfamilyId",
       width: "fit-content",
       align: "center",
-      render: (subfamilyId, suppliedProduct) => (
+      render: (subfamilyId, proformaProduct) => (
         <Select
           value={subfamilyId}
           onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
               );
 
               return [
-                ...remainingSuppliedProducts,
+                ...remainingproformaProducts,
                 {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
+                  id: proformaProduct.id,
+                  dbId: proformaProduct.dbId,
+                  productBoxes: proformaProduct.productBoxes,
+                  quantity: proformaProduct.quantity,
+                  boxSize: proformaProduct.boxSize,
+                  familyId: proformaProduct.familyId,
                   subfamilyId: value,
                 },
               ];
@@ -94,7 +95,7 @@ export default ({ setPageTitle }) => {
           }
           options={selectOptions(
             subfamilies.filter(
-              (subFamily) => subFamily.familyId === suppliedProduct.familyId
+              (subFamily) => subFamily.familyId === proformaProduct.familyId
             )
           )}
         />
@@ -105,25 +106,25 @@ export default ({ setPageTitle }) => {
       dataIndex: "elementId",
       width: "fit-content",
       align: "center",
-      render: (elementId, suppliedProduct) => (
+      render: (elementId, proformaProduct) => (
         <Select
           value={elementId}
           onChange={(value) =>
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
               );
 
               return [
-                ...remainingSuppliedProducts,
+                ...remainingproformaProducts,
                 {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
-                  subfamilyId: suppliedProduct.subfamilyId,
+                  id: proformaProduct.id,
+                  dbId: proformaProduct.dbId,
+                  productBoxes: proformaProduct.productBoxes,
+                  quantity: proformaProduct.quantity,
+                  boxSize: proformaProduct.boxSize,
+                  familyId: proformaProduct.familyId,
+                  subfamilyId: proformaProduct.subfamilyId,
                   elementId: value,
                 },
               ];
@@ -131,7 +132,7 @@ export default ({ setPageTitle }) => {
           }
           options={selectOptions(
             elements.filter(
-              (element) => element.subfamilyId === suppliedProduct.subfamilyId
+              (element) => element.subfamilyId === proformaProduct.subfamilyId
             )
           )}
         />
@@ -142,28 +143,28 @@ export default ({ setPageTitle }) => {
       dataIndex: "modelId",
       width: "fit-content",
       align: "center",
-      render: (modelId, suppliedProduct) => (
+      render: (modelId, proformaProduct) => (
         <Select
           value={modelId}
           onChange={async (value) => {
             const product = await getProduct(value, { noStock: true });
 
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
               );
 
               return [
-                ...remainingSuppliedProducts,
+                ...remainingproformaProducts,
                 {
-                  id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
-                  quantity: suppliedProduct.quantity,
-                  boxSize: suppliedProduct.boxSize,
-                  familyId: suppliedProduct.familyId,
-                  subfamilyId: suppliedProduct.subfamilyId,
-                  elementId: suppliedProduct.elementId,
+                  id: proformaProduct.id,
+                  dbId: proformaProduct.dbId,
+                  productBoxes: proformaProduct.productBoxes,
+                  quantity: proformaProduct.quantity,
+                  boxSize: proformaProduct.boxSize,
+                  familyId: proformaProduct.familyId,
+                  subfamilyId: proformaProduct.subfamilyId,
+                  elementId: proformaProduct.elementId,
                   modelId: value,
                   product,
                 },
@@ -172,7 +173,7 @@ export default ({ setPageTitle }) => {
           }}
           options={selectOptions(
             models.filter(
-              (model) => model.elementId === suppliedProduct.elementId
+              (model) => model.elementId === proformaProduct.elementId
             )
           )}
         />
@@ -183,20 +184,20 @@ export default ({ setPageTitle }) => {
       dataIndex: "quantity",
       width: "fit-content",
       align: "center",
-      render: (quantity, suppliedProduct) => (
+      render: (quantity, proformaProduct) => (
         <Input
-          key={suppliedProducts.length}
+          key={proformaProducts.length}
           defaultValue={quantity}
           onChange={(event) => {
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
               );
 
               return [
-                ...remainingSuppliedProducts,
+                ...remainingproformaProducts,
                 {
-                  ...suppliedProduct,
+                  ...proformaProduct,
                   quantity: parseFloat(event.nativeEvent.target.value || "0"),
                 },
               ];
@@ -236,9 +237,28 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (id) => (
-        <Button padding="0 0.5rem" type="primary">
-          VER
-        </Button>
+        <>
+          <Button padding="0 0.25rem" margin="0 0.25rem" type="primary">
+            VER
+          </Button>
+          <Button 
+            padding="0 0.25rem" 
+            margin="0 0.25rem" 
+            type="danger"
+            onClick={() => setproformaProducts(prevState => prevState
+                .filter((proformaProduct => {
+                  console.log(proformaProduct.id, id);
+                  return proformaProduct.id !== id
+                }))
+                .map((proformaProduct, index) => ({...proformaProduct, id: index + 1}))
+            )}
+          >
+            <Icon
+              marginRight="0px"
+              fontSize="0.8rem"
+              icon={faTrash}/>
+          </Button>
+        </>
       ),
     },
   ];
@@ -253,7 +273,7 @@ export default ({ setPageTitle }) => {
   const [provinceId, setProvinceId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
   const [address, setAddress] = useState(null);
-  const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [proformaProducts, setproformaProducts] = useState([]);
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -267,6 +287,7 @@ export default ({ setPageTitle }) => {
   const [windowHeight, setWindowHeight] = useState(0);
 
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
+  const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
 
   const [totalPaid, setTotalPaid] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
@@ -336,10 +357,10 @@ export default ({ setPageTitle }) => {
 
   const totalPrice = useMemo(() => {
 
-    const _totalPrice = suppliedProducts.reduce((accumulator, suppliedProduct) => accumulator + get(suppliedProduct, "quantity", 0) * get(suppliedProduct, "product.suggestedPrice", 0), 0);
+    const _totalPrice = proformaProducts.reduce((accumulator, proformaProduct) => accumulator + get(proformaProduct, "quantity", 0) * get(proformaProduct, "product.suggestedPrice", 0), 0);
 
     return _totalPrice;
-  }, [suppliedProducts]);
+  }, [proformaProducts]);
 
   const finalPrice = useMemo(() => totalPrice * (1 - (discountPercentage / 100))
   , [totalPrice, discountPercentage])
@@ -351,12 +372,12 @@ export default ({ setPageTitle }) => {
       label: document.name,
     }));
 
-  const mapSuppliedProducts = async (
+  const mapproformaProducts = async (
     products,
     index = 0,
-    mappedSuppliedProducts = []
+    mappedproformaProducts = []
   ) => {
-    if (products.length === index) return mappedSuppliedProducts;
+    if (products.length === index) return mappedproformaProducts;
 
     const currentProduct = products[index];
     const {
@@ -375,8 +396,8 @@ export default ({ setPageTitle }) => {
       modelId,
     });
 
-    return mapSuppliedProducts(products, index + 1, [
-      ...mappedSuppliedProducts,
+    return mapproformaProducts(products, index + 1, [
+      ...mappedproformaProducts,
       {
         productId: productsResult.rows[0].id,
         boxSize,
@@ -389,8 +410,7 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-      
-      console.log(client);
+
       const {id, active, name, lastname, email, phoneNumber, address, regionId, provinceId, districtId} = client;
       
       if(!active) throw Error("Usuario inactivo");
@@ -407,6 +427,7 @@ export default ({ setPageTitle }) => {
       setRegionId(regionId);
       setProvinceId(provinceId);
       setDistrictId(districtId);
+      setClientId(id);
 
       setLoadingSearchClient(false);
     } catch (error) {
@@ -416,6 +437,31 @@ export default ({ setPageTitle }) => {
       setLoadingSearchClient(false);
     }
 
+  }
+
+
+  const onSaveProforma = async () => {
+    try {
+      setLoadingSaveProforma(true);
+      await postProforma({
+        clientId,
+        discount: totalPrice * discountPercentage / 100,
+        proformaProducts: proformaProducts.map(proformaProduct => ({
+          productId: get(proformaProduct, "product.id", null),
+          unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+          quantity: get(proformaProduct, "quantity", null)
+        }))
+      });
+      notification.success({
+        message: "Proforma guardada correctamente"
+      })
+      setLoadingSaveProforma(false);
+    } catch (error) {
+      notification.error({
+        message: error.message
+      })
+      setLoadingSaveProforma(false);
+    }
   }
 
   return (
@@ -510,16 +556,16 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={false}
-          dataSource={orderBy(suppliedProducts, "id", "asc")}
+          dataSource={orderBy(proformaProducts, "id", "asc")}
         />
       </Container>
       <Container height="fit-content" padding="2rem 1rem 1rem">
         <Button
           padding="0 0.5rem"
           onClick={() =>
-            setSuppliedProducts((prevState) => [
+            setproformaProducts((prevState) => [
               ...prevState,
-              { id: suppliedProducts.length + 1 },
+              { id: proformaProducts.length + 1 },
             ])
           }
           type="primary"
@@ -542,7 +588,14 @@ export default ({ setPageTitle }) => {
               addonBefore="Deuda S/." 
             />
             <br />
-            <Button type="primary">Guardar</Button>
+            <Button 
+              onClick={onSaveProforma}
+              loading={loadingSaveProforma}
+              disabled={!(clientId && proformaProducts.length)} 
+              type="primary"
+            >
+              Guardar
+            </Button>
             <Button type="primary">Venta en Tienda</Button>
             <Button type="primary">Venta No Presencial</Button>
           </Grid>
