@@ -15,6 +15,7 @@ import {
 } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table, notification, message } from "antd";
+import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -292,6 +293,10 @@ export default ({ setPageTitle }) => {
   const [totalPaid, setTotalPaid] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
 
+  const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
+    false
+  );
+
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
@@ -466,6 +471,14 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+       {isModalAddProformaVisible && (
+        <AddProforma
+          visible={isModalAddProformaVisible}
+          //toggleUpdateTable={setToggleUpdateTable}
+          trigger={setIsModalAddProformaVisible}
+        />
+      )}
+
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value="En cotización" addonBefore="Estatus" />
@@ -596,8 +609,8 @@ export default ({ setPageTitle }) => {
             >
               Guardar
             </Button>
-            <Button type="primary">Venta en Tienda</Button>
-            <Button type="primary">Venta No Presencial</Button>
+            <Button type="primary" onClick={() => setIsModalAddProformaVisible(true)}>Venta en Tienda</Button>
+            <Button type="primary" onClick={() => setIsModalAddProformaVisible(true)}>Venta No Presencial</Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input disabled value={totalPrice.toFixed(2)} addonBefore="Total S/." />
