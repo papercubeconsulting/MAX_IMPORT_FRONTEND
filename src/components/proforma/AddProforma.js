@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Input, Modal, notification, Tag, Upload, Radio } from "antd";
-import { AutoComplete, Button, Container, Grid, Icon, Select } from "../index";
+import { RadioGroup } from "../RadioGroup";
+import { Button, Container, Grid, Icon, Select } from "../index";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import {
   getElements,
@@ -252,63 +253,41 @@ export const AddProforma = (props) => {
     }
   };
 
-  const radioStyle = {
-    display: 'block',
-    height: '40px',
-    lineHeight: '40px',
-  };
-
   return (
     <Modal
       visible={props.visible}
       onOk={() => confirmAddProduct()}
       onCancel={() => props.trigger && props.trigger(false)}
-      width="50%"
+      width="60%"
       title="¿Está seguro de realizar la venta?"
     >
-   
-
       <Grid gridTemplateRows="repeat(1, 1fr)" gridGap="1rem">
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
-        <Radio.Group //onChange={this.onChange}
-        //value={value}
-      >
           <h3>Forma de pago:</h3>
-        <Radio style={radioStyle} 
-        value={1}>
-            Consignación
-        </Radio>
-        <Radio style={radioStyle}
-         value={2}>
-            Contado
-        </Radio>
-      </Radio.Group>
-      <Radio.Group //onChange={this.onChange}
-        //value={value}
-      >
-           <h3></h3>
-        <Radio style={radioStyle} 
-        value={1}>
-            Venta
-        </Radio>
-        <Radio style={radioStyle}
-         value={2}>
-            Crédito
-        </Radio>
-      </Radio.Group>
-      <Radio.Group //onChange={this.onChange}
-        //value={value}
-      >
-            <h3>Forma de despacho:</h3>
-        <Radio style={radioStyle} 
-        value={1}>
-            Tienda
-        </Radio>
-        <Radio style={radioStyle}
-         value={2}>
-            Envío
-        </Radio>
-      </Radio.Group>
+          <RadioGroup
+            gridColumnStart="2"
+            gridColumnEnd="4"
+            gridTemplateColumns="repeat(2, 1fr)"
+            //onChange={this.onChange}
+            //value={value}
+          >
+            <Radio value={1}>Venta</Radio>
+            <Radio value={2}>Consignación</Radio>
+          </RadioGroup>
+          <h3>Tipo de venta:</h3>
+          <RadioGroup
+            gridColumnStart="2"
+            gridColumnEnd="4"
+            gridTemplateColumns="repeat(2, 1fr)"
+            //onChange={this.onChange}
+            //value={value}
+          >
+            <Radio value={1}>Contado</Radio>
+            <Radio value={2}>Crédito</Radio>
+          </RadioGroup>{" "}
+        </Grid>
+
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
             value={suggestedPrice}
             //onChange={event => setSuggestedPrice(event.target.value)}
@@ -321,19 +300,11 @@ export const AddProforma = (props) => {
             type="number"
             addonBefore="Total deuda S/."
           />
-
-          <Select //value={provider.name}
-            label="Agencia"
-            /*onChange={value => {
-                                const _provider = providers.find(provider => provider.id === value);
-                                setProvider(_provider);
-                            }} */
-            options={selectOptions(providers)}
-          />
         </Grid>
-        <h3>Datos del depósito:</h3>
-       
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+          <h3>Datos del depósito:</h3>
+          <div></div>
           <Input //value={suggestedPrice}
             //onChange={event => setSuggestedPrice(event.target.value)}
             type="text"
@@ -356,30 +327,43 @@ export const AddProforma = (props) => {
                             }} */
             options={selectOptions(providers)}
           />
+
+          <Upload
+            className="ant-upload-wrapper"
+            beforeUpload={async (file) => {
+              const encodedImage = await toBase64(file);
+              setImageBase64(encodedImage);
+            }}
+            accept="image/png, image/jpeg"
+          >
+            <Button>
+              <Icon icon={faUpload} />
+              Imagen
+            </Button>
+          </Upload>
         </Grid>
 
-        <Upload
-          className="ant-upload-wrapper"
-          beforeUpload={async (file) => {
-            const encodedImage = await toBase64(file);
-            setImageBase64(encodedImage);
-          }}
-          accept="image/png, image/jpeg"
-        >
-          <Button>
-            <Icon icon={faUpload} />
-            Imagen
-          </Button>
-        </Upload>
-
-        <div hidden>
-          <h3>Leyenda:</h3>
-          <LegendsContainer justifyContent="space-around" padding="0px">
-            <Tag color={colors[0]}>No seleccionado</Tag>
-            <Tag color={colors[1]}>Existente</Tag>
-            <Tag color={colors[2]}>Nuevo</Tag>
-          </LegendsContainer>
-        </div>
+        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+          <h3>Forma de despacho:</h3>
+          <RadioGroup
+            gridColumnStart="2"
+            gridColumnEnd="2"
+            gridTemplateColumns="repeat(2, 1fr)"
+            //onChange={this.onChange}
+            //value={value}
+          >
+            <Radio value={1}>Tienda</Radio>
+            <Radio value={2}>Envío</Radio>
+          </RadioGroup>
+          <Select //value={provider.name}
+            label="Agencia"
+            /*onChange={value => {
+                                const _provider = providers.find(provider => provider.id === value);
+                                setProvider(_provider);
+                            }} */
+            options={selectOptions(providers)}
+          />
+        </Grid>
       </Grid>
     </Modal>
   );
