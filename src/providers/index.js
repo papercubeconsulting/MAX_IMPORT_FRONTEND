@@ -16,3 +16,6 @@ export * from "./userProvider";
 
 export * from "./clients";
 export * from "./geography";
+
+export * from "./banks";
+export * from "./deliveryAgencies";

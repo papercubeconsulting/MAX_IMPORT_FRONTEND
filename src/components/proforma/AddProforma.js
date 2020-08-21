@@ -4,6 +4,10 @@ import { RadioGroup } from "../RadioGroup";
 import { Button, Container, Grid, Icon, Select } from "../index";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import {
+  getBank,
+  getBanks,
+  getDeliveryAgencies,
+  //!exportados
   getElements,
   getFamilies,
   getModels,
@@ -15,36 +19,31 @@ import { toBase64 } from "../../util";
 import styled from "styled-components";
 
 export const AddProforma = (props) => {
-  const colors = ["#dc3546", "#28a746", "#17a3b8"];
-
   // * List of sources from database
-  const [families, setFamilies] = useState([]);
-  const [subfamilies, setSubfamilies] = useState([]);
-  const [elements, setElements] = useState([]);
-  const [models, setModels] = useState([]);
-  const [providers, setProviders] = useState([]);
+  const [banks, setBanks] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [deliveryAgencies, setDeliveryAgencies] = useState([]);
 
   // * Fields to create source
-  const [family, setFamily] = useState({});
-  const [subfamily, setSubfamily] = useState({});
-  const [element, setElement] = useState({});
-  const [model, setModel] = useState({});
-  const [provider, setProvider] = useState({});
-  const [suggestedPrice, setSuggestedPrice] = useState(0);
-  const [compatibility, setCompatibility] = useState(null);
-  const [tradename, setTradename] = useState(null);
+  const [bank, setBank] = useState({});
+  const [bankAccount, setBankAccount] = useState({});
+  const [deliveryAgency, setDeliveryAgency] = useState({});
+  const [payWay, setPayWay] = useState(1);
+  const [saleType, setSaleType] = useState(1);
+  const [dispatchWay, setDispatchWay] = useState(1);
+
+  //!exportados
   const [imageBase64, setImageBase64] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        const _families = await getFamilies();
+        const _banks = await getBanks();
+        setBanks(_banks);
 
-        setFamilies(_families);
+        const _deliveryAgencies = await getDeliveryAgencies();
+        setDeliveryAgencies(_deliveryAgencies);
 
-        const _providers = await getProviders();
-
-        setProviders(_providers);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -57,14 +56,14 @@ export const AddProforma = (props) => {
   }, []);
 
   useEffect(() => {
-    const fetchSubfamilies = async () => {
+    const fetchBankAccounts = async () => {
       try {
-        setSubfamilies([]);
-        setSubfamily((prevState) => ({ ...prevState, id: undefined }));
+        setBankAccounts([]);
+        setBankAccount((prevState) => ({ ...prevState, id: undefined }));
 
-        if (family.id) {
-          const _subfamilies = await getSubfamilies(family.id);
-          setSubfamilies(_subfamilies);
+        if (bank.id) {
+          const _bank = await getBank(bank.id);
+          setBankAccounts(_bank.bankAccounts);
         }
       } catch (error) {
         notification.error({
@@ -73,190 +72,20 @@ export const AddProforma = (props) => {
         });
       }
     };
+    fetchBankAccounts();
+  }, [bank]);
 
-    fetchSubfamilies();
-  }, [family]);
-
-  useEffect(() => {
-    const fetchElements = async () => {
-      try {
-        setElements([]);
-        setElement((prevState) => ({ ...prevState, id: undefined }));
-
-        if (subfamily.id) {
-          const _elements = await getElements(subfamily.id);
-          setElements(_elements);
-        }
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
-
-    fetchElements();
-  }, [subfamily]);
-
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        setModels([]);
-        setModel((prevState) => ({ ...prevState, id: undefined }));
-
-        if (element.id) {
-          const _models = await getModels(element.id);
-          setModels(_models);
-        }
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
-
-    fetchModels();
-  }, [element]);
-
+  // permite crear opciones para los seleccionadores
   const selectOptions = (collection) =>
     collection.map((document) => ({
       label: document.name,
       value: document.id,
     }));
 
-  const autoCompleteColor = (id, name) => {
-    if (id) return colors[1];
-    if (name) return colors[2];
-    return colors[0];
-  };
-
-  const confirmAddProduct = () => {
-    if (suggestedPrice <= 0) {
-      return notification.error({
-        message: "Error al intentar subir producto",
-        description: "El precio debe ser mayor que 0",
-      });
-    }
-
-    if (!provider.id) {
-      return notification.error({
-        message: "Error al intentar subir producto",
-        description: "Elija un proveedor de la lista indicada",
-      });
-    }
-
-    if (
-      !provider ||
-      !family ||
-      !subfamily ||
-      !element ||
-      !model ||
-      !tradename ||
-      !suggestedPrice
-    ) {
-      return notification.error({
-        message: "Error al intentar subir producto",
-        description: "Verifique que todos los campos se hallan rellenado",
-      });
-    }
-
-    Modal.confirm({
-      width: "90%",
-      title: "¿Está seguro de que desea crear este ítem en el inventario?",
-      onOk: async () => submitProduct(),
-      content: (
-        <ModalConfirmContainer padding="0px" flexDirection="column">
-          <Container justifyContent="space-around" padding="1rem 0">
-            <CategoryContainer>
-              <CategoryTitle>FAMILIA</CategoryTitle>
-              <Tag>{`${family.name} (${family.code})`}</Tag>
-            </CategoryContainer>
-            <CategoryContainer>
-              <CategoryTitle>SUB-FAMILIA</CategoryTitle>
-              <Tag>{`${subfamily.name} (${subfamily.code})`}</Tag>
-            </CategoryContainer>
-            <CategoryContainer>
-              <CategoryTitle>ELEMENTO</CategoryTitle>
-              <Tag>{`${element.name} (${element.code})`}</Tag>
-            </CategoryContainer>
-            <CategoryContainer>
-              <CategoryTitle>MODELO</CategoryTitle>
-              <Tag>{`${model.name}`}</Tag>
-            </CategoryContainer>
-          </Container>
-          <Container padding="1rem 0" flexDirection="column">
-            <h3>
-              <b>Proveedor:&nbsp;</b>
-              {provider.name} ({provider.code})
-            </h3>
-            <h3>
-              <b>Precio:&nbsp;</b>
-              S/ {suggestedPrice}
-            </h3>
-            <h3>
-              <b>Compatibilidad:&nbsp;</b>
-              {compatibility}
-            </h3>
-            <h3>
-              <b>Nombre comercial:&nbsp;</b>
-              {tradename}
-            </h3>
-          </Container>
-          {imageBase64 && (
-            <Container padding="0px" alignItems="center" flexDirection="column">
-              <h3>
-                <b>Vista previa imagen:</b>
-              </h3>
-              <img src={imageBase64} height="120px" alt="uploaded-image" />
-            </Container>
-          )}
-        </ModalConfirmContainer>
-      ),
-    });
-  };
-
-  const submitProduct = async () => {
-    try {
-      const body = {
-        familyId: family.id,
-        subfamilyId: subfamily.id,
-        elementId: element.id,
-        modelId: model.id,
-        familyName: family.name,
-        subfamilyName: subfamily.name,
-        elementName: element.name,
-        modelName: model.name,
-        familyCode: family.code,
-        subfamilyCode: subfamily.code,
-        elementCode: element.code,
-        providerId: provider.id,
-        tradename,
-        suggestedPrice,
-        compatibility: compatibility || undefined,
-        imageBase64: imageBase64 || undefined,
-      };
-
-      props.trigger(false);
-
-      const response = await postProduct(body);
-
-      Modal.success({
-        title: "Producto creado correctamente",
-        content: `Código de inventario: ${response.code}`,
-      });
-    } catch (error) {
-      Modal.error({
-        title: "Error al intentar mover la caja",
-        content: error.message,
-      });
-    }
-  };
-
   return (
     <Modal
       visible={props.visible}
-      onOk={() => confirmAddProduct()}
+      onOk={() => props.trigger && props.trigger(false)}
       onCancel={() => props.trigger && props.trigger(false)}
       width="60%"
       title="¿Está seguro de realizar la venta?"
@@ -268,8 +97,8 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="4"
             gridTemplateColumns="repeat(2, 1fr)"
-            //onChange={this.onChange}
-            //value={value}
+            onChange={event => setPayWay(event.target.value)}
+            value={payWay}
           >
             <Radio value={1}>Venta</Radio>
             <Radio value={2}>Consignación</Radio>
@@ -279,8 +108,8 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="4"
             gridTemplateColumns="repeat(2, 1fr)"
-            //onChange={this.onChange}
-            //value={value}
+            onChange={event => setSaleType(event.target.value)}
+            value={saleType}
           >
             <Radio value={1}>Contado</Radio>
             <Radio value={2}>Crédito</Radio>
@@ -289,43 +118,51 @@ export const AddProforma = (props) => {
 
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
-            value={suggestedPrice}
+            value={0}
             //onChange={event => setSuggestedPrice(event.target.value)}
             type="number"
             addonBefore="A cuenta S/."
           />
           <Input
-            value={suggestedPrice}
+            value={0}
             //onChange={event => setSuggestedPrice(event.target.value)}
             type="number"
             addonBefore="Total deuda S/."
           />
         </Grid>
 
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem" hidden={props.payway===1?true:false}>
+        <Grid
+          gridTemplateColumns="repeat(2, 1fr)"
+          gridGap="1rem"
+          hidden={props.payway === 1 ? true : false}
+        >
           <h3>Datos del depósito:</h3>
           <div></div>
-          <Input //value={suggestedPrice}
+          <Input //value={0}
             //onChange={event => setSuggestedPrice(event.target.value)}
             type="text"
             placeholder="Nº Operación"
             addonBefore="Voucher"
           />
-          <Select //value={provider.name}
+          <Select
+            value={bank.name}
             label="Banco"
-            /*onChange={value => {
-                                const _provider = providers.find(provider => provider.id === value);
-                                setProvider(_provider);
-                            }} */
-            options={selectOptions(providers)}
+            onChange={(value) => {
+              const _bank = banks.find((bank) => bank.id === value);
+              setBank(_bank);
+            }}
+            options={selectOptions(banks)}
           />
-          <Select //value={provider.name}
+          <Select
+            value={bankAccount.name}
             label="Cuenta"
-            /*onChange={value => {
-                                const _provider = providers.find(provider => provider.id === value);
-                                setProvider(_provider);
-                            }} */
-            options={selectOptions(providers)}
+            onChange={(value) => {
+              const _bankAccount = bankAccounts.find(
+                (bankAccount) => bankAccount.id === value
+              );
+              setBankAccount(_bankAccount);
+            }}
+            options={selectOptions(bankAccounts)}
           />
 
           <Upload
@@ -349,53 +186,26 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="2"
             gridTemplateColumns="repeat(2, 1fr)"
-            //onChange={this.onChange}
-            //value={value}
+            onChange={event => setDispatchWay(event.target.value)}
+            value={dispatchWay}
           >
             <Radio value={1}>Tienda</Radio>
             <Radio value={2}>Envío</Radio>
           </RadioGroup>
-          <Select //value={provider.name}
+          <Select
+          disabled={dispatchWay===1?true:false}
+            value={deliveryAgency.name}
             label="Agencia"
-            /*onChange={value => {
-                                const _provider = providers.find(provider => provider.id === value);
-                                setProvider(_provider);
-                            }} */
-            options={selectOptions(providers)}
+            onChange={(value) => {
+              const _deliveryAgency = deliveryAgencies.find(
+                (deliveryAgency) => deliveryAgency.id === value
+              );
+              setDeliveryAgency(_deliveryAgency);
+            }}
+            options={selectOptions(deliveryAgencies)}
           />
         </Grid>
       </Grid>
     </Modal>
   );
 };
-
-const CategoryContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const CategoryTitle = styled(Tag)`
-  font-weight: bold;
-  border-width: 2px !important;
-  border-color: black !important;
-`;
-
-const LegendsContainer = styled(Container)`
-  .ant-tag {
-    font-size: 1rem;
-    margin: 0;
-    padding: 0.5rem;
-    text-align: center;
-    min-width: 15%;
-  }
-`;
-
-const ModalConfirmContainer = styled(LegendsContainer)`
-  h3 {
-    color: #404040;
-
-    b {
-      color: black;
-    }
-  }
-`;

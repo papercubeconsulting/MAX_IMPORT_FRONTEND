@@ -303,7 +303,7 @@ export default ({ setPageTitle }) => {
   // Estados para pasar al pago
   const [salesActivated, setSalesActivated] = useState(false);
   const [proforma,setProforma] = useState([]);
-  const [payWay,setPayWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
+  const [saleWay,setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
   //
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -485,8 +485,8 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  const handlePayButton = (_payWay)=>{
-    setPayWay(_payWay);   
+  const handlePayButton = (_saleWay)=>{
+    setSaleWay(_saleWay);   
     setIsModalAddProformaVisible(true);
   }
 
@@ -522,7 +522,7 @@ export default ({ setPageTitle }) => {
         <AddProforma
           visible={isModalAddProformaVisible}
           proforma={proforma}
-          payway={payWay}
+          payway={saleWay}
           //toggleUpdateTable={setToggleUpdateTable}
           trigger={setIsModalAddProformaVisible}
         />
