@@ -11,10 +11,11 @@ import {
   getRegions,
   getProvinces,
   getDistricts,
-  postProforma
+  postProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table, notification, message } from "antd";
+import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -241,22 +242,25 @@ export default ({ setPageTitle }) => {
           <Button padding="0 0.25rem" margin="0 0.25rem" type="primary">
             VER
           </Button>
-          <Button 
-            padding="0 0.25rem" 
-            margin="0 0.25rem" 
+          <Button
+            padding="0 0.25rem"
+            margin="0 0.25rem"
             type="danger"
-            onClick={() => setproformaProducts(prevState => prevState
-                .filter((proformaProduct => {
-                  console.log(proformaProduct.id, id);
-                  return proformaProduct.id !== id
-                }))
-                .map((proformaProduct, index) => ({...proformaProduct, id: index + 1}))
-            )}
+            onClick={() =>
+              setproformaProducts((prevState) =>
+                prevState
+                  .filter((proformaProduct) => {
+                    console.log(proformaProduct.id, id);
+                    return proformaProduct.id !== id;
+                  })
+                  .map((proformaProduct, index) => ({
+                    ...proformaProduct,
+                    id: index + 1,
+                  }))
+              )
+            }
           >
-            <Icon
-              marginRight="0px"
-              fontSize="0.8rem"
-              icon={faTrash}/>
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
           </Button>
         </>
       ),
@@ -292,9 +296,35 @@ export default ({ setPageTitle }) => {
   const [totalPaid, setTotalPaid] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
 
+  const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
+    false
+  );
+  
+  // Estados para pasar al pago
+  const [salesActivated, setSalesActivated] = useState(false);
+  const [proforma,setProforma] = useState([]);
+  const [saleWay,setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
+  //
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
+
+  useEffect(() => {
+    setSalesActivated(false);
+  }, [
+    documentNumber,
+    name,
+    lastName,
+    email,
+    phoneNumber,
+    regionId,
+    provinceId,
+    districtId,
+    address,
+    proformaProducts,
+    totalPaid,
+    discountPercentage,
+  ]);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -333,7 +363,7 @@ export default ({ setPageTitle }) => {
       const _regions = await getRegions();
 
       setRegions(_regions);
-    }
+    };
     fetchRegions();
   }, []);
 
@@ -342,7 +372,7 @@ export default ({ setPageTitle }) => {
       const _provinces = await getProvinces(regionId);
 
       setProvinces(_provinces);
-    }
+    };
     regionId && fetchProvinces();
   }, [regionId]);
 
@@ -351,20 +381,26 @@ export default ({ setPageTitle }) => {
       const _districts = await getDistricts(regionId, provinceId);
 
       setDistricts(_districts);
-    }
+    };
     regionId && provinceId && fetchDistricts();
   }, [regionId, provinceId]);
 
   const totalPrice = useMemo(() => {
-
-    const _totalPrice = proformaProducts.reduce((accumulator, proformaProduct) => accumulator + get(proformaProduct, "quantity", 0) * get(proformaProduct, "product.suggestedPrice", 0), 0);
+    const _totalPrice = proformaProducts.reduce(
+      (accumulator, proformaProduct) =>
+        accumulator +
+        get(proformaProduct, "quantity", 0) *
+          get(proformaProduct, "product.suggestedPrice", 0),
+      0
+    );
 
     return _totalPrice;
   }, [proformaProducts]);
 
-  const finalPrice = useMemo(() => totalPrice * (1 - (discountPercentage / 100))
-  , [totalPrice, discountPercentage])
-
+  const finalPrice = useMemo(
+    () => totalPrice * (1 - discountPercentage / 100),
+    [totalPrice, discountPercentage]
+  );
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -411,14 +447,25 @@ export default ({ setPageTitle }) => {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
 
-      const {id, active, name, lastname, email, phoneNumber, address, regionId, provinceId, districtId} = client;
-      
-      if(!active) throw Error("Usuario inactivo");
+      const {
+        id,
+        active,
+        name,
+        lastname,
+        email,
+        phoneNumber,
+        address,
+        regionId,
+        provinceId,
+        districtId,
+      } = client;
+
+      if (!active) throw Error("Usuario inactivo");
 
       notification.success({
-        message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`
-      })
-      
+        message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`,
+      });
+
       setName(name);
       setLastName(lastname);
       setEmail(email);
@@ -432,40 +479,56 @@ export default ({ setPageTitle }) => {
       setLoadingSearchClient(false);
     } catch (error) {
       notification.error({
-        message: error.message
-      })
+        message: error.message,
+      });
       setLoadingSearchClient(false);
     }
+  };
 
+  const handlePayButton = (_saleWay)=>{
+    setSaleWay(_saleWay);   
+    setIsModalAddProformaVisible(true);
   }
-
 
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-      await postProforma({
+      const _response = await postProforma({
         clientId,
-        discount: totalPrice * discountPercentage / 100,
-        proformaProducts: proformaProducts.map(proformaProduct => ({
+        discount: (totalPrice * discountPercentage) / 100,
+        proformaProducts: proformaProducts.map((proformaProduct) => ({
           productId: get(proformaProduct, "product.id", null),
           unitPrice: get(proformaProduct, "product.suggestedPrice", null),
-          quantity: get(proformaProduct, "quantity", null)
-        }))
+          quantity: get(proformaProduct, "quantity", null),
+        })),
       });
       notification.success({
-        message: "Proforma guardada correctamente"
-      })
+        message: "Proforma guardada correctamente",
+      });
+      setProforma(_response.data);
       setLoadingSaveProforma(false);
+      setSalesActivated(true);
     } catch (error) {
       notification.error({
-        message: error.message
-      })
+        message: error.message,
+      });
       setLoadingSaveProforma(false);
     }
-  }
+  };
 
   return (
     <>
+      {isModalAddProformaVisible && (
+        <AddProforma
+          visible={isModalAddProformaVisible}
+          proforma={proforma}
+          totalPaid={totalPaid}
+          totalDebt={finalPrice - totalPaid}
+          payway={saleWay}
+          trigger={setIsModalAddProformaVisible}
+        />
+      )}
+
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value="En cotización" addonBefore="Estatus" />
@@ -475,7 +538,7 @@ export default ({ setPageTitle }) => {
             onChange={(event) => setDocumentNumber(event.target.value)}
             addonBefore="DNI/RUC"
           />
-          <Button 
+          <Button
             loading={loadingSearchClient}
             type="primary"
             onClick={onSearchClient}
@@ -511,11 +574,13 @@ export default ({ setPageTitle }) => {
             autoComplete="new-password"
             label="Departamento"
             showSearch
-            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            filterOption={(input, option) =>
+              option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
             onChange={(value) => setRegionId(value)}
-            options={regions.map(region => ({
+            options={regions.map((region) => ({
               value: region.id,
-              label: region.name
+              label: region.name,
             }))}
           />
           <Select
@@ -523,11 +588,13 @@ export default ({ setPageTitle }) => {
             autoComplete="new-password"
             label="Provincia"
             showSearch
-            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            filterOption={(input, option) =>
+              option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
             onChange={(value) => setProvinceId(value)}
-            options={provinces.map(province => ({
+            options={provinces.map((province) => ({
               value: province.id,
-              label: province.name
+              label: province.name,
             }))}
           />
           <Select
@@ -535,11 +602,13 @@ export default ({ setPageTitle }) => {
             autoComplete="new-password"
             label="Distrito"
             showSearch
-            filterOption={(input, option) => option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+            filterOption={(input, option) =>
+              option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
             onChange={(value) => setDistrictId(value)}
-            options={districts.map(district => ({
+            options={districts.map((district) => ({
               value: district.id,
-              label: district.name
+              label: district.name,
             }))}
           />
           <Input
@@ -580,42 +649,58 @@ export default ({ setPageTitle }) => {
             <Input
               value={totalPaid}
               onChange={(event) => setTotalPaid(event.target.value)}
-             addonBefore="A Cuenta S/." 
+              addonBefore="A Cuenta S/."
             />
             <Input
-              value={(finalPrice - totalPaid)} 
-              disabled 
-              addonBefore="Deuda S/." 
+              value={finalPrice - totalPaid}
+              disabled
+              addonBefore="Deuda S/."
             />
             <br />
-            <Button 
+            <Button
               onClick={onSaveProforma}
               loading={loadingSaveProforma}
-              disabled={!(clientId && proformaProducts.length)} 
+              disabled={!(clientId && proformaProducts.length)}
               type="primary"
             >
               Guardar
             </Button>
-            <Button type="primary">Venta en Tienda</Button>
-            <Button type="primary">Venta No Presencial</Button>
+            <Button
+              type="primary"
+              disabled={!salesActivated}
+              onClick={() => handlePayButton(1)}
+            >
+              Venta en Tienda
+            </Button>
+            <Button
+              type="primary"
+              disabled={!salesActivated}
+              onClick={() => handlePayButton(2)}
+            >
+              Venta No Presencial
+            </Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
-            <Input disabled value={totalPrice.toFixed(2)} addonBefore="Total S/." />
+            <Input
+              disabled
+              value={totalPrice.toFixed(2)}
+              addonBefore="Total S/."
+            />
             <br />
-            <Input 
-              disabled 
-              value={(totalPrice * discountPercentage / 100).toFixed(2)}
-              addonBefore="Descuento S/." 
+            <Input
+              disabled
+              value={((totalPrice * discountPercentage) / 100).toFixed(2)}
+              addonBefore="Descuento S/."
             />
             <Input
               addonBefore="%"
               value={discountPercentage}
               onChange={(event) => setDiscountPercentage(event.target.value)}
             />
-            <Input 
-              disabled 
-              value={finalPrice.toFixed(2)} 
-              addonBefore="Total Final S/." 
+            <Input
+              disabled
+              value={finalPrice.toFixed(2)}
+              addonBefore="Total Final S/."
             />
             <br />
           </Grid>
