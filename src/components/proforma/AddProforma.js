@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Input, Modal, notification, Tag, Upload, Radio } from "antd";
 import { RadioGroup } from "../RadioGroup";
+import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../index";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import {
   getBank,
   getBanks,
   getDeliveryAgencies,
-  //!exportados
-  getElements,
-  getFamilies,
-  getModels,
-  getProviders,
-  getSubfamilies,
-  postProduct,
 } from "../../providers";
 import { toBase64 } from "../../util";
-import styled from "styled-components";
 
 export const AddProforma = (props) => {
   // * List of sources from database
@@ -25,15 +18,20 @@ export const AddProforma = (props) => {
   const [deliveryAgencies, setDeliveryAgencies] = useState([]);
 
   // * Fields to create source
-  const [bank, setBank] = useState({});
-  const [bankAccount, setBankAccount] = useState({});
-  const [deliveryAgency, setDeliveryAgency] = useState({});
+  // Para todas las ventas
   const [payWay, setPayWay] = useState(1);
   const [saleType, setSaleType] = useState(1);
-  const [dispatchWay, setDispatchWay] = useState(1);
-
-  //!exportados
+  // Solo para venta no presencial
+  const [voucherNum, setVoucherNum] = useState(null);
+  const [bank, setBank] = useState({});
+  const [bankAccount, setBankAccount] = useState({});
   const [imageBase64, setImageBase64] = useState(null);
+  // Sobre el despacho
+  const [dispatchWay, setDispatchWay] = useState(1); 
+  const [deliveryAgency, setDeliveryAgency] = useState({});
+ 
+
+  const router = useRouter();
 
   useEffect(() => {
     const initialize = async () => {
@@ -85,7 +83,8 @@ export const AddProforma = (props) => {
   return (
     <Modal
       visible={props.visible}
-      onOk={() => props.trigger && props.trigger(false)}
+      onOk={async () => router.push(`/proformas`)}
+        //() => props.trigger && props.trigger(false)}
       onCancel={() => props.trigger && props.trigger(false)}
       width="60%"
       title="¿Está seguro de realizar la venta?"
@@ -118,14 +117,14 @@ export const AddProforma = (props) => {
 
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
-            value={0}
-            //onChange={event => setSuggestedPrice(event.target.value)}
+            value={props.totalPaid}
+            disabled
             type="number"
             addonBefore="A cuenta S/."
           />
           <Input
-            value={0}
-            //onChange={event => setSuggestedPrice(event.target.value)}
+            value={props.totalDebt}
+            disabled
             type="number"
             addonBefore="Total deuda S/."
           />
@@ -138,9 +137,10 @@ export const AddProforma = (props) => {
         >
           <h3>Datos del depósito:</h3>
           <div></div>
-          <Input //value={0}
-            //onChange={event => setSuggestedPrice(event.target.value)}
-            type="text"
+          <Input 
+            value={voucherNum}
+            onChange={event => setVoucherNum(event.target.value)}
+            type="number"
             placeholder="Nº Operación"
             addonBefore="Voucher"
           />

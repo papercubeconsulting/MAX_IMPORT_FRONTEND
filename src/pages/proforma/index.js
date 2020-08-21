@@ -493,7 +493,7 @@ export default ({ setPageTitle }) => {
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-      const proforma_ = await postProforma({
+      const _response = await postProforma({
         clientId,
         discount: (totalPrice * discountPercentage) / 100,
         proformaProducts: proformaProducts.map((proformaProduct) => ({
@@ -505,7 +505,7 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: "Proforma guardada correctamente",
       });
-      setProforma(proforma_);
+      setProforma(_response.data);
       setLoadingSaveProforma(false);
       setSalesActivated(true);
     } catch (error) {
@@ -522,8 +522,9 @@ export default ({ setPageTitle }) => {
         <AddProforma
           visible={isModalAddProformaVisible}
           proforma={proforma}
+          totalPaid={totalPaid}
+          totalDebt={finalPrice - totalPaid}
           payway={saleWay}
-          //toggleUpdateTable={setToggleUpdateTable}
           trigger={setIsModalAddProformaVisible}
         />
       )}
@@ -666,14 +667,14 @@ export default ({ setPageTitle }) => {
             </Button>
             <Button
               type="primary"
-              //disabled={!salesActivated}
+              disabled={!salesActivated}
               onClick={() => handlePayButton(1)}
             >
               Venta en Tienda
             </Button>
             <Button
               type="primary"
-              //disabled={!salesActivated}
+              disabled={!salesActivated}
               onClick={() => handlePayButton(2)}
             >
               Venta No Presencial
