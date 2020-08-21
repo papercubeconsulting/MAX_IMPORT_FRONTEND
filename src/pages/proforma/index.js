@@ -299,9 +299,12 @@ export default ({ setPageTitle }) => {
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
     false
   );
-
+  
+  // Estados para pasar al pago
   const [salesActivated, setSalesActivated] = useState(false);
-
+  const [proforma,setProforma] = useState([]);
+  const [payWay,setPayWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
+  //
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
@@ -482,10 +485,15 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  const handlePayButton = (_payWay)=>{
+    setPayWay(_payWay);   
+    setIsModalAddProformaVisible(true);
+  }
+
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-      await postProforma({
+      const proforma_ = await postProforma({
         clientId,
         discount: (totalPrice * discountPercentage) / 100,
         proformaProducts: proformaProducts.map((proformaProduct) => ({
@@ -497,6 +505,7 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: "Proforma guardada correctamente",
       });
+      setProforma(proforma_);
       setLoadingSaveProforma(false);
       setSalesActivated(true);
     } catch (error) {
@@ -512,6 +521,8 @@ export default ({ setPageTitle }) => {
       {isModalAddProformaVisible && (
         <AddProforma
           visible={isModalAddProformaVisible}
+          proforma={proforma}
+          payway={payWay}
           //toggleUpdateTable={setToggleUpdateTable}
           trigger={setIsModalAddProformaVisible}
         />
@@ -655,15 +666,15 @@ export default ({ setPageTitle }) => {
             </Button>
             <Button
               type="primary"
-              disabled={!salesActivated}
-              onClick={() => setIsModalAddProformaVisible(true)}
+              //disabled={!salesActivated}
+              onClick={() => handlePayButton(1)}
             >
               Venta en Tienda
             </Button>
             <Button
               type="primary"
-              disabled={!salesActivated}
-              onClick={() => setIsModalAddProformaVisible(true)}
+              //disabled={!salesActivated}
+              onClick={() => handlePayButton(2)}
             >
               Venta No Presencial
             </Button>

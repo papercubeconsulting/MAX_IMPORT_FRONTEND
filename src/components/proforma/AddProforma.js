@@ -302,7 +302,7 @@ export const AddProforma = (props) => {
           />
         </Grid>
 
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem" hidden={props.payway===1?true:false}>
           <h3>Datos del depósito:</h3>
           <div></div>
           <Input //value={suggestedPrice}
