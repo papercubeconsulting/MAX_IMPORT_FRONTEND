@@ -48,6 +48,12 @@ export const AddProforma = (props) => {
           description: error.message,
         });
       }
+      if(props.totalDebt===0){
+        setSaleType(1);
+      }
+      else{
+        setSaleType(2);
+      }
     };
 
     initialize();
@@ -107,11 +113,11 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="4"
             gridTemplateColumns="repeat(2, 1fr)"
-            onChange={event => setSaleType(event.target.value)}
+            //onChange={event => setSaleType(event.target.value)}
             value={saleType}
           >
-            <Radio value={1}>Contado</Radio>
-            <Radio value={2}>Crédito</Radio>
+            <Radio value={1} disabled>Contado</Radio>
+            <Radio value={2} disabled>Crédito</Radio>
           </RadioGroup>{" "}
         </Grid>
 
