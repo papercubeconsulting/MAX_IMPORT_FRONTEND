@@ -505,7 +505,8 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: "Proforma guardada correctamente",
       });
-      setProforma(_response.data);
+      console.log(_response);
+      setProforma(_response);
       setLoadingSaveProforma(false);
       setSalesActivated(true);
     } catch (error) {
@@ -524,7 +525,7 @@ export default ({ setPageTitle }) => {
           proforma={proforma}
           totalPaid={totalPaid}
           totalDebt={finalPrice - totalPaid}
-          payway={saleWay}
+          saleWay={saleWay}
           trigger={setIsModalAddProformaVisible}
         />
       )}

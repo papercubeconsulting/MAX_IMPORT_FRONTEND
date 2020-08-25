@@ -19,3 +19,5 @@ export * from "./geography";
 
 export * from "./banks";
 export * from "./deliveryAgencies";
+
+export * from "./sales";

@@ -8,6 +8,7 @@ import {
   getBank,
   getBanks,
   getDeliveryAgencies,
+  postSale
 } from "../../providers";
 import { toBase64 } from "../../util";
 
@@ -29,7 +30,8 @@ export const AddProforma = (props) => {
   // Sobre el despacho
   const [dispatchWay, setDispatchWay] = useState(1); 
   const [deliveryAgency, setDeliveryAgency] = useState({});
- 
+ // Summit Active
+ const [summitActive, setSummitActive] = useState(false);
 
   const router = useRouter();
 
@@ -50,9 +52,11 @@ export const AddProforma = (props) => {
       }
       if(props.totalDebt===0){
         setSaleType(1);
+        setSummitActive(true);
       }
       else{
         setSaleType(2);
+        setSummitActive(true);
       }
     };
 
@@ -86,10 +90,42 @@ export const AddProforma = (props) => {
       value: document.id,
     }));
 
+  // funcion para consignar la venta 
+  const summitSale = async () => {
+    try {
+        const body = {
+            proformaId: props.proforma.id,
+            type: props.saleWay===1?"STORE":"REMOTE",
+            paymentType: saleType===1?"CASH":"CREDIT",
+            credit: props.totalDebt,
+            billingType: payWay===1?"SALE":"CONSIGNMENT",
+            dispatchmentType: dispatchWay===1?"PICK_UP":"DELIVERY",
+        };
+
+        (dispatchWay===2)&&(body.deliveryAgencyId=deliveryAgency.id);
+        (props.saleWay===2)&&(body.voucherCode=voucherNum+"");
+        (props.saleWay===2)&&(body.voucherImage=imageBase64);
+        (props.saleWay===2)&&(body.paymentMethod="Depósito");
+        (props.saleWay===2)&&(body.bankAccountId=bankAccount.id);
+      const response = await postSale( body);
+      Modal.success({
+            title: "Se ha consignado la venta correctamente",
+            content: `Venta: ${response.id}`,
+            onOk: () => router.push(`/proformas`)
+        });
+    } catch (error) {
+        Modal.error({
+            title: "Error al intentar consignar venta",
+            content: error.message,
+            // onOk: () => props.toggleUpdateTable(prevState => !prevState)
+        });
+    }
+};
+
   return (
     <Modal
       visible={props.visible}
-      onOk={async () => router.push(`/proformas`)}
+      onOk={summitActive&&summitSale}
         //() => props.trigger && props.trigger(false)}
       onCancel={() => props.trigger && props.trigger(false)}
       width="60%"
@@ -113,7 +149,6 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="4"
             gridTemplateColumns="repeat(2, 1fr)"
-            //onChange={event => setSaleType(event.target.value)}
             value={saleType}
           >
             <Radio value={1} disabled>Contado</Radio>
@@ -139,7 +174,7 @@ export const AddProforma = (props) => {
         <Grid
           gridTemplateColumns="repeat(2, 1fr)"
           gridGap="1rem"
-          hidden={props.payway === 1 ? true : false}
+          hidden={props.saleWay === 1 ? true : false}
         >
           <h3>Datos del depósito:</h3>
           <div></div>
