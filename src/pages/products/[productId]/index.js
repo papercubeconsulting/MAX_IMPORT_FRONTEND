@@ -6,9 +6,7 @@ import { get } from "lodash";
 import { Input, Modal, Table } from "antd";
 import styled from "styled-components";
 
-export default ({ setPageTitle }) => {
-  setPageTitle("Producto");
-
+export default () => {
   const stockByWarehouseColumns = [
     {
       title: "Almacén",
