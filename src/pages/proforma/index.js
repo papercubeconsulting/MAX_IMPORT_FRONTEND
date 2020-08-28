@@ -429,8 +429,8 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-          /* get(proformaProduct, "product.suggestedPrice", 0), */
-          price,
+          get(proformaProduct, "product.suggestedPrice", 0), 
+          //price,
       0
     );
 
@@ -541,8 +541,8 @@ export default ({ setPageTitle }) => {
           discount: (totalPrice * discountPercentage) / 100,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            /* unitPrice: get(proformaProduct, "product.suggestedPrice", null), */
-            unitPrice: price,
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null), 
+            //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
@@ -558,8 +558,8 @@ export default ({ setPageTitle }) => {
           discount: (totalPrice * discountPercentage) / 100,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            /* unitPrice: get(proformaProduct, "product.suggestedPrice", null), */
-            unitPrice: price,
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null), 
+            //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
@@ -710,12 +710,12 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
             <Input
-              value={totalPaid}
-              onChange={(event) => setTotalPaid(event.target.value)}
+              value={(totalPaid/100)}
+              onChange={(event) => setTotalPaid(event.target.value*100)}
               addonBefore="A Cuenta S/."
             />
             <Input
-              value={finalPrice - totalPaid}
+              value={(finalPrice - totalPaid)/100}
               disabled
               addonBefore="Deuda S/."
             />
@@ -746,13 +746,13 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
               disabled
-              value={totalPrice.toFixed(2)}
+              value={(totalPrice/100).toFixed(2)}
               addonBefore="Total S/."
             />
             <br />
             <Input
               disabled
-              value={((totalPrice * discountPercentage) / 100).toFixed(2)}
+              value={((totalPrice * discountPercentage) / 10000).toFixed(2)}
               addonBefore="Descuento S/."
             />
             <Input
@@ -762,7 +762,7 @@ export default ({ setPageTitle }) => {
             />
             <Input
               disabled
-              value={finalPrice.toFixed(2)}
+              value={(finalPrice/100).toFixed(2)}
               addonBefore="Total Final S/."
             />
             <br />
