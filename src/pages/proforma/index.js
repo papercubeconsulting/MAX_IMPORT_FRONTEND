@@ -215,7 +215,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (product) => `S/.${get(product, "suggestedPrice", 0).toFixed(2)}`,
+      render: (product) => `S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
@@ -224,7 +224,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (id, row) =>
         `S/.${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)/100
         ).toFixed(2)}`,
     },
     {
