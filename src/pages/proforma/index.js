@@ -215,29 +215,53 @@ export default ({ setPageTitle }) => {
       dataIndex: "product",
       width: "fit-content",
       align: "center",
-      /* render: (product) => `S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`, */
-      /* render: (product) => (<Input type="number" value={`S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`} />), */
-      /* render: (product) => { product && setPrice(product.suggestedPrice /100)
-        console.log('prod', product)
-      return `S/.${price.toFixed(2)}` }, */
-      render: (product) => { product && setPrice(product.suggestedPrice /100)
-        console.log('prod', product)
-      return <Input value={`S/.${price.toFixed(2)}`} />},
-     
+      render: (product, proformaProduct) => {
+        console.log(proformaProduct);
+        return (
+          <Input
+            value={get(product, "suggestedPrice", 0) / 100}
+            onChange={(event) => {
+              setproformaProducts((prevState) => {
+                const remainingproformaProducts = prevState.filter(
+                  (_proformaProduct) =>
+                    _proformaProduct.id !== proformaProduct.id
+                );
+
+                return [
+                  ...remainingproformaProducts,
+                  {
+                    ...proformaProduct,
+                    product: {
+                      ...product,
+                      suggestedPrice: parseFloat(
+                        event.nativeEvent.target.value * 100 || "0"
+                      ),
+                    },
+                  },
+                ];
+              });
+              event.persist();
+            }}
+            addonBefore="S/."
+          />
+        );
+      },
     },
     {
       title: "Subtotal",
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      /* render: (id, row) =>
+      render: (id, row) =>
         `S/.${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
-        ).toFixed(2)}`, */
+          (get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)) /
+          100
+        ).toFixed(2)}`,
+      /*
         render: (id, row) =>
         `S/.${(
           price * get(row, "quantity", 0)
-        ).toFixed(2)}`,
+        ).toFixed(2)}`,*/
     },
     {
       title: "Disponibilidad",
@@ -406,7 +430,7 @@ export default ({ setPageTitle }) => {
         accumulator +
         get(proformaProduct, "quantity", 0) *
           /* get(proformaProduct, "product.suggestedPrice", 0), */
-          (price),
+          price,
       0
     );
 
