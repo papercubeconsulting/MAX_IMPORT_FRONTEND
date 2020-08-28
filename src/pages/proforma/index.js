@@ -715,7 +715,7 @@ export default ({ setPageTitle }) => {
               addonBefore="A Cuenta S/."
             />
             <Input
-              value={(finalPrice - totalPaid)/100}
+              value={((finalPrice - totalPaid)/100).toFixed(2)}
               disabled
               addonBefore="Deuda S/."
             />

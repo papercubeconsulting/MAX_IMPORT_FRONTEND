@@ -158,13 +158,13 @@ export const AddProforma = (props) => {
 
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
-            value={props.totalPaid/100}
+            value={(props.totalPaid/100).toFixed(2)}
             disabled
             type="number"
             addonBefore="A cuenta S/."
           />
           <Input
-            value={props.totalDebt/100}
+            value={(props.totalDebt/100).toFixed(2)}
             disabled
             type="number"
             addonBefore="Total deuda S/."
