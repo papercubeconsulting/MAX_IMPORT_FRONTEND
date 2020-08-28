@@ -373,7 +373,7 @@ export default ({ setPageTitle }) => {
           />
           <Button
             type="primary"
-            style={{ "grid-column-start": "4" }}
+            gridColumnStart="4"
             onClick={async () => searchWithState()}
           >
             Buscar
