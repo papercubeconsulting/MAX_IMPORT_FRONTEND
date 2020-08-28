@@ -162,7 +162,7 @@ export default ({ setPageTitle }) => {
         const _products = await getProducts(queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _products.count,
+          total: _products.pageSize*_products.pages,
           current: _products.page,
           pageSize: _products.pageSize,
           showSizeChanger: false,
@@ -179,6 +179,8 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") urlToState();
     fetchProducts();
   }, [queryParams, toggleUpdateTable]);
+
+  /* console.log('pagination', pagination); */
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
