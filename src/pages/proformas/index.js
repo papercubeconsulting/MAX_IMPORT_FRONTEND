@@ -99,7 +99,7 @@ export default ({ setPageTitle }) => {
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => subtotal / 100,
+      render: (subtotal) => `S/.${(subtotal/ 100).toFixed(2)}`,
     },
 
     {
@@ -107,7 +107,7 @@ export default ({ setPageTitle }) => {
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
-      render: (discount) => discount / 100,
+      render: (discount) => `S/.${(discount/ 100).toFixed(2)}`,
     },
 
     {
@@ -115,7 +115,7 @@ export default ({ setPageTitle }) => {
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
-      render: (total) => total / 100,
+      render: (total) => `S/.${(total/ 100).toFixed(2)}`,
     },
   ];
 
