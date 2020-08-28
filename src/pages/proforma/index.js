@@ -12,6 +12,7 @@ import {
   getProvinces,
   getDistricts,
   postProforma,
+  putProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
 import { Input, Table, notification, message } from "antd";
@@ -214,7 +215,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (product) => `S/.${get(product, "suggestedPrice", 0).toFixed(2)}`,
+      render: (product) => `S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
@@ -223,7 +224,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (id, row) =>
         `S/.${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)/100
         ).toFixed(2)}`,
     },
     {
@@ -299,11 +300,11 @@ export default ({ setPageTitle }) => {
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
     false
   );
-  
+
   // Estados para pasar al pago
   const [salesActivated, setSalesActivated] = useState(false);
-  const [proforma,setProforma] = useState([]);
-  const [saleWay,setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
+  const [proforma, setProforma] = useState([]);
+  const [saleWay, setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
   //
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -485,28 +486,48 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  const handlePayButton = (_saleWay)=>{
-    setSaleWay(_saleWay);   
+  const handlePayButton = (_saleWay) => {
+    setSaleWay(_saleWay);
     setIsModalAddProformaVisible(true);
-  }
+  };
 
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-      const _response = await postProforma({
-        clientId,
-        discount: (totalPrice * discountPercentage) / 100,
-        proformaProducts: proformaProducts.map((proformaProduct) => ({
-          productId: get(proformaProduct, "product.id", null),
-          unitPrice: get(proformaProduct, "product.suggestedPrice", null),
-          quantity: get(proformaProduct, "quantity", null),
-        })),
-      });
-      notification.success({
-        message: "Proforma guardada correctamente",
-      });
-      console.log(_response);
-      setProforma(_response);
+
+      if (proforma.id) {
+        //Actualiza la proforma
+        const _response = await putProforma(proforma.id, {
+          clientId,
+          discount: (totalPrice * discountPercentage) / 100,
+          proformaProducts: proformaProducts.map((proformaProduct) => ({
+            productId: get(proformaProduct, "product.id", null),
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+            quantity: get(proformaProduct, "quantity", null),
+          })),
+        });
+        notification.success({
+          message: "Proforma actualizada correctamente",
+        });
+        //console.log(_response);
+        setProforma(_response);
+      } else {
+        //Guarda la proforma
+        const _response = await postProforma({
+          clientId,
+          discount: (totalPrice * discountPercentage) / 100,
+          proformaProducts: proformaProducts.map((proformaProduct) => ({
+            productId: get(proformaProduct, "product.id", null),
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+            quantity: get(proformaProduct, "quantity", null),
+          })),
+        });
+        notification.success({
+          message: "Proforma guardada correctamente",
+        });
+        //console.log(_response);
+        setProforma(_response);
+      }
       setLoadingSaveProforma(false);
       setSalesActivated(true);
     } catch (error) {
