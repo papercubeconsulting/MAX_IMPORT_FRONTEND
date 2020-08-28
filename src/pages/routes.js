@@ -1,3 +1,4 @@
+/*
 import {get} from "lodash";
 
 const routes = {
@@ -69,4 +70,4 @@ export const getRouteStepper = (path) => {
                 .map(step => step)
         }
     </div>
-}
+}*/
