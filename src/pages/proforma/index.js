@@ -215,16 +215,28 @@ export default ({ setPageTitle }) => {
       dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (product) => `S/.${get(product, "suggestedPrice", 0).toFixed(2)}`,
+      /* render: (product) => `S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`, */
+      /* render: (product) => (<Input type="number" value={`S/.${(get(product, "suggestedPrice", 0)/100).toFixed(2)}`} />), */
+      /* render: (product) => { product && setPrice(product.suggestedPrice /100)
+        console.log('prod', product)
+      return `S/.${price.toFixed(2)}` }, */
+      render: (product) => { product && setPrice(product.suggestedPrice /100)
+        console.log('prod', product)
+      return <Input value={`S/.${price.toFixed(2)}`} />},
+     
     },
     {
       title: "Subtotal",
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      render: (id, row) =>
+      /* render: (id, row) =>
         `S/.${(
           get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+        ).toFixed(2)}`, */
+        render: (id, row) =>
+        `S/.${(
+          price * get(row, "quantity", 0)
         ).toFixed(2)}`,
     },
     {
@@ -296,6 +308,8 @@ export default ({ setPageTitle }) => {
 
   const [totalPaid, setTotalPaid] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
+
+  const [price, setPrice] = useState(0);
 
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
     false
@@ -391,7 +405,8 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-          get(proformaProduct, "product.suggestedPrice", 0),
+          /* get(proformaProduct, "product.suggestedPrice", 0), */
+          (price),
       0
     );
 
@@ -502,7 +517,8 @@ export default ({ setPageTitle }) => {
           discount: (totalPrice * discountPercentage) / 100,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+            /* unitPrice: get(proformaProduct, "product.suggestedPrice", null), */
+            unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
@@ -518,7 +534,8 @@ export default ({ setPageTitle }) => {
           discount: (totalPrice * discountPercentage) / 100,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+            /* unitPrice: get(proformaProduct, "product.suggestedPrice", null), */
+            unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
