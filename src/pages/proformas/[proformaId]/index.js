@@ -72,7 +72,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "subtotal",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => `S/.${subtotal.toFixed(2)}`,
+      render: (subtotal) => `S/.${(subtotal/ 100).toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
