@@ -216,7 +216,7 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (product, proformaProduct) => {
-        console.log(proformaProduct);
+        /* console.log(product, proformaProduct); */
         return (
           <Input
             value={get(product, "suggestedPrice", 0) / 100}
@@ -287,7 +287,7 @@ export default ({ setPageTitle }) => {
               setproformaProducts((prevState) =>
                 prevState
                   .filter((proformaProduct) => {
-                    console.log(proformaProduct.id, id);
+                    /* console.log(proformaProduct.id, id); */
                     return proformaProduct.id !== id;
                   })
                   .map((proformaProduct, index) => ({
@@ -553,12 +553,13 @@ export default ({ setPageTitle }) => {
         setProforma(_response);
       } else {
         //Guarda la proforma
+        /* console.log('proformaProducts', proformaProducts); */
         const _response = await postProforma({
           clientId,
           discount: (totalPrice * discountPercentage) / 100,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null), 
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null)/100, 
             //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
@@ -566,7 +567,7 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma guardada correctamente",
         });
-        //console.log(_response);
+        /* console.log('resp', _response); */
         setProforma(_response);
       }
       setLoadingSaveProforma(false);
