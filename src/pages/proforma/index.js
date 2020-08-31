@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Button, Container, Grid, Icon, Select } from "../../components";
+import { Button, Container, Grid, Icon, Select} from "../../components";
 import {
   getElements,
   getFamilies,
@@ -15,7 +15,7 @@ import {
   putProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table, notification, message } from "antd";
+import { Input, Table, notification} from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
@@ -162,13 +162,13 @@ export default ({ setPageTitle }) => {
                   id: proformaProduct.id,
                   dbId: proformaProduct.dbId,
                   productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity,
+                  quantity: proformaProduct.quantity?proformaProduct.quantity:1,
                   boxSize: proformaProduct.boxSize,
                   familyId: proformaProduct.familyId,
                   subfamilyId: proformaProduct.subfamilyId,
                   elementId: proformaProduct.elementId,
                   modelId: value,
-                  product,
+                  product:{...product,suggestedPrice:product.suggestedPrice/100},
                 },
               ];
             });
@@ -189,7 +189,7 @@ export default ({ setPageTitle }) => {
       render: (quantity, proformaProduct) => (
         <Input
           key={proformaProducts.length}
-          defaultValue={quantity}
+          value={quantity}
           onChange={(event) => {
             setproformaProducts((prevState) => {
               const remainingproformaProducts = prevState.filter(
@@ -216,17 +216,39 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (product, proformaProduct) => {
-        /* console.log(product, proformaProduct); */
+        console.log(proformaProduct);
         return (
           <Input
-            value={get(product, "suggestedPrice", 0) / 100}
+            value={get(product, "suggestedPrice", 0)}
+            type="number"
+            min={0}
             onChange={(event) => {
               setproformaProducts((prevState) => {
                 const remainingproformaProducts = prevState.filter(
                   (_proformaProduct) =>
                     _proformaProduct.id !== proformaProduct.id
                 );
-
+                return [
+                  ...remainingproformaProducts,
+                  {
+                    ...proformaProduct,
+                    product: {
+                      ...product,
+                      suggestedPrice: 
+                        event.nativeEvent.target.value 
+                      ,
+                    },
+                  },
+                ];
+              });
+              event.persist();
+            }}
+            onBlur={(event) => {
+              setproformaProducts((prevState) => {
+                const remainingproformaProducts = prevState.filter(
+                  (_proformaProduct) =>
+                    _proformaProduct.id !== proformaProduct.id
+                );
                 return [
                   ...remainingproformaProducts,
                   {
@@ -234,8 +256,8 @@ export default ({ setPageTitle }) => {
                     product: {
                       ...product,
                       suggestedPrice: parseFloat(
-                        event.nativeEvent.target.value * 100 || "0"
-                      ),
+                        event.nativeEvent.target.value || "0"
+                      ).toFixed(2),
                     },
                   },
                 ];
@@ -254,8 +276,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (id, row) =>
         `S/.${(
-          (get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)) /
-          100
+          (get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0))
         ).toFixed(2)}`,
       /*
         render: (id, row) =>
@@ -332,8 +353,6 @@ export default ({ setPageTitle }) => {
 
   const [totalPaid, setTotalPaid] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
-
-  const [price, setPrice] = useState(0);
 
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
     false
@@ -429,8 +448,7 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-          get(proformaProduct, "product.suggestedPrice", 0), 
-          //price,
+        get(proformaProduct, "product.suggestedPrice", 0), 
       0
     );
 
@@ -538,11 +556,10 @@ export default ({ setPageTitle }) => {
         //Actualiza la proforma
         const _response = await putProforma(proforma.id, {
           clientId,
-          discount: (totalPrice * discountPercentage) / 100,
+          discount: (totalPrice * discountPercentage/100),
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null), 
-            //unitPrice: price,
+            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
@@ -556,10 +573,11 @@ export default ({ setPageTitle }) => {
         /* console.log('proformaProducts', proformaProducts); */
         const _response = await postProforma({
           clientId,
-          discount: (totalPrice * discountPercentage) / 100,
+          discount: (totalPrice * discountPercentage/100),
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null)/100, 
+            unitPrice:
+              get(proformaProduct, "product.suggestedPrice", null),
             //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
@@ -711,12 +729,15 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
             <Input
-              value={(totalPaid/100)}
-              onChange={(event) => setTotalPaid(event.target.value*100)}
+              value={totalPaid}
+              type="number"
+              min={0}
+              onChange={(event) => setTotalPaid(event.target.value)}
+              onBlur={(event) => setTotalPaid(parseFloat(event.target.value|| "0").toFixed(2))}
               addonBefore="A Cuenta S/."
             />
             <Input
-              value={((finalPrice - totalPaid)/100).toFixed(2)}
+              value={(finalPrice - totalPaid).toFixed(2)}
               disabled
               addonBefore="Deuda S/."
             />
@@ -747,23 +768,27 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
               disabled
-              value={(totalPrice/100).toFixed(2)}
+              value={(totalPrice).toFixed(2)}
               addonBefore="Total S/."
             />
             <br />
             <Input
               disabled
-              value={((totalPrice * discountPercentage) / 10000).toFixed(2)}
+              value={((totalPrice * discountPercentage) / 100).toFixed(2)}
               addonBefore="Descuento S/."
             />
             <Input
               addonBefore="%"
               value={discountPercentage}
+              type="number"
+              min={0}
+              max={100}
               onChange={(event) => setDiscountPercentage(event.target.value)}
+              onBlur={(event) => setDiscountPercentage(parseFloat(event.target.value|| "0").toFixed(2))}
             />
             <Input
               disabled
-              value={(finalPrice/100).toFixed(2)}
+              value={(finalPrice).toFixed(2)}
               addonBefore="Total Final S/."
             />
             <br />
