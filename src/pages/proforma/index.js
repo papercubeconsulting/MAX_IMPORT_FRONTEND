@@ -351,9 +351,14 @@ export default ({ setPageTitle }) => {
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
 
-  const [totalPaid, setTotalPaid] = useState(0);
+  // Credit/Due states 2 way input
+  const [credit, setCredit] = useState(0);
+  const [due, setDue] = useState(0);
+  //Discount states 2 way input
+  const [discount, setDiscount] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
 
+  //Estado para modal Add Proforma
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
     false
   );
@@ -380,7 +385,7 @@ export default ({ setPageTitle }) => {
     districtId,
     address,
     proformaProducts,
-    totalPaid,
+    credit,
     discountPercentage,
   ]);
 
@@ -604,8 +609,8 @@ export default ({ setPageTitle }) => {
         <AddProforma
           visible={isModalAddProformaVisible}
           proforma={proforma}
-          totalPaid={totalPaid}
-          totalDebt={finalPrice - totalPaid}
+          totalPaid={credit}
+          totalDebt={due}
           saleWay={saleWay}
           trigger={setIsModalAddProformaVisible}
         />
@@ -729,16 +734,30 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
             <Input
-              value={totalPaid}
+              value={credit}
               type="number"
               min={0}
-              onChange={(event) => setTotalPaid(event.target.value)}
-              onBlur={(event) => setTotalPaid(parseFloat(event.target.value|| "0").toFixed(2))}
+              onChange={(event) => {setCredit(event.target.value);
+              setDue( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+              }}
+              onBlur={(event) => {setCredit(parseFloat(event.target.value|| "0").toFixed(2));
+            //TODO: Credit no puede ser negativo
+              setDue( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+            }}
               addonBefore="A Cuenta S/."
             />
             <Input
-              value={(finalPrice - totalPaid).toFixed(2)}
-              disabled
+              value={due}
+              type="number"
+              min={0}
+              max={finalPrice}
+              onChange={(event) => {setDue(event.target.value);
+              setCredit( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+              }}
+              onBlur={(event) => {setDue(parseFloat(event.target.value|| "0").toFixed(2));
+              //TODO: Due no puede ser mayor a finalPrice
+              setCredit( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+            }}
               addonBefore="Deuda S/."
             />
             <br />
@@ -773,9 +792,14 @@ export default ({ setPageTitle }) => {
             />
             <br />
             <Input
-              disabled
-              value={((totalPrice * discountPercentage) / 100).toFixed(2)}
+              value={discount}
               addonBefore="Descuento S/."
+              type="number"
+              min={0}
+              onChange={(event) =>{setDiscount(event.target.value);
+                setDiscountPercentage((parseFloat(event.target.value || "0" )*100/totalPrice).toFixed(2));}} 
+              onBlur={(event) => {setDiscount(parseFloat(event.target.value|| "0").toFixed(2));
+                setDiscountPercentage((parseFloat(event.target.value|| "0" )*100/totalPrice).toFixed(2)); }}
             />
             <Input
               addonBefore="%"
@@ -783,8 +807,12 @@ export default ({ setPageTitle }) => {
               type="number"
               min={0}
               max={100}
-              onChange={(event) => setDiscountPercentage(event.target.value)}
-              onBlur={(event) => setDiscountPercentage(parseFloat(event.target.value|| "0").toFixed(2))}
+              onChange={(event) => {
+                setDiscount((parseFloat(event.target.value|| "0")*totalPrice/100).toFixed(2));
+                setDiscountPercentage(event.target.value)}}
+              onBlur={(event) => {
+                setDiscount((parseFloat(event.target.value|| "0")*totalPrice/100).toFixed(2));
+                setDiscountPercentage(parseFloat(event.target.value|| "0").toFixed(2))}}
             />
             <Input
               disabled

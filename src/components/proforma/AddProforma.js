@@ -97,7 +97,7 @@ export const AddProforma = (props) => {
             proformaId: props.proforma.id,
             type: props.saleWay===1?"STORE":"REMOTE",
             paymentType: saleType===1?"CASH":"CREDIT",
-            credit: props.totalDebt,
+            credit: props.totalPaid,
             billingType: payWay===1?"SALE":"CONSIGNMENT",
             dispatchmentType: dispatchWay===1?"PICK_UP":"DELIVERY",
         };

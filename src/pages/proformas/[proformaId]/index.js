@@ -72,7 +72,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "subtotal",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => `S/.${(subtotal/ 100).toFixed(2)}`,
+      render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
@@ -201,9 +201,9 @@ export default ({ setPageTitle }) => {
             <br />
             <Input
               value={
-                proforma.credit
-                  ? `S/.${(proforma.credit / 100).toFixed(2)}`
-                  : `S/.0.00`
+                proforma.sale?.credit
+                  ? `S/.${(proforma.sale.credit / 100).toFixed(2)}`
+                  : `-`
               }
               disabled
               addonBefore="A Cuenta"
@@ -212,11 +212,9 @@ export default ({ setPageTitle }) => {
 
             <Input
               value={
-                proforma.total
-                  ? `S/.${((proforma.total - proforma.credit) / 100).toFixed(
-                      2
-                    )}`
-                  : `S/.0.00`
+                proforma.sale?.due
+                  ? `S/.${(proforma.sale.due / 100).toFixed(2)}`
+                  : `-`
               }
               disabled
               addonBefore="Deuda"
@@ -252,7 +250,7 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma.discount
-                  ? `${((proforma.discount * 100) / proforma.total).toFixed(
+                  ? `${((proforma.discount * 100) / proforma.subtotal).toFixed(
                       2
                     )}%`
                   : `0.00%`
