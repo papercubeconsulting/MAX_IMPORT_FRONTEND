@@ -618,7 +618,7 @@ export default ({ setPageTitle }) => {
 
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value="En cotización" addonBefore="Estatus" />
+          <Input value="En cotización" addonBefore="Estatus" disabled/>
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}

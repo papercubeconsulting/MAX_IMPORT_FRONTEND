@@ -222,6 +222,7 @@ export default ({ setPageTitle }) => {
             <br />
             <Button
               type="primary"
+              disabled={(proforma.status==="CLOSED")}
               onClick={async () => router.push(`/proforma`)}
             >
               EDITAR
