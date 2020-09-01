@@ -95,27 +95,27 @@ export default ({ setPageTitle }) => {
       render: (user) => user.name,
     },
     {
-      dataIndex: "subtotal",
+      dataIndex: "total",
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
+      render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
 
     {
-      dataIndex: "discount",
+      dataIndex: "sale",
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
-      render: (discount) => `S/.${(discount / 100).toFixed(2)}`,
+      render: (sale) => sale? `S/.${(sale.credit / 100).toFixed(2)}` : "-",
     },
 
     {
-      dataIndex: "total",
+      dataIndex: "sale",
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
-      render: (total) => `S/.${(total / 100).toFixed(2)}`,
+      render: (sale) => sale? `S/.${(sale.due / 100).toFixed(2)}` : "-",
     },
   ];
 

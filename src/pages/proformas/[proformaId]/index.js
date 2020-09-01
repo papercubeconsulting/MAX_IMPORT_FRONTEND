@@ -222,9 +222,9 @@ export default ({ setPageTitle }) => {
             <br />
             <Button
               type="primary"
-              onClick={async () => router.push(`/proformas`)}
+              onClick={async () => router.push(`/proforma`)}
             >
-              Retroceder
+              EDITAR
             </Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
@@ -270,6 +270,14 @@ export default ({ setPageTitle }) => {
           </Grid>
         </Grid>
       </Container>
+      <Button
+      width="20%"
+        margin="2% 5% 2% 40%"
+        type="primary"
+        onClick={async () => router.push(`/proformas`)}
+      >
+        Retroceder
+      </Button>
     </>
   );
 };
