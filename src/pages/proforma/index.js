@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select} from "../../components";
 import {
   getElements,
@@ -11,6 +12,7 @@ import {
   getRegions,
   getProvinces,
   getDistricts,
+  getProforma,
   postProforma,
   putProforma,
 } from "../../providers";
@@ -20,8 +22,11 @@ import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Nueva Proforma");
-
+  
+  const router = useRouter();
+  const queryParams = router.query;
+  setPageTitle(queryParams.id?"Edición de Proforma":"Nueva Proforma");
+  
   const columns = [
     {
       dataIndex: "id",
@@ -216,7 +221,6 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (product, proformaProduct) => {
-        console.log(proformaProduct);
         return (
           <Input
             value={get(product, "suggestedPrice", 0)}
@@ -371,6 +375,53 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
+
+  useMemo(() => {
+    if(queryParams.id){
+    
+      setLoadingSearchClient(true);
+        const fetchProforma = async () => {
+          try {
+            const _proforma = await getProforma(queryParams.id);
+            if (_proforma.status==="OPEN"){
+              setProforma(_proforma);
+              setDocumentNumber(_proforma.client.idNumber);
+              setName(_proforma.client.name);
+              setLastName(_proforma.client.lastname);
+              setEmail(_proforma.client.email);
+              setPhoneNumber(_proforma.client.phoneNumber);
+              setAddress(_proforma.client.address);
+              setRegionId(_proforma.client.regionId);
+              setProvinceId(_proforma.client.provinceId);
+              setDistrictId(_proforma.client.districtId);
+              setClientId(_proforma.client.id);
+              
+              setproformaProducts(_proforma.proformaProducts.map((proformaProduct)=>{return(
+                {...proformaProduct,product:{...proformaProduct.product,suggestedPrice:(proformaProduct.unitPrice/100)},
+                familyId:proformaProduct.product.familyId,subfamilyId:proformaProduct.product.subfamilyId,
+                modelId:proformaProduct.product.modelId,elementId:proformaProduct.product.elementId,
+              }
+              );}));
+
+              setDiscount(_proforma.discount/100);
+              setDiscountPercentage((parseFloat(_proforma.discount|| "0" )*100/_proforma.subtotal).toFixed(2));
+              setDue(_proforma.total/100)
+             
+            }
+            else{
+              //Lo expulsa por que esa proforma esta cerrada
+              router.push(`/proformas`);
+            }
+          } catch (error) {
+            //si hay error en query params lo expulsa a proformas
+            router.push(`/proformas`);
+          }
+        };
+        fetchProforma();
+        setLoadingSearchClient(false);
+    }
+    
+  }, [queryParams]);
 
   useEffect(() => {
     setSalesActivated(false);
