@@ -20,7 +20,6 @@ import { get, orderBy } from "lodash";
 import { Input, Table, notification} from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { useRouter } from "next/router";
 
 export default ({ setPageTitle }) => {
   
