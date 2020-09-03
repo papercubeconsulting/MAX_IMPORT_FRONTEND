@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
-import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import { Button, Container, DatePicker, Grid, Icon, Select} from "../../components";
+import { RadioGroup } from "../../components/RadioGroup";
 import { getProformas, getUsers, userProvider } from "../../providers";
 //import { get, orderBy } from "lodash";
-import { Input, notification, Table, Checkbox } from "antd";
+import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
 import {
@@ -91,7 +92,7 @@ export default ({ setPageTitle }) => {
       title: "Cobro",
       width: "fit-content",
       align: "center",
-      render: () => <Button type="primary">Cobro</Button>,
+      render: () => <Button onClick={() => setIsVisible(true)} type="primary">Cobro</Button>,
     },
   ];
 
@@ -137,6 +138,9 @@ export default ({ setPageTitle }) => {
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
+
+  //Modal
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -289,6 +293,39 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisible}
+        width="35%"
+        title="¿Está seguro que desea cobrar esta proforma?"
+        onCancel={() => setIsVisible(false)}
+        footer={[
+          <Button key="submit" type="primary">
+            Confirmar Cobro
+          </Button>,
+        ]}
+      >
+        <RadioGroup
+          gridColumnStart="2"
+          gridColumnEnd="4"
+          gridTemplateColumns="repeat(2, 1fr)"
+        >
+          <Radio value={1}>Consignación</Radio>
+          <Radio value={2}>Venta</Radio>
+        </RadioGroup>
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+          <Input value="Medio de Pago" />
+          <Select
+          />
+          <Input value="Total a Cobrar" />
+          <Input value="S/400" />
+          <Input value="Recibido" />
+          <Input/>
+          <Input value="Vuelto" />
+          <Input value="s/600" />
+          <Input value="Nro de Referencia" />
+          <Input />
+        </Grid>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
