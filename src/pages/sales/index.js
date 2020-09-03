@@ -37,7 +37,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "proformaId",
       title: "Proforma",
       align: "center",
-      render: (proformaId) => proformaId,
+      render: (proformaId) => `N° ${proformaId}`,
     },
 
     {
@@ -56,19 +56,19 @@ export default ({ setPageTitle }) => {
       dataIndex: "subtotal",
       title: "Total",
       align: "center",
-      render: (subtotal) => subtotal,
+      render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
     },
     {
       dataIndex: "discount",
       title: "Descuento",
       align: "center",
-      render: (discount) => discount,
+      render: (discount) => `S/.${(discount / 100).toFixed(2)}`,
     },
     {
       dataIndex: "total",
       title: "Tot. Final",
       align: "center",
-      render: (total) => total,
+      render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
     {
       title: "Tot.",
