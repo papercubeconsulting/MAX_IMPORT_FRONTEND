@@ -25,11 +25,15 @@ export default ({ setPageTitle }) => {
       title: "Turno",
       width: "70px",
       align: "center",
-      render: (index) => (
+      render: (id, record, index) => (
         <Button
+          onClick={() => {
+            setName(record.proforma.client.name);
+            setLastName(record.proforma.client.lastname);
+          }}
           type="primary"
         >
-          {index}
+          {index + 1}
         </Button>
       ),
     },
@@ -99,8 +103,8 @@ export default ({ setPageTitle }) => {
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
-  const [name, setName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
 
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
@@ -147,8 +151,8 @@ export default ({ setPageTitle }) => {
           showSizeChanger: false,
         });
         setSales(_sales.rows);
-        setName(_sales.rows[0].proforma.client.name)
-        setLastName(_sales.rows[0].proforma.client.lastname)
+        setName(_sales.rows[0].proforma.client.name);
+        setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
