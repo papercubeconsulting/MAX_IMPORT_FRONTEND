@@ -22,7 +22,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       title: "Turno",
-      width: "fit-content",
+      width: "70px",
       align: "center",
       /* render: (id, record, index) => (
         <Button
@@ -37,7 +37,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "proforma",
       title: "Proforma",
-      width: "fit-content",
+
       align: "center",
       /* render: (createdAt) =>
         moment(createdAt, serverDateFormat).format(clientDateFormat), */
@@ -46,51 +46,51 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "cliente",
       title: "Cliente",
-      width: "fit-content",
+
       align: "center",
       /* render: (createdAt) => moment(createdAt).format(clientHourFormat), */
     },
     {
       dataIndex: "apellido",
       title: "Apellido",
-      width: "fit-content",
+      
       align: "center",
     },
     {
       dataIndex: "total",
       title: "Total",
-      width: "fit-content",
+      
       align: "center",
     },
     {
       dataIndex: "descuento",
       title: "Descuento",
-      width: "fit-content",
+      
       align: "center",
     },
     {
       dataIndex: "totalFinal",
       title: "Tot. Final",
-      width: "fit-content",
+      
       align: "center",
       /* render: (client) => client.name, */
     },
     {
       title: "Tot.",
-      width: "fit-content",
+      width: "70px",
       align: "center",
       render: () => <Checkbox></Checkbox>,
     },
     {
       dataIndex: "cuenta",
       title: "Pago a Cuenta",
-      width: "fit-content",
+      
       align: "center",
       /*  render: (user) => user.name, */
     },
     {
       title: "Cobro",
-      width: "fit-content",
+      
       align: "center",
       render: () => <Button onClick={() => setIsVisible(true)} type="primary">Cobro</Button>,
     },
