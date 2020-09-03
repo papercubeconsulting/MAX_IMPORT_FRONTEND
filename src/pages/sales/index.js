@@ -1,79 +1,74 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-
-import { Button, Container, DatePicker, Grid, Icon, Select} from "../../components";
+import {
+  Button,
+  Container,
+  DatePicker,
+  Grid,
+  Icon,
+  Select,
+} from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
-import { getProformas, getUsers, userProvider } from "../../providers";
+import { getSales, getUsers, userProvider } from "../../providers";
 //import { get, orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
-import {
-  urlQueryParams,
-  clientDateFormat,
-  serverDateFormat,
-  clientHourFormat,
-} from "../../util";
-import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
+import { clientDateFormat } from "../../util";
+import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Pagos en caja");
   const columns = [
     {
-      dataIndex: "id",
+      dataIndex: "index",
       title: "Turno",
       width: "70px",
       align: "center",
-      /* render: (id, record, index) => (
+      render: (index) => (
         <Button
-          onClick={async () => router.push(`/proformas/${id}`)}
           type="primary"
         >
-          <Icon icon={faEye} />
-          {index + 1}
+          {index}
         </Button>
-      ), */
+      ),
+    },
+    {
+      dataIndex: "proformaId",
+      title: "Proforma",
+      align: "center",
+      render: (proformaId) => proformaId,
+    },
+
+    {
+      dataIndex: "proforma",
+      title: "Cliente",
+      align: "center",
+      render: (proforma) => proforma.client.name,
     },
     {
       dataIndex: "proforma",
-      title: "Proforma",
-
-      align: "center",
-      /* render: (createdAt) =>
-        moment(createdAt, serverDateFormat).format(clientDateFormat), */
-    },
-
-    {
-      dataIndex: "cliente",
-      title: "Cliente",
-
-      align: "center",
-      /* render: (createdAt) => moment(createdAt).format(clientHourFormat), */
-    },
-    {
-      dataIndex: "apellido",
       title: "Apellido",
-      
       align: "center",
+      render: (proforma) => proforma.client.lastname,
+    },
+    {
+      dataIndex: "subtotal",
+      title: "Total",
+      align: "center",
+      render: (subtotal) => subtotal,
+    },
+    {
+      dataIndex: "discount",
+      title: "Descuento",
+      align: "center",
+      render: (discount) => discount,
     },
     {
       dataIndex: "total",
-      title: "Total",
-      
-      align: "center",
-    },
-    {
-      dataIndex: "descuento",
-      title: "Descuento",
-      
-      align: "center",
-    },
-    {
-      dataIndex: "totalFinal",
       title: "Tot. Final",
-      
       align: "center",
-      /* render: (client) => client.name, */
+      render: (total) => total,
     },
     {
       title: "Tot.",
@@ -84,60 +79,33 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "cuenta",
       title: "Pago a Cuenta",
-      
       align: "center",
       /*  render: (user) => user.name, */
     },
     {
       title: "Cobro",
-      
       align: "center",
-      render: () => <Button onClick={() => setIsVisible(true)} type="primary">Cobro</Button>,
-    },
-  ];
-
-  // Mock Data
-
-  const proformas2 = [
-    {
-      id: 1,
-      proforma: "N°1234",
-      cliente: "Martín",
-      apellido: "Bolivar",
-      total: "1200",
-      descuento: "200",
-      totalFinal: "1000",
-      cuenta: "0",
+      render: () => (
+        <Button onClick={() => setIsVisible(true)} type="primary">
+          Cobro
+        </Button>
+      ),
     },
   ];
 
   //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
-  const [proformas, setProformas] = useState([]);
+  const [sales, setSales] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
+  const [name, setName] = useState('')
+  const [lastName, setLastName] = useState('')
 
-  //para el filtro por fecha
-  const [to, setTo] = useState(moment());
-  //para el filtro por nro doc
-  const [documentNumber, setDocumentNumber] = useState(null);
-  //para el filtro con datos de cliente
-  const [clientName, setClientName] = useState(null);
-  const [clientLastName, setClientLastName] = useState(null);
-  //para el filtro por status de proforma
-  const [status, setStatus] = useState(null);
-  const [saleStatus, setSaleStatus] = useState(null);
-  const [dispatchStatus, setDispatchStatus] = useState(null);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
   const [me, setMe] = useState({ name: null });
-
-  //extraccion de params de url
-  const stateUpdateOrigin = useRef("url");
-  const router = useRouter();
-  const queryParams = router.query;
 
   //Modal
   const [isVisible, setIsVisible] = useState(false);
@@ -165,20 +133,22 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  //Se buscan segun queryParams
+  //Tra todas las ventas
   useEffect(() => {
-    const fetchProformas = async () => {
+    const fetchSales = async () => {
       try {
-        const _proformas = await getProformas(queryParams);
-        /* console.log('proformas', _proformas); */
+        const _sales = await getSales();
+        console.log("sales", _sales);
         setPagination({
           position: ["bottomCenter"],
-          total: _proformas.count,
-          current: _proformas.page,
-          pageSize: _proformas.pageSize,
+          total: _sales.count,
+          current: _sales.page,
+          pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setProformas(_proformas.rows);
+        setSales(_sales.rows);
+        setName(_sales.rows[0].proforma.client.name)
+        setLastName(_sales.rows[0].proforma.client.lastname)
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -186,110 +156,8 @@ export default ({ setPageTitle }) => {
         });
       }
     };
-    fetchProformas();
-    if (stateUpdateOrigin.current === "url") {
-      urlToState();
-    }
-  }, [queryParams, toggleUpdateTable]);
-
-  const stateToUrl = async () => {
-    const params = {};
-    from && (params.from = from.format(serverDateFormat));
-    to && (params.to = to.format(serverDateFormat));
-    page && (params.page = page);
-    documentNumber && (params.id = documentNumber);
-    userId && (params.userId = userId);
-    status && (params.status = status);
-    saleStatus && (params.saleStatus = saleStatus);
-    dispatchStatus && (params.dispatchStatus = dispatchStatus);
-    clientName && (params.name = clientName);
-    clientLastName && (params.lastname = clientLastName);
-    await router.push(`/proformas${urlQueryParams(params)}`);
-  };
-
-  const searchWithState = () => {
-    stateToUrl();
-  };
-
-  const urlToState = () => {
-    //TODO: No se realiza para el rango de fechas todavia
-    // const from ="";
-    // try{ from = moment(queryParams.from,serverDateFormat).toDate();}catch{}
-    // setFrom(from|| moment().subtract(7, "days"));
-    // setTo(moment(queryParams.to,serverDateFormat).toDate() || moment());
-    setPage(queryParams.page || null);
-    setDocumentNumber(queryParams.id || null);
-    setUserId(queryParams.userId || null);
-    setStatus(queryParams.status || null);
-    setSaleStatus(queryParams.saleStatus || null);
-    setDispatchStatus(queryParams.dispatchStatus || null);
-    setClientName(queryParams.name || null);
-    setClientLastName(queryParams.lastname || null);
-  };
-
-  // estados de proforma para los select inputs
-  const usersList = () => {
-    const options = users.map((user) => ({
-      value: user.id,
-      label: user.name,
-    }));
-
-    const defaultOption = {
-      value: null,
-      label: "Todos",
-    };
-
-    return [defaultOption, ...options];
-  };
-
-  const statusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "OPEN",
-      label: "En cotización",
-    },
-    {
-      value: "CLOSED",
-      label: "Cerrada",
-    },
-  ];
-
-  const saleStatusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "PENDING",
-      label: "Pendiente",
-    },
-    {
-      value: "PARTIAL",
-      label: "Parcial",
-    },
-    {
-      value: "PAID",
-      label: "Pagado",
-    },
-  ];
-
-  const dispatchStatusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "PENDING",
-      label: "Pendiente",
-    },
-    {
-      value: "DISPATCHED",
-      label: "Despachado",
-    },
-  ];
+    fetchSales();
+  }, [toggleUpdateTable]);
 
   return (
     <>
@@ -308,19 +176,18 @@ export default ({ setPageTitle }) => {
           gridColumnStart="2"
           gridColumnEnd="4"
           gridTemplateColumns="repeat(2, 1fr)"
-          marginBottom = "5%"
+          marginBottom="5%"
         >
           <Radio value={1}>Consignación</Radio>
           <Radio value={2}>Venta</Radio>
         </RadioGroup>
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input value="Medio de Pago" />
-          <Select
-          />
+          <Select />
           <Input value="Total a Cobrar" />
           <Input value="S/400" />
           <Input value="Recibido" />
-          <Input/>
+          <Input />
           <Input value="Vuelto" />
           <Input value="s/600" />
           <Input value="Nro de Referencia" />
@@ -331,28 +198,18 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <DatePicker
-            value={to}
-            onChange={(value) => setTo(value)}
+            value={moment()}
             format={clientDateFormat}
-            disabledDate={(value) => value <= from}
             label={
               <>
                 <Icon icon={faCalendarAlt} />
                 Fecha
               </>
             }
+            disabledDate={(value) => value}
           />
-          <Input
-            value={clientName}
-            placeholder="Nombres / Razón"
-            onChange={(event) => setClientName(event.target.value)}
-            addonBefore="Cliente"
-          />
-          <Input
-            value={clientLastName}
-            placeholder="Apellidos"
-            onChange={(event) => setClientLastName(event.target.value)}
-          />
+          <Input value={name} addonBefore="Cliente" />
+          <Input value={lastName} />
         </Grid>
       </Container>
       <Container height="fit-content">
@@ -361,7 +218,7 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={proformas2}
+          dataSource={sales}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
