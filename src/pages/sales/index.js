@@ -1,17 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 
-import {
-  Button,
-  Container,
-  DatePicker,
-  Grid,
-  Icon,
-  Select,
-} from "../../components";
+import { Button, Container, DatePicker, Grid, Icon, Select} from "../../components";
+import { RadioGroup } from "../../components/RadioGroup";
 import { getProformas, getUsers, userProvider } from "../../providers";
 //import { get, orderBy } from "lodash";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
 import {
@@ -27,10 +21,10 @@ export default ({ setPageTitle }) => {
   const columns = [
     {
       dataIndex: "id",
-      title: "Nro",
-      width: "fit-content",
+      title: "Turno",
+      width: "70px",
       align: "center",
-      render: (id, record, index) => (
+      /* render: (id, record, index) => (
         <Button
           onClick={async () => router.push(`/proformas/${id}`)}
           type="primary"
@@ -38,70 +32,83 @@ export default ({ setPageTitle }) => {
           <Icon icon={faEye} />
           {index + 1}
         </Button>
-      ),
+      ), */
     },
     {
-      dataIndex: "createdAt",
+      dataIndex: "proforma",
       title: "Proforma",
-      width: "fit-content",
+
       align: "center",
-      render: (createdAt) =>
-        moment(createdAt, serverDateFormat).format(clientDateFormat),
+      /* render: (createdAt) =>
+        moment(createdAt, serverDateFormat).format(clientDateFormat), */
     },
 
     {
-      dataIndex: "createdAt",
+      dataIndex: "cliente",
       title: "Cliente",
-      width: "fit-content",
+
       align: "center",
-      render: (createdAt) => moment(createdAt).format(clientHourFormat),
+      /* render: (createdAt) => moment(createdAt).format(clientHourFormat), */
     },
     {
-      dataIndex: "id",
+      dataIndex: "apellido",
       title: "Apellido",
-      width: "fit-content",
+      
       align: "center",
-    },
-    {
-      dataIndex: "statusDescription",
-      title: "Total",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "dispatchStatusDescription",
-      title: "Descuento",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "client",
-      title: "Tot. Final",
-      width: "fit-content",
-      align: "center",
-      render: (client) => client.name,
-    },
-    {
-      dataIndex: "totalUnits",
-      title: "ToT",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "user",
-      title: "Pago a Cuenta",
-      width: "fit-content",
-      align: "center",
-      render: (user) => user.name,
     },
     {
       dataIndex: "total",
-      title: "Cobro",
-      width: "fit-content",
+      title: "Total",
+      
       align: "center",
-      render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
+    {
+      dataIndex: "descuento",
+      title: "Descuento",
+      
+      align: "center",
+    },
+    {
+      dataIndex: "totalFinal",
+      title: "Tot. Final",
+      
+      align: "center",
+      /* render: (client) => client.name, */
+    },
+    {
+      title: "Tot.",
+      width: "70px",
+      align: "center",
+      render: () => <Checkbox></Checkbox>,
+    },
+    {
+      dataIndex: "cuenta",
+      title: "Pago a Cuenta",
+      
+      align: "center",
+      /*  render: (user) => user.name, */
+    },
+    {
+      title: "Cobro",
+      
+      align: "center",
+      render: () => <Button onClick={() => setIsVisible(true)} type="primary">Cobro</Button>,
+    },
+  ];
 
+  // Mock Data
+
+  const proformas2 = [
+    {
+      id: 1,
+      proforma: "N°1234",
+      cliente: "Martín",
+      apellido: "Bolivar",
+      total: "1200",
+      descuento: "200",
+      totalFinal: "1000",
+      cuenta: "0",
+    },
   ];
 
   //Costumizadas por JM
@@ -112,7 +119,6 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
   const [to, setTo] = useState(moment());
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
@@ -132,6 +138,9 @@ export default ({ setPageTitle }) => {
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
+
+  //Modal
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -284,35 +293,66 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
-      <Container height="20%">
+      <Modal
+        visible={isVisible}
+        width="35%"
+        title="¿Está seguro que desea cobrar esta proforma?"
+        onCancel={() => setIsVisible(false)}
+        footer={[
+          <Button key="submit" type="primary">
+            Confirmar Cobro
+          </Button>,
+        ]}
+      >
+        <RadioGroup
+          gridColumnStart="2"
+          gridColumnEnd="4"
+          gridTemplateColumns="repeat(2, 1fr)"
+          marginBottom = "5%"
+        >
+          <Radio value={1}>Consignación</Radio>
+          <Radio value={2}>Venta</Radio>
+        </RadioGroup>
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+          <Input value="Medio de Pago" />
+          <Select
+          />
+          <Input value="Total a Cobrar" />
+          <Input value="S/400" />
+          <Input value="Recibido" />
+          <Input/>
+          <Input value="Vuelto" />
+          <Input value="s/600" />
+          <Input value="Nro de Referencia" />
+          <Input />
+        </Grid>
+      </Modal>
+      <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-         
-   
           <Input value={me.name} disabled addonBefore="Usuario" />
-
           <DatePicker
-              value={from}
-              onChange={(value) => setFrom(value)}
-              format={clientDateFormat}
-              disabledDate={(value) => value >= to}
-              label={
-                <>
-                  <Icon icon={faCalendarAlt} />
-                  Fecha Inicio
-                </>
-              }
-            />
+            value={to}
+            onChange={(value) => setTo(value)}
+            format={clientDateFormat}
+            disabledDate={(value) => value <= from}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha
+              </>
+            }
+          />
           <Input
             value={clientName}
+            placeholder="Nombres / Razón"
             onChange={(event) => setClientName(event.target.value)}
             addonBefore="Cliente"
           />
           <Input
             value={clientLastName}
+            placeholder="Apellidos"
             onChange={(event) => setClientLastName(event.target.value)}
           />
-       
-      
         </Grid>
       </Container>
       <Container height="fit-content">
@@ -321,11 +361,11 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={proformas}
+          dataSource={proformas2}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
-      <Container height="15%">
+      <Container height="20%">
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Button
             type="primary"
