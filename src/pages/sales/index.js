@@ -308,6 +308,7 @@ export default ({ setPageTitle }) => {
           gridColumnStart="2"
           gridColumnEnd="4"
           gridTemplateColumns="repeat(2, 1fr)"
+          marginBottom = "5%"
         >
           <Radio value={1}>Consignación</Radio>
           <Radio value={2}>Venta</Radio>
