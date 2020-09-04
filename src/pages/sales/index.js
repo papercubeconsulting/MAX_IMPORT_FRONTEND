@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
 import {
   Button,
   Container,
@@ -10,7 +9,7 @@ import {
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider } from "../../providers";
-//import { get, orderBy } from "lodash";
+import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
@@ -25,13 +24,14 @@ export default ({ setPageTitle }) => {
       title: "Turno",
       width: "70px",
       align: "center",
-      render: (id, record, index) => (
+      render: (id, dataSale, index) => (
         <Button
           onClick={() => {
-            setName(record.proforma.client.name);
-            setLastName(record.proforma.client.lastname);
+            setIdCondition(dataSale.id);
+            setName(dataSale.proforma.client.name);
+            setLastName(dataSale.proforma.client.lastname);
           }}
-          type="primary"
+          type={idCondition === dataSale.id ? "primary" : ""}
         >
           {index + 1}
         </Button>
@@ -78,34 +78,83 @@ export default ({ setPageTitle }) => {
       title: "Tot.",
       width: "70px",
       align: "center",
-      render: () => <Checkbox></Checkbox>,
+      render: () => <Checkbox checked={check}></Checkbox>,
     },
     {
-      dataIndex: "cuenta",
+      dataIndex: "due",
       title: "Pago a Cuenta",
       align: "center",
-      /*  render: (user) => user.name, */
+      render: (due, dataSale) => (
+        <Input
+          value={due}
+          min={0}
+          onChange={(event) => {
+            setsales((prevState) => {
+              const remainingsales = prevState.filter(
+                (_sale) => _sale.id !== dataSale.id
+              );
+              return [
+                ...remainingsales,
+                {
+                  ...dataSale,
+                  due: event.nativeEvent.target.value,
+                  received: event.nativeEvent.target.value,
+                },
+              ];
+            });
+          }}
+          onBlur={(event) => {
+            setsales((prevState) => {
+              const remainingsales = prevState.filter(
+                (_sale) => _sale.id !== dataSale.id
+              );
+              return [
+                ...remainingsales,
+                {
+                  ...dataSale,
+                  due: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                  received: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                },
+              ];
+            });
+            event.persist();
+          }}
+          addonBefore="S/."
+        />
+      ),
     },
     {
       title: "Cobro",
       align: "center",
-      render: () => (
-        <Button onClick={() => setIsVisible(true)} type="primary">
+      render: (id, dataSale) => (
+        <Button
+          onClick={() => {
+            setDataModal(dataSale);
+            setIsVisible(true);
+          }}
+          type="primary"
+        >
           Cobro
         </Button>
       ),
     },
   ];
 
-  //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
-  const [sales, setSales] = useState([]);
+  const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
-
+  const [idCondition, setIdCondition] = useState();
+  const [dataModal, setDataModal] = useState([]);
+  const [check, setCheck] = useState(true);
+  console.log("sales", sales);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -137,12 +186,11 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  //Tra todas las ventas
+  //Trae todas las ventas
   useEffect(() => {
     const fetchSales = async () => {
       try {
         const _sales = await getSales();
-        console.log("sales", _sales);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,
@@ -150,7 +198,12 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setSales(_sales.rows);
+        setsales(
+          _sales.rows.map((elem) => {
+            return { ...elem, received: elem.due, change: 0 };
+          })
+        );
+        setIdCondition(_sales.rows[0].id);
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
@@ -189,11 +242,50 @@ export default ({ setPageTitle }) => {
           <Input value="Medio de Pago" />
           <Select />
           <Input value="Total a Cobrar" />
-          <Input value="S/400" />
+          <Input disabled value={`S/.${(dataModal.due / 100).toFixed(2)}`} />
           <Input value="Recibido" />
-          <Input />
+          <Input
+            value={dataModal.received}
+            onChange={(event) => {
+              setsales((prevState) => {
+                const remainingsales = prevState.filter(
+                  (_sale) => _sale.id !== dataModal.id
+                );
+                console.log('remain', remainingsales)
+                return [
+                  ...remainingsales,
+                  {
+                    ...dataModal,
+                    received: event.nativeEvent.target.value,
+                  },
+                ];
+              });
+              setDataModal({...dataModal, received: event.nativeEvent.target.value})
+            }}
+            onBlur={(event) => {
+              setsales((prevState) => {
+                const remainingsales = prevState.filter(
+                  (_sale) => _sale.id !== dataModal.id
+                );
+                return [
+                  ...remainingsales,
+                  {
+                    ...dataModal,
+                    received: parseFloat(
+                      event.nativeEvent.target.value || "0"
+                    ).toFixed(2),
+                  },
+                ];
+              });
+              setDataModal({...dataModal, received: parseFloat(
+                event.nativeEvent.target.value || "0"
+              ).toFixed(2),})
+              event.persist();
+            }}
+            addonBefore="S/."
+          />
           <Input value="Vuelto" />
-          <Input value="s/600" />
+          <Input disabled value={`S/.${(dataModal.change / 100).toFixed(2)}`} />
           <Input value="Nro de Referencia" />
           <Input />
         </Grid>
@@ -222,7 +314,7 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={sales}
+          dataSource={orderBy(sales, "id", "asc")}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
