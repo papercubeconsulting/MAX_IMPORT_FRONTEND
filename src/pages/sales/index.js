@@ -75,51 +75,10 @@ export default ({ setPageTitle }) => {
       render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
     {
-      dataIndex: "due",
+      dataIndex: "initialPayment",
       title: "Pago a Cuenta",
       align: "center",
-      render: (due, dataSale) => (
-        <Input
-          value={due}
-          min={0}
-          onChange={(event) => {
-            setsales((prevState) => {
-              const remainingsales = prevState.filter(
-                (_sale) => _sale.id !== dataSale.id
-              );
-              return [
-                ...remainingsales,
-                {
-                  ...dataSale,
-                  due: event.nativeEvent.target.value,
-                  received: event.nativeEvent.target.value,
-                },
-              ];
-            });
-          }}
-          onBlur={(event) => {
-            setsales((prevState) => {
-              const remainingsales = prevState.filter(
-                (_sale) => _sale.id !== dataSale.id
-              );
-              return [
-                ...remainingsales,
-                {
-                  ...dataSale,
-                  due: parseFloat(
-                    event.nativeEvent.target.value || "0"
-                  ).toFixed(2),
-                  received: parseFloat(
-                    event.nativeEvent.target.value || "0"
-                  ).toFixed(2),
-                },
-              ];
-            });
-            event.persist();
-          }}
-          addonBefore="S/."
-        />
-      ),
+      render: (initialPayment) => `S/.${(initialPayment)}`,
     },
     {
       title: "Cobro",
@@ -153,7 +112,7 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-  console.log("sales", sales);
+
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -199,7 +158,12 @@ export default ({ setPageTitle }) => {
         });
         setsales(
           _sales.rows.map((elem) => {
-            return { ...elem, received: elem.due, change: 0, check: true };
+            return {
+              ...elem,
+              initialPayment: elem.initialPayment/100,
+              received: elem.initialPayment/100,
+              check: true,
+            };
           })
         );
         setIdCondition(_sales.rows[0].id);
@@ -214,7 +178,7 @@ export default ({ setPageTitle }) => {
     };
     fetchSales();
   }, [toggleUpdateTable]);
-
+console.log('sales', sales)
   return (
     <>
       <Modal
@@ -254,8 +218,43 @@ export default ({ setPageTitle }) => {
               <Checkbox checked />
             </Grid>
             <Input
-              disabled
-              value={(dataModal.due / 100).toFixed(2)}
+              value={dataModal.initialPayment}
+              min={0}
+              onChange={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      initialPayment: event.nativeEvent.target.value,
+                      received: event.nativeEvent.target.value,
+                    },
+                  ];
+                });
+              }}
+              onBlur={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      initialPayment: parseFloat(
+                        event.nativeEvent.target.value || "0"
+                      ).toFixed(2),
+                      received: parseFloat(
+                        event.nativeEvent.target.value || "0"
+                      ).toFixed(2),
+                    },
+                  ];
+                });
+                event.persist();
+              }}
               addonBefore="S/."
             />
           </Grid>
@@ -317,7 +316,7 @@ export default ({ setPageTitle }) => {
             <h3>Vuelto:</h3>
             <Input
               disabled
-              value={(dataModal.change / 100).toFixed(2)}
+              value={(dataModal.received - dataModal.initialPayment).toFixed(2)}
               addonBefore="S/."
             />
             <h3>Nro de Referencia:</h3>
