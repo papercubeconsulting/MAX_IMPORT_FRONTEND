@@ -88,8 +88,11 @@ export default ({ setPageTitle }) => {
           onClick={() => {
             setDataModal(dataSale);
             setIsVisible(true);
+            setIdCondition(dataSale.id);
+            setName(dataSale.proforma.client.name);
+            setLastName(dataSale.proforma.client.lastname);
           }}
-          type="primary"
+          type={idCondition === dataSale.id ? "primary" : ""}
         >
           Cobro
         </Button>
