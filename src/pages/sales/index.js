@@ -10,7 +10,7 @@ import {
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider } from "../../providers";
-//import { get, orderBy } from "lodash";
+import { get, orderBy  } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
@@ -78,33 +78,82 @@ export default ({ setPageTitle }) => {
       title: "Tot.",
       width: "70px",
       align: "center",
-      render: () => <Checkbox></Checkbox>,
+      render: () => <Checkbox checked={check}></Checkbox>,
     },
     {
-      dataIndex: "cuenta",
+      /* dataIndex: "due",
       title: "Pago a Cuenta",
       align: "center",
-      /*  render: (user) => user.name, */
+      render: (due, record) => {
+        return (
+          <Input
+            value={`S/.${(due / 100).toFixed(2)}`}
+            onChange={(event) => {
+              setCheck(false);
+              const currentData = record;
+              return {...currentData, value: event.target.value}
+            }}
+          ></Input>
+        );
+      }, */
+      dataIndex: "dataSale",
+      title: "Pago a Cuenta",
+      align: "center",
+      render: (due, dataSale) => (
+        <Input
+          value={get(dataSale, "due", 0)}
+          min={0}
+          onChange={(event) => {
+            const remainingsales = sales.filter(
+              (_sale) =>
+                _sale.id !== dataSale.id
+            );
+            console.log('old', remainingsales);
+            setsales((prevState) => {
+              const remainingsales = prevState.filter(
+                (_sale) =>
+                  _sale.id !== dataSale.id
+              );
+              return [
+                ...remainingsales,
+                {
+                  ...dataSale,
+                  due: event.nativeEvent.target.value,
+                },
+              ];
+            });
+          }}
+        />
+      ),
     },
     {
       title: "Cobro",
       align: "center",
-      render: () => (
-        <Button onClick={() => setIsVisible(true)} type="primary">
+      render: (id, record) => (
+        <Button
+          onClick={() => {
+            setDataModal(record);
+            setIsVisible(true);
+          }}
+          type="primary"
+        >
           Cobro
         </Button>
       ),
     },
   ];
 
-  //Costumizadas por JM
   const [windowHeight, setWindowHeight] = useState(0);
-  const [sales, setSales] = useState([]);
+  const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [dataSale, setdataSale] = useState([]);
+
+  const [dataModal, setDataModal] = useState([]);
+  const [check, setCheck] = useState(true);
 
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
@@ -137,12 +186,11 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  //Tra todas las ventas
+  //Trae todas las ventas
   useEffect(() => {
     const fetchSales = async () => {
       try {
         const _sales = await getSales();
-        console.log("sales", _sales);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,
@@ -150,7 +198,7 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setSales(_sales.rows);
+        setsales(_sales.rows);
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
@@ -189,7 +237,7 @@ export default ({ setPageTitle }) => {
           <Input value="Medio de Pago" />
           <Select />
           <Input value="Total a Cobrar" />
-          <Input value="S/400" />
+          <Input value={`S/.${(dataModal.due / 100).toFixed(2)}`} />
           <Input value="Recibido" />
           <Input />
           <Input value="Vuelto" />
@@ -222,7 +270,7 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={sales}
+          dataSource={orderBy(sales, "id", "asc")}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
