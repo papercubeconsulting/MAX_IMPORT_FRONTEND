@@ -98,6 +98,7 @@ export default ({ setPageTitle }) => {
                 {
                   ...dataSale,
                   due: event.nativeEvent.target.value,
+                  received: event.nativeEvent.target.value,
                 },
               ];
             });
@@ -114,6 +115,9 @@ export default ({ setPageTitle }) => {
                   due: parseFloat(
                     event.nativeEvent.target.value || "0"
                   ).toFixed(2),
+                  received: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
                 },
               ];
             });
@@ -126,10 +130,10 @@ export default ({ setPageTitle }) => {
     {
       title: "Cobro",
       align: "center",
-      render: (id, record) => (
+      render: (id, dataSale) => (
         <Button
           onClick={() => {
-            setDataModal(record);
+            setDataModal(dataSale);
             setIsVisible(true);
           }}
           type="primary"
@@ -150,7 +154,7 @@ export default ({ setPageTitle }) => {
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
   const [check, setCheck] = useState(true);
-
+  console.log("sales", sales);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -194,7 +198,11 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setsales(_sales.rows);
+        setsales(
+          _sales.rows.map((elem) => {
+            return { ...elem, received: elem.due, change: 0 };
+          })
+        );
         setIdCondition(_sales.rows[0].id);
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
@@ -234,11 +242,50 @@ export default ({ setPageTitle }) => {
           <Input value="Medio de Pago" />
           <Select />
           <Input value="Total a Cobrar" />
-          <Input value={`S/.${(dataModal.due / 100).toFixed(2)}`} />
+          <Input disabled value={`S/.${(dataModal.due / 100).toFixed(2)}`} />
           <Input value="Recibido" />
-          <Input />
+          <Input
+            value={dataModal.received}
+            onChange={(event) => {
+              setsales((prevState) => {
+                const remainingsales = prevState.filter(
+                  (_sale) => _sale.id !== dataModal.id
+                );
+                console.log('remain', remainingsales)
+                return [
+                  ...remainingsales,
+                  {
+                    ...dataModal,
+                    received: event.nativeEvent.target.value,
+                  },
+                ];
+              });
+              setDataModal({...dataModal, received: event.nativeEvent.target.value})
+            }}
+            onBlur={(event) => {
+              setsales((prevState) => {
+                const remainingsales = prevState.filter(
+                  (_sale) => _sale.id !== dataModal.id
+                );
+                return [
+                  ...remainingsales,
+                  {
+                    ...dataModal,
+                    received: parseFloat(
+                      event.nativeEvent.target.value || "0"
+                    ).toFixed(2),
+                  },
+                ];
+              });
+              setDataModal({...dataModal, received: parseFloat(
+                event.nativeEvent.target.value || "0"
+              ).toFixed(2),})
+              event.persist();
+            }}
+            addonBefore="S/."
+          />
           <Input value="Vuelto" />
-          <Input value="s/600" />
+          <Input disabled value={`S/.${(dataModal.change / 100).toFixed(2)}`} />
           <Input value="Nro de Referencia" />
           <Input />
         </Grid>
