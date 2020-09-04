@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Container,
@@ -75,12 +75,6 @@ export default ({ setPageTitle }) => {
       render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
     {
-      title: "Tot.",
-      width: "70px",
-      align: "center",
-      render: () => <Checkbox checked={check}></Checkbox>,
-    },
-    {
       dataIndex: "due",
       title: "Pago a Cuenta",
       align: "center",
@@ -144,6 +138,12 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  const selectOptions = (collection) =>
+    collection.map((document) => ({
+      value: document.id,
+      label: document.name,
+    }));
+
   const [windowHeight, setWindowHeight] = useState(0);
   const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
@@ -153,7 +153,6 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-  const [check, setCheck] = useState(true);
   console.log("sales", sales);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
@@ -200,7 +199,7 @@ export default ({ setPageTitle }) => {
         });
         setsales(
           _sales.rows.map((elem) => {
-            return { ...elem, received: elem.due, change: 0 };
+            return { ...elem, received: elem.due, change: 0, check: true };
           })
         );
         setIdCondition(_sales.rows[0].id);
@@ -220,7 +219,7 @@ export default ({ setPageTitle }) => {
     <>
       <Modal
         visible={isVisible}
-        width="35%"
+        width="40%"
         title="¿Está seguro que desea cobrar esta proforma?"
         onCancel={() => setIsVisible(false)}
         footer={[
@@ -229,65 +228,101 @@ export default ({ setPageTitle }) => {
           </Button>,
         ]}
       >
-        <RadioGroup
-          gridColumnStart="2"
-          gridColumnEnd="4"
-          gridTemplateColumns="repeat(2, 1fr)"
-          marginBottom="5%"
-        >
-          <Radio value={1}>Consignación</Radio>
-          <Radio value={2}>Venta</Radio>
-        </RadioGroup>
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-          <Input value="Medio de Pago" />
-          <Select />
-          <Input value="Total a Cobrar" />
-          <Input disabled value={`S/.${(dataModal.due / 100).toFixed(2)}`} />
-          <Input value="Recibido" />
-          <Input
-            value={dataModal.received}
-            onChange={(event) => {
-              setsales((prevState) => {
-                const remainingsales = prevState.filter(
-                  (_sale) => _sale.id !== dataModal.id
-                );
-                console.log('remain', remainingsales)
-                return [
-                  ...remainingsales,
-                  {
-                    ...dataModal,
-                    received: event.nativeEvent.target.value,
-                  },
-                ];
-              });
-              setDataModal({...dataModal, received: event.nativeEvent.target.value})
-            }}
-            onBlur={(event) => {
-              setsales((prevState) => {
-                const remainingsales = prevState.filter(
-                  (_sale) => _sale.id !== dataModal.id
-                );
-                return [
-                  ...remainingsales,
-                  {
-                    ...dataModal,
-                    received: parseFloat(
-                      event.nativeEvent.target.value || "0"
-                    ).toFixed(2),
-                  },
-                ];
-              });
-              setDataModal({...dataModal, received: parseFloat(
-                event.nativeEvent.target.value || "0"
-              ).toFixed(2),})
-              event.persist();
-            }}
-            addonBefore="S/."
-          />
-          <Input value="Vuelto" />
-          <Input disabled value={`S/.${(dataModal.change / 100).toFixed(2)}`} />
-          <Input value="Nro de Referencia" />
-          <Input />
+        <Grid gridTemplateRows="repeat(1, 1fr)" gridGap="1rem">
+          <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+            <h3>Forma de pago:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="4"
+              gridTemplateColumns="repeat(2, 1fr)"
+            >
+              <Radio value={1}>Venta</Radio>
+              <Radio value={2}>Consignación</Radio>
+            </RadioGroup>
+          </Grid>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+            <h3>Total:</h3>
+            <Input
+              disabled
+              value={(dataModal.total / 100).toFixed(2)}
+              addonBefore="S/."
+            />
+          </Grid>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+              <h3>Pago a Cuenta:</h3>
+              <Checkbox checked />
+            </Grid>
+            <Input
+              disabled
+              value={(dataModal.due / 100).toFixed(2)}
+              addonBefore="S/."
+            />
+          </Grid>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+            <h3>Medio de pago:</h3>
+            <Select
+              options={selectOptions([
+                { name: "Efectivo", id: "Efectivo" },
+                { name: "Tarjeta", id: "Tarjeta" },
+              ])}
+            />
+            <h3>Recibido:</h3>
+            <Input
+              value={dataModal.received}
+              onChange={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  console.log("remain", remainingsales);
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      received: event.nativeEvent.target.value,
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  received: event.nativeEvent.target.value,
+                });
+              }}
+              onBlur={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      received: parseFloat(
+                        event.nativeEvent.target.value || "0"
+                      ).toFixed(2),
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  received: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                });
+                event.persist();
+              }}
+              addonBefore="S/."
+            />
+            <h3>Vuelto:</h3>
+            <Input
+              disabled
+              value={(dataModal.change / 100).toFixed(2)}
+              addonBefore="S/."
+            />
+            <h3>Nro de Referencia:</h3>
+            <Input />
+          </Grid>
         </Grid>
       </Modal>
       <Container height="fit-content">
