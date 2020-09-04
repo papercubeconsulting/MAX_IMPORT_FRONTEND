@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
 import {
   Button,
   Container,
@@ -10,7 +9,7 @@ import {
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider } from "../../providers";
-import { get, orderBy  } from "lodash";
+import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
 import moment from "moment";
@@ -25,13 +24,14 @@ export default ({ setPageTitle }) => {
       title: "Turno",
       width: "70px",
       align: "center",
-      render: (id, record, index) => (
+      render: (id, dataSale, index) => (
         <Button
           onClick={() => {
-            setName(record.proforma.client.name);
-            setLastName(record.proforma.client.lastname);
+            setIdCondition(dataSale.id);
+            setName(dataSale.proforma.client.name);
+            setLastName(dataSale.proforma.client.lastname);
           }}
-          type="primary"
+          type={idCondition === dataSale.id ? "primary" : ""}
         >
           {index + 1}
         </Button>
@@ -81,38 +81,17 @@ export default ({ setPageTitle }) => {
       render: () => <Checkbox checked={check}></Checkbox>,
     },
     {
-      /* dataIndex: "due",
-      title: "Pago a Cuenta",
-      align: "center",
-      render: (due, record) => {
-        return (
-          <Input
-            value={`S/.${(due / 100).toFixed(2)}`}
-            onChange={(event) => {
-              setCheck(false);
-              const currentData = record;
-              return {...currentData, value: event.target.value}
-            }}
-          ></Input>
-        );
-      }, */
-      dataIndex: "dataSale",
+      dataIndex: "due",
       title: "Pago a Cuenta",
       align: "center",
       render: (due, dataSale) => (
         <Input
-          value={get(dataSale, "due", 0)}
+          value={due}
           min={0}
           onChange={(event) => {
-            const remainingsales = sales.filter(
-              (_sale) =>
-                _sale.id !== dataSale.id
-            );
-            console.log('old', remainingsales);
             setsales((prevState) => {
               const remainingsales = prevState.filter(
-                (_sale) =>
-                  _sale.id !== dataSale.id
+                (_sale) => _sale.id !== dataSale.id
               );
               return [
                 ...remainingsales,
@@ -123,6 +102,24 @@ export default ({ setPageTitle }) => {
               ];
             });
           }}
+          onBlur={(event) => {
+            setsales((prevState) => {
+              const remainingsales = prevState.filter(
+                (_sale) => _sale.id !== dataSale.id
+              );
+              return [
+                ...remainingsales,
+                {
+                  ...dataSale,
+                  due: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                },
+              ];
+            });
+            event.persist();
+          }}
+          addonBefore="S/."
         />
       ),
     },
@@ -150,8 +147,7 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dataSale, setdataSale] = useState([]);
-
+  const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
   const [check, setCheck] = useState(true);
 
@@ -199,6 +195,7 @@ export default ({ setPageTitle }) => {
           showSizeChanger: false,
         });
         setsales(_sales.rows);
+        setIdCondition(_sales.rows[0].id);
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
