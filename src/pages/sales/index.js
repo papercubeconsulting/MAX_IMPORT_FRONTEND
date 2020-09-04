@@ -78,7 +78,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "initialPayment",
       title: "Pago a Cuenta",
       align: "center",
-      render: (initialPayment) => `S/.${(initialPayment)}`,
+      render: (initialPayment) => `S/.${initialPayment}`,
     },
     {
       title: "Cobro",
@@ -160,8 +160,8 @@ export default ({ setPageTitle }) => {
           _sales.rows.map((elem) => {
             return {
               ...elem,
-              initialPayment: elem.initialPayment/100,
-              received: elem.initialPayment/100,
+              initialPayment: elem.initialPayment / 100,
+              received: elem.initialPayment / 100,
               check: true,
             };
           })
@@ -178,7 +178,7 @@ export default ({ setPageTitle }) => {
     };
     fetchSales();
   }, [toggleUpdateTable]);
-console.log('sales', sales)
+  console.log("sales", sales);
   return (
     <>
       <Modal
@@ -215,9 +215,15 @@ console.log('sales', sales)
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
               <h3>Pago a Cuenta:</h3>
-              <Checkbox checked />
+              <Checkbox checked={dataModal.check} onChange={(event) => {
+                setDataModal({
+                  ...dataModal,
+                  check: !dataModal.check,
+                });
+              }} />
             </Grid>
             <Input
+              disabled={dataModal.check}
               value={dataModal.initialPayment}
               min={0}
               onChange={(event) => {
