@@ -234,6 +234,11 @@ console.log('sales', sales)
                     },
                   ];
                 });
+                setDataModal({
+                  ...dataModal,
+                  initialPayment: event.nativeEvent.target.value,
+                  received: event.nativeEvent.target.value,
+                });
               }}
               onBlur={(event) => {
                 setsales((prevState) => {
@@ -253,6 +258,10 @@ console.log('sales', sales)
                     },
                   ];
                 });
+                /* setDataModal({
+                  ...dataModal,
+                  received: event.nativeEvent.target.value,
+                }); */
                 event.persist();
               }}
               addonBefore="S/."
@@ -274,7 +283,6 @@ console.log('sales', sales)
                   const remainingsales = prevState.filter(
                     (_sale) => _sale.id !== dataModal.id
                   );
-                  console.log("remain", remainingsales);
                   return [
                     ...remainingsales,
                     {
