@@ -437,7 +437,9 @@ export default ({ setPageTitle }) => {
     address,
     proformaProducts,
     credit,
+    due,
     discountPercentage,
+    discount,
   ]);
 
   useEffect(() => {
@@ -515,6 +517,8 @@ export default ({ setPageTitle }) => {
     () => totalPrice * (1 - discountPercentage / 100),
     [totalPrice, discountPercentage]
   );
+
+  useEffect(() => {setDue((finalPrice-credit).toFixed(2));},[finalPrice]);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
