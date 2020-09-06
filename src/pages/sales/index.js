@@ -218,12 +218,15 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
               <h3>Pago a Cuenta:</h3>
-              <Checkbox checked={dataModal.check} onChange={(event) => {
-                setDataModal({
-                  ...dataModal,
-                  check: !dataModal.check,
-                });
-              }} />
+              <Checkbox
+                checked={dataModal.check}
+                onChange={(event) => {
+                  setDataModal({
+                    ...dataModal,
+                    check: !dataModal.check,
+                  });
+                }}
+              />
             </Grid>
             <Input
               disabled={dataModal.check}
@@ -279,10 +282,31 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <h3>Medio de pago:</h3>
             <Select
+              value={dataModal.paymentMethod}
               options={selectOptions([
                 { name: "Efectivo", id: "Efectivo" },
                 { name: "Tarjeta", id: "Tarjeta" },
               ])}
+              onChange={(event) => {
+                console.log('eve', event);
+                console.log('evet', event.value);
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      paymentMethod: event,
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  paymentMethod: event,
+                });
+              }}
             />
             <h3>Recibido:</h3>
             <Input
