@@ -240,7 +240,7 @@ export const AddProduct = props => {
                 elementCode: element.code,
                 providerId: provider.id,
                 tradename,
-                suggestedPrice,
+                suggestedPrice:Math.round(suggestedPrice*100),
                 compatibility: compatibility || undefined,
                 imageBase64: imageBase64 || undefined
             };
