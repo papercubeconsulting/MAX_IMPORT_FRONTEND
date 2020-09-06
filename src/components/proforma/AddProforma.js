@@ -50,7 +50,7 @@ export const AddProforma = (props) => {
           description: error.message,
         });
       }
-      if(parseFloat(props.totalPaid)==0){
+      if(parseFloat(props.totalDebt)==0){
         setSaleType(1);
         setSummitActive(true);
       }
@@ -97,7 +97,7 @@ export const AddProforma = (props) => {
             proformaId: props.proforma.id,
             type: props.saleWay===1?"STORE":"REMOTE",
             paymentType: saleType===1?"CASH":"CREDIT",
-            credit: parseFloat(props.totalPaid),
+            initialPayment: Math.round(props.totalPaid*100),
             billingType: payWay===1?"SALE":"CONSIGNMENT",
             dispatchmentType: dispatchWay===1?"PICK_UP":"DELIVERY",
         };

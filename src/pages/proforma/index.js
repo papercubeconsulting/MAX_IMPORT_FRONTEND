@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, Icon, Select} from "../../components";
+import { Button, Container, Grid, Icon, Select } from "../../components";
 import {
   getElements,
   getFamilies,
@@ -17,22 +17,22 @@ import {
   putProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table, notification} from "antd";
+import { Input, Table, notification } from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  
   const router = useRouter();
   const queryParams = router.query;
-  setPageTitle(queryParams.id?"Edición de Proforma":"Nueva Proforma");
-  
+  setPageTitle(queryParams.id ? "Edición de Proforma" : "Nueva Proforma");
+
   const columns = [
     {
       dataIndex: "id",
       title: "",
       width: "fit-content",
       align: "center",
+      render: (id, record, index) => (index + 1),
     },
     {
       title: "Cód. Inventario",
@@ -167,13 +167,18 @@ export default ({ setPageTitle }) => {
                   id: proformaProduct.id,
                   dbId: proformaProduct.dbId,
                   productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity?proformaProduct.quantity:1,
+                  quantity: proformaProduct.quantity
+                    ? proformaProduct.quantity
+                    : 1,
                   boxSize: proformaProduct.boxSize,
                   familyId: proformaProduct.familyId,
                   subfamilyId: proformaProduct.subfamilyId,
                   elementId: proformaProduct.elementId,
                   modelId: value,
-                  product:{...product,suggestedPrice:product.suggestedPrice/100},
+                  product: {
+                    ...product,
+                    suggestedPrice: product.suggestedPrice / 100,
+                  },
                 },
               ];
             });
@@ -238,9 +243,7 @@ export default ({ setPageTitle }) => {
                     ...proformaProduct,
                     product: {
                       ...product,
-                      suggestedPrice: 
-                        event.nativeEvent.target.value 
-                      ,
+                      suggestedPrice: event.nativeEvent.target.value,
                     },
                   },
                 ];
@@ -280,7 +283,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (id, row) =>
         `S/.${(
-          (get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0))
+          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
         ).toFixed(2)}`,
       /*
         render: (id, row) =>
@@ -356,11 +359,14 @@ export default ({ setPageTitle }) => {
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
 
   // Credit/Due states 2 way input
-  const [credit, setCredit] = useState(0);
+  const [paid, setPaid] = useState(0);
   const [due, setDue] = useState(0);
   //Discount states 2 way input
   const [discount, setDiscount] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState(0);
+
+  //final Price
+  const [finalPrice, setFinalPrice] = useState(0);
 
   //Estado para modal Add Proforma
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
@@ -377,50 +383,60 @@ export default ({ setPageTitle }) => {
   }, []);
 
   useMemo(() => {
-    if(queryParams.id){
-    
+    if (queryParams.id) {
       setLoadingSearchClient(true);
-        const fetchProforma = async () => {
-          try {
-            const _proforma = await getProforma(queryParams.id);
-            if (_proforma.status==="OPEN"){
-              setProforma(_proforma);
-              setDocumentNumber(_proforma.client.idNumber);
-              setName(_proforma.client.name);
-              setLastName(_proforma.client.lastname);
-              setEmail(_proforma.client.email);
-              setPhoneNumber(_proforma.client.phoneNumber);
-              setAddress(_proforma.client.address);
-              setRegionId(_proforma.client.regionId);
-              setProvinceId(_proforma.client.provinceId);
-              setDistrictId(_proforma.client.districtId);
-              setClientId(_proforma.client.id);
-              
-              setproformaProducts(_proforma.proformaProducts.map((proformaProduct)=>{return(
-                {...proformaProduct,product:{...proformaProduct.product,suggestedPrice:(proformaProduct.unitPrice/100)},
-                familyId:proformaProduct.product.familyId,subfamilyId:proformaProduct.product.subfamilyId,
-                modelId:proformaProduct.product.modelId,elementId:proformaProduct.product.elementId,
-              }
-              );}));
+      const fetchProforma = async () => {
+        try {
+          const _proforma = await getProforma(queryParams.id);
+          if (_proforma.status === "OPEN") {
+            setProforma(_proforma);
+            setDocumentNumber(_proforma.client.idNumber);
+            setName(_proforma.client.name);
+            setLastName(_proforma.client.lastname);
+            setEmail(_proforma.client.email);
+            setPhoneNumber(_proforma.client.phoneNumber);
+            setAddress(_proforma.client.address);
+            setRegionId(_proforma.client.regionId);
+            setProvinceId(_proforma.client.provinceId);
+            setDistrictId(_proforma.client.districtId);
+            setClientId(_proforma.client.id);
 
-              setDiscount(_proforma.discount/100);
-              setDiscountPercentage((parseFloat(_proforma.discount|| "0" )*100/_proforma.subtotal).toFixed(2));
-              setDue(_proforma.total/100)
-             
-            }
-            else{
-              //Lo expulsa por que esa proforma esta cerrada
-              router.push(`/proformas`);
-            }
-          } catch (error) {
-            //si hay error en query params lo expulsa a proformas
+            setproformaProducts(
+              _proforma.proformaProducts.map((proformaProduct) => {
+                return {
+                  ...proformaProduct,
+                  product: {
+                    ...proformaProduct.product,
+                    suggestedPrice: proformaProduct.unitPrice / 100,
+                  },
+                  familyId: proformaProduct.product.familyId,
+                  subfamilyId: proformaProduct.product.subfamilyId,
+                  modelId: proformaProduct.product.modelId,
+                  elementId: proformaProduct.product.elementId,
+                };
+              })
+            );
+
+            setDiscount(_proforma.discount / 100);
+            setDiscountPercentage(
+              (
+                (parseFloat(_proforma.discount || "0") * 100) /
+                _proforma.subtotal
+              ).toFixed(2)
+            );
+            setDue(_proforma.total / 100);
+          } else {
+            //Lo expulsa por que esa proforma esta cerrada
             router.push(`/proformas`);
           }
-        };
-        fetchProforma();
-        setLoadingSearchClient(false);
+        } catch (error) {
+          //si hay error en query params lo expulsa a proformas
+          router.push(`/proformas`);
+        }
+      };
+      fetchProforma();
+      setLoadingSearchClient(false);
     }
-    
   }, [queryParams]);
 
   useEffect(() => {
@@ -436,7 +452,7 @@ export default ({ setPageTitle }) => {
     districtId,
     address,
     proformaProducts,
-    credit,
+    paid,
     due,
     discountPercentage,
     discount,
@@ -506,19 +522,28 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-        get(proformaProduct, "product.suggestedPrice", 0), 
+          get(proformaProduct, "product.suggestedPrice", 0),
       0
     );
 
     return _totalPrice;
   }, [proformaProducts]);
 
-  const finalPrice = useMemo(
-    () => totalPrice * (1 - discountPercentage / 100),
-    [totalPrice, discountPercentage]
-  );
+  useEffect(() => {
+    setFinalPrice((totalPrice * (1 - discountPercentage / 100)).toFixed(2));
+  }, [totalPrice, discountPercentage]);
 
-  useEffect(() => {setDue((finalPrice-credit).toFixed(2));},[finalPrice]);
+  useEffect(() => {
+    setFinalPrice((totalPrice - discount).toFixed(2));
+  }, [totalPrice, discount]);
+
+  useEffect(() => {
+    setDue((finalPrice - paid).toFixed(2));
+  }, [finalPrice]);
+
+  useEffect(() => {
+    setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
+  }, [totalPrice]);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -616,10 +641,12 @@ export default ({ setPageTitle }) => {
         //Actualiza la proforma
         const _response = await putProforma(proforma.id, {
           clientId,
-          discount: (totalPrice * discountPercentage/100),
+          discount: Math.round(totalPrice * discountPercentage),
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice: get(proformaProduct, "product.suggestedPrice", null),
+            unitPrice: Math.round(
+              get(proformaProduct, "product.suggestedPrice", 0) * 100
+            ),
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
@@ -633,11 +660,12 @@ export default ({ setPageTitle }) => {
         /* console.log('proformaProducts', proformaProducts); */
         const _response = await postProforma({
           clientId,
-          discount: (totalPrice * discountPercentage/100),
+          discount: Math.round(totalPrice * discountPercentage),
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
-            unitPrice:
-              get(proformaProduct, "product.suggestedPrice", null),
+            unitPrice: Math.round(
+              get(proformaProduct, "product.suggestedPrice", 0) * 100
+            ),
             //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
           })),
@@ -664,7 +692,7 @@ export default ({ setPageTitle }) => {
         <AddProforma
           visible={isModalAddProformaVisible}
           proforma={proforma}
-          totalPaid={credit}
+          totalPaid={paid}
           totalDebt={due}
           saleWay={saleWay}
           trigger={setIsModalAddProformaVisible}
@@ -673,7 +701,7 @@ export default ({ setPageTitle }) => {
 
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value="En cotización" addonBefore="Estatus" disabled/>
+          <Input value="En cotización" addonBefore="Estatus" disabled />
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
@@ -789,16 +817,28 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
           <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
             <Input
-              value={credit}
+              value={paid}
               type="number"
               min={0}
-              onChange={(event) => {setCredit(event.target.value);
-              setDue( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+              onChange={(event) => {
+                setPaid(event.target.value);
+                setDue(
+                  (
+                    finalPrice -
+                    parseFloat(event.target.value || "0").toFixed(2)
+                  ).toFixed(2)
+                );
               }}
-              onBlur={(event) => {setCredit(parseFloat(event.target.value|| "0").toFixed(2));
-            //TODO: Credit no puede ser negativo
-              setDue( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
-            }}
+              onBlur={(event) => {
+                setPaid(parseFloat(event.target.value || "0").toFixed(2));
+                //TODO: Credit no puede ser negativo
+                setDue(
+                  (
+                    finalPrice -
+                    parseFloat(event.target.value || "0").toFixed(2)
+                  ).toFixed(2)
+                );
+              }}
               addonBefore="A Cuenta S/."
             />
             <Input
@@ -806,13 +846,25 @@ export default ({ setPageTitle }) => {
               type="number"
               min={0}
               max={finalPrice}
-              onChange={(event) => {setDue(event.target.value);
-              setCredit( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
+              onChange={(event) => {
+                setDue(event.target.value);
+                setPaid(
+                  (
+                    finalPrice -
+                    parseFloat(event.target.value || "0").toFixed(2)
+                  ).toFixed(2)
+                );
               }}
-              onBlur={(event) => {setDue(parseFloat(event.target.value|| "0").toFixed(2));
-              //TODO: Due no puede ser mayor a finalPrice
-              setCredit( (finalPrice-parseFloat(event.target.value|| "0").toFixed(2)).toFixed(2) );
-            }}
+              onBlur={(event) => {
+                setDue(parseFloat(event.target.value || "0").toFixed(2));
+                //TODO: Due no puede ser mayor a finalPrice
+                setPaid(
+                  (
+                    finalPrice -
+                    parseFloat(event.target.value || "0").toFixed(2)
+                  ).toFixed(2)
+                );
+              }}
               addonBefore="Deuda S/."
             />
             <br />
@@ -842,7 +894,7 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
               disabled
-              value={(totalPrice).toFixed(2)}
+              value={totalPrice.toFixed(2)}
               addonBefore="Total S/."
             />
             <br />
@@ -851,10 +903,24 @@ export default ({ setPageTitle }) => {
               addonBefore="Descuento S/."
               type="number"
               min={0}
-              onChange={(event) =>{setDiscount(event.target.value);
-                setDiscountPercentage((parseFloat(event.target.value || "0" )*100/totalPrice).toFixed(2));}} 
-              onBlur={(event) => {setDiscount(parseFloat(event.target.value|| "0").toFixed(2));
-                setDiscountPercentage((parseFloat(event.target.value|| "0" )*100/totalPrice).toFixed(2)); }}
+              onChange={(event) => {
+                setDiscount(event.target.value);
+                setDiscountPercentage(
+                  (
+                    (parseFloat(event.target.value || "0") * 100) /
+                    totalPrice
+                  ).toFixed(2)
+                );
+              }}
+              onBlur={(event) => {
+                setDiscount(parseFloat(event.target.value || "0").toFixed(2));
+                setDiscountPercentage(
+                  (
+                    (parseFloat(event.target.value || "0") * 100) /
+                    totalPrice
+                  ).toFixed(2)
+                );
+              }}
             />
             <Input
               addonBefore="%"
@@ -863,17 +929,27 @@ export default ({ setPageTitle }) => {
               min={0}
               max={100}
               onChange={(event) => {
-                setDiscount((parseFloat(event.target.value|| "0")*totalPrice/100).toFixed(2));
-                setDiscountPercentage(event.target.value)}}
+                setDiscount(
+                  (
+                    (parseFloat(event.target.value || "0") * totalPrice) /
+                    100
+                  ).toFixed(2)
+                );
+                setDiscountPercentage(event.target.value);
+              }}
               onBlur={(event) => {
-                setDiscount((parseFloat(event.target.value|| "0")*totalPrice/100).toFixed(2));
-                setDiscountPercentage(parseFloat(event.target.value|| "0").toFixed(2))}}
+                setDiscount(
+                  (
+                    (parseFloat(event.target.value || "0") * totalPrice) /
+                    100
+                  ).toFixed(2)
+                );
+                setDiscountPercentage(
+                  parseFloat(event.target.value || "0").toFixed(2)
+                );
+              }}
             />
-            <Input
-              disabled
-              value={(finalPrice).toFixed(2)}
-              addonBefore="Total Final S/."
-            />
+            <Input disabled value={finalPrice} addonBefore="Total Final S/." />
             <br />
           </Grid>
         </Grid>
