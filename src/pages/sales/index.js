@@ -382,8 +382,8 @@ export default ({ setPageTitle }) => {
             }
             disabledDate={(value) => value}
           />
-          <Input value={name} addonBefore="Cliente" />
-          <Input value={lastName} />
+          <Input value={name} disabled addonBefore="Cliente" />
+          <Input value={lastName} disabled />
         </Grid>
       </Container>
       <Container height="fit-content">
