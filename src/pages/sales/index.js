@@ -308,6 +308,8 @@ export default ({ setPageTitle }) => {
                 });
               }}
             />
+          </Grid>
+          {dataModal.paymentMethod === "Efectivo"? <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <h3>Recibido:</h3>
             <Input
               value={dataModal.received}
@@ -360,9 +362,10 @@ export default ({ setPageTitle }) => {
               value={(dataModal.received - dataModal.initialPayment).toFixed(2)}
               addonBefore="S/."
             />
+          </Grid> : <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <h3>Nro de Referencia:</h3>
             <Input />
-          </Grid>
+          </Grid>}
         </Grid>
       </Modal>
       <Container height="fit-content">
