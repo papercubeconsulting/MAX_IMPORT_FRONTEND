@@ -8,7 +8,7 @@ import {
   Select,
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
-import { getSales, getUsers, userProvider } from "../../providers";
+import { getSales, getUsers, userProvider, putSale } from "../../providers";
 import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
@@ -181,7 +181,29 @@ export default ({ setPageTitle }) => {
     };
     fetchSales();
   }, [toggleUpdateTable]);
-  console.log("sales", sales);
+
+  const onPutSale = async () => {
+    let _response
+    if(dataModal.paymentMethod === "Efectivo") {
+      _response = await putSale(dataModal.id, {
+        billingType: dataModal.billingType,
+        paymentMethod: dataModal.paymentMethod,
+        initialPayment:  parseInt(dataModal.initialPayment)*100,
+        receivedAmount: parseInt(dataModal.received)*100,
+      });
+      console.log('efectivo');
+    } else {
+      _response = await putSale(dataModal.id, {
+        billingType: dataModal.billingType,
+        paymentMethod: dataModal.paymentMethod,
+        initialPayment: parseInt(dataModal.initialPayment)*100,
+        referenceNumber: dataModal.referenceNumber,
+      });
+      console.log("tarjeta");
+    }
+    console.log('resp', _response)
+  };
+
   return (
     <>
       <Modal
@@ -190,7 +212,7 @@ export default ({ setPageTitle }) => {
         title="¿Está seguro que desea cobrar esta proforma?"
         onCancel={() => setIsVisible(false)}
         footer={[
-          <Button key="submit" type="primary">
+          <Button key="submit" type="primary" onClick={onPutSale}>
             Confirmar Cobro
           </Button>,
         ]}
