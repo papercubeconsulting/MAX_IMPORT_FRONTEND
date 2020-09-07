@@ -188,15 +188,15 @@ export default ({ setPageTitle }) => {
       _response = await putSale(dataModal.id, {
         billingType: dataModal.billingType,
         paymentMethod: dataModal.paymentMethod,
-        initialPayment:  parseInt(dataModal.initialPayment)*100,
-        receivedAmount: parseInt(dataModal.received)*100,
+        initialPayment:  parseFloat(dataModal.initialPayment)*100,
+        receivedAmount: parseFloat(dataModal.received)*100,
       });
       console.log('efectivo');
     } else {
       _response = await putSale(dataModal.id, {
         billingType: dataModal.billingType,
         paymentMethod: dataModal.paymentMethod,
-        initialPayment: parseInt(dataModal.initialPayment)*100,
+        initialPayment: parseFloat(dataModal.initialPayment)*100,
         referenceNumber: dataModal.referenceNumber,
       });
       console.log("tarjeta");
