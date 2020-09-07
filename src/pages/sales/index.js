@@ -8,7 +8,7 @@ import {
   Select,
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
-import { getSales, getUsers, userProvider } from "../../providers";
+import { getSales, getUsers, userProvider, putSale } from "../../providers";
 import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
 
@@ -115,7 +115,7 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-
+  console.log("modal", dataModal);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -181,7 +181,29 @@ export default ({ setPageTitle }) => {
     };
     fetchSales();
   }, [toggleUpdateTable]);
-  console.log("sales", sales);
+
+  const onPutSale = async () => {
+    let _response
+    if(dataModal.paymentMethod === "Efectivo") {
+      _response = await putSale(dataModal.id, {
+        billingType: dataModal.billingType,
+        paymentMethod: dataModal.paymentMethod,
+        initialPayment:  parseInt(dataModal.initialPayment)*100,
+        receivedAmount: parseInt(dataModal.received)*100,
+      });
+      console.log('efectivo');
+    } else {
+      _response = await putSale(dataModal.id, {
+        billingType: dataModal.billingType,
+        paymentMethod: dataModal.paymentMethod,
+        initialPayment: parseInt(dataModal.initialPayment)*100,
+        referenceNumber: dataModal.referenceNumber,
+      });
+      console.log("tarjeta");
+    }
+    console.log('resp', _response)
+  };
+
   return (
     <>
       <Modal
@@ -190,7 +212,7 @@ export default ({ setPageTitle }) => {
         title="¿Está seguro que desea cobrar esta proforma?"
         onCancel={() => setIsVisible(false)}
         footer={[
-          <Button key="submit" type="primary">
+          <Button key="submit" type="primary" onClick={onPutSale}>
             Confirmar Cobro
           </Button>,
         ]}
@@ -202,9 +224,28 @@ export default ({ setPageTitle }) => {
               gridColumnStart="2"
               gridColumnEnd="4"
               gridTemplateColumns="repeat(2, 1fr)"
+              value={dataModal.billingType}
+              onChange={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      billingType: event.target.value,
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  billingType: event.target.value,
+                });
+              }}
             >
-              <Radio value={1}>Venta</Radio>
-              <Radio value={2}>Consignación</Radio>
+              <Radio value={"SALE"}>Venta</Radio>
+              <Radio value={"CONSIGNMENT"}>Consignación</Radio>
             </RadioGroup>
           </Grid>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
@@ -270,10 +311,15 @@ export default ({ setPageTitle }) => {
                     },
                   ];
                 });
-                /* setDataModal({
+                setDataModal({
                   ...dataModal,
-                  received: event.nativeEvent.target.value,
-                }); */
+                  initialPayment: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                  received: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                });
                 event.persist();
               }}
               addonBefore="S/."
@@ -288,8 +334,6 @@ export default ({ setPageTitle }) => {
                 { name: "Tarjeta", id: "Tarjeta" },
               ])}
               onChange={(event) => {
-                console.log('eve', event);
-                console.log('evet', event.value);
                 setsales((prevState) => {
                   const remainingsales = prevState.filter(
                     (_sale) => _sale.id !== dataModal.id
@@ -308,61 +352,90 @@ export default ({ setPageTitle }) => {
                 });
               }}
             />
-            <h3>Recibido:</h3>
-            <Input
-              value={dataModal.received}
-              onChange={(event) => {
-                setsales((prevState) => {
-                  const remainingsales = prevState.filter(
-                    (_sale) => _sale.id !== dataModal.id
-                  );
-                  return [
-                    ...remainingsales,
-                    {
-                      ...dataModal,
-                      received: event.nativeEvent.target.value,
-                    },
-                  ];
-                });
-                setDataModal({
-                  ...dataModal,
-                  received: event.nativeEvent.target.value,
-                });
-              }}
-              onBlur={(event) => {
-                setsales((prevState) => {
-                  const remainingsales = prevState.filter(
-                    (_sale) => _sale.id !== dataModal.id
-                  );
-                  return [
-                    ...remainingsales,
-                    {
-                      ...dataModal,
-                      received: parseFloat(
-                        event.nativeEvent.target.value || "0"
-                      ).toFixed(2),
-                    },
-                  ];
-                });
-                setDataModal({
-                  ...dataModal,
-                  received: parseFloat(
-                    event.nativeEvent.target.value || "0"
-                  ).toFixed(2),
-                });
-                event.persist();
-              }}
-              addonBefore="S/."
-            />
-            <h3>Vuelto:</h3>
-            <Input
-              disabled
-              value={(dataModal.received - dataModal.initialPayment).toFixed(2)}
-              addonBefore="S/."
-            />
-            <h3>Nro de Referencia:</h3>
-            <Input />
           </Grid>
+          {dataModal.paymentMethod === "Efectivo" ? (
+            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+              <h3>Recibido:</h3>
+              <Input
+                value={dataModal.received}
+                onChange={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        received: event.nativeEvent.target.value,
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    received: event.nativeEvent.target.value,
+                  });
+                }}
+                onBlur={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        received: parseFloat(
+                          event.nativeEvent.target.value || "0"
+                        ).toFixed(2),
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    received: parseFloat(
+                      event.nativeEvent.target.value || "0"
+                    ).toFixed(2),
+                  });
+                  event.persist();
+                }}
+                addonBefore="S/."
+              />
+              <h3>Vuelto:</h3>
+              <Input
+                disabled
+                value={(dataModal.received - dataModal.initialPayment).toFixed(
+                  2
+                )}
+                addonBefore="S/."
+              />
+            </Grid>
+          ) : (
+            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+              <h3>Nro de Referencia:</h3>
+              <Input
+                onChange={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        referenceNumber: event.nativeEvent.target.value,
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    referenceNumber: event.nativeEvent.target.value,
+                  });
+                  event.persist();
+                }}
+              />
+            </Grid>
+          )}
         </Grid>
       </Modal>
       <Container height="fit-content">
@@ -379,8 +452,8 @@ export default ({ setPageTitle }) => {
             }
             disabledDate={(value) => value}
           />
-          <Input value={name} addonBefore="Cliente" />
-          <Input value={lastName} />
+          <Input value={name} disabled addonBefore="Cliente" />
+          <Input value={lastName} disabled />
         </Grid>
       </Container>
       <Container height="fit-content">
