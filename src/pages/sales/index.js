@@ -202,9 +202,28 @@ export default ({ setPageTitle }) => {
               gridColumnStart="2"
               gridColumnEnd="4"
               gridTemplateColumns="repeat(2, 1fr)"
+              value={dataModal.billingType}
+              onChange={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      billingType: event.target.value,
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  billingType: event.target.value,
+                });
+              }}
             >
-              <Radio value={1}>Venta</Radio>
-              <Radio value={2}>Consignación</Radio>
+              <Radio value={"SALE"}>Venta</Radio>
+              <Radio value={"CONSIGNMENT"}>Consignación</Radio>
             </RadioGroup>
           </Grid>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
@@ -293,8 +312,6 @@ export default ({ setPageTitle }) => {
                 { name: "Tarjeta", id: "Tarjeta" },
               ])}
               onChange={(event) => {
-                console.log("eve", event);
-                console.log("evet", event.value);
                 setsales((prevState) => {
                   const remainingsales = prevState.filter(
                     (_sale) => _sale.id !== dataModal.id
