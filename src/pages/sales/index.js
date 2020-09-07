@@ -115,7 +115,7 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-
+  console.log("modal", dataModal);
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -270,10 +270,15 @@ export default ({ setPageTitle }) => {
                     },
                   ];
                 });
-                /* setDataModal({
+                setDataModal({
                   ...dataModal,
-                  received: event.nativeEvent.target.value,
-                }); */
+                  initialPayment: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                  received: parseFloat(
+                    event.nativeEvent.target.value || "0"
+                  ).toFixed(2),
+                });
                 event.persist();
               }}
               addonBefore="S/."
@@ -288,8 +293,8 @@ export default ({ setPageTitle }) => {
                 { name: "Tarjeta", id: "Tarjeta" },
               ])}
               onChange={(event) => {
-                console.log('eve', event);
-                console.log('evet', event.value);
+                console.log("eve", event);
+                console.log("evet", event.value);
                 setsales((prevState) => {
                   const remainingsales = prevState.filter(
                     (_sale) => _sale.id !== dataModal.id
@@ -309,63 +314,89 @@ export default ({ setPageTitle }) => {
               }}
             />
           </Grid>
-          {dataModal.paymentMethod === "Efectivo"? <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-            <h3>Recibido:</h3>
-            <Input
-              value={dataModal.received}
-              onChange={(event) => {
-                setsales((prevState) => {
-                  const remainingsales = prevState.filter(
-                    (_sale) => _sale.id !== dataModal.id
-                  );
-                  return [
-                    ...remainingsales,
-                    {
-                      ...dataModal,
-                      received: event.nativeEvent.target.value,
-                    },
-                  ];
-                });
-                setDataModal({
-                  ...dataModal,
-                  received: event.nativeEvent.target.value,
-                });
-              }}
-              onBlur={(event) => {
-                setsales((prevState) => {
-                  const remainingsales = prevState.filter(
-                    (_sale) => _sale.id !== dataModal.id
-                  );
-                  return [
-                    ...remainingsales,
-                    {
-                      ...dataModal,
-                      received: parseFloat(
-                        event.nativeEvent.target.value || "0"
-                      ).toFixed(2),
-                    },
-                  ];
-                });
-                setDataModal({
-                  ...dataModal,
-                  received: parseFloat(
-                    event.nativeEvent.target.value || "0"
-                  ).toFixed(2),
-                });
-                event.persist();
-              }}
-              addonBefore="S/."
-            />
-            <h3>Vuelto:</h3>
-            <Input
-              disabled
-              value={(dataModal.received - dataModal.initialPayment).toFixed(2)}
-              addonBefore="S/."
-            />
-          </Grid> : <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-            <h3>Nro de Referencia:</h3>
-            <Input />
-          </Grid>}
+          {dataModal.paymentMethod === "Efectivo" ? (
+            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+              <h3>Recibido:</h3>
+              <Input
+                value={dataModal.received}
+                onChange={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        received: event.nativeEvent.target.value,
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    received: event.nativeEvent.target.value,
+                  });
+                }}
+                onBlur={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        received: parseFloat(
+                          event.nativeEvent.target.value || "0"
+                        ).toFixed(2),
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    received: parseFloat(
+                      event.nativeEvent.target.value || "0"
+                    ).toFixed(2),
+                  });
+                  event.persist();
+                }}
+                addonBefore="S/."
+              />
+              <h3>Vuelto:</h3>
+              <Input
+                disabled
+                value={(dataModal.received - dataModal.initialPayment).toFixed(
+                  2
+                )}
+                addonBefore="S/."
+              />
+            </Grid>
+          ) : (
+            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+              <h3>Nro de Referencia:</h3>
+              <Input
+                onChange={(event) => {
+                  setsales((prevState) => {
+                    const remainingsales = prevState.filter(
+                      (_sale) => _sale.id !== dataModal.id
+                    );
+                    return [
+                      ...remainingsales,
+                      {
+                        ...dataModal,
+                        referenceNumber: event.nativeEvent.target.value,
+                      },
+                    ];
+                  });
+                  setDataModal({
+                    ...dataModal,
+                    referenceNumber: event.nativeEvent.target.value,
+                  });
+                  event.persist();
+                }}
+              />
+            </Grid>
+          )}
         </Grid>
       </Modal>
       <Container height="fit-content">
