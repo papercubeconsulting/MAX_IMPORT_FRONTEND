@@ -11,7 +11,7 @@ import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider, putSale } from "../../providers";
 import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
-
+import { useRouter } from "next/router";
 import moment from "moment";
 import { clientDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -99,6 +99,8 @@ export default ({ setPageTitle }) => {
       ),
     },
   ];
+
+  const router = useRouter();
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -478,8 +480,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             gridColumnStart="2"
-            //TODO: Cambiar el router de este boton
-            onClick={async () => router.push(`/`)}
+            onClick={async () => router.push(`/cashHistory`)}
           >
             Historial de Caja
           </Button>
