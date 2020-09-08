@@ -11,7 +11,7 @@ import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider, putSale } from "../../providers";
 import { orderBy } from "lodash";
 import { Input, notification, Table, Checkbox, Modal, Radio } from "antd";
-
+import { useRouter } from "next/router";
 import moment from "moment";
 import { clientDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -100,6 +100,8 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  const router = useRouter();
+
   const selectOptions = (collection) =>
     collection.map((document) => ({
       value: document.id,
@@ -115,7 +117,7 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-  console.log("modal", dataModal);
+
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -173,35 +175,44 @@ export default ({ setPageTitle }) => {
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
-        notification.error({
+       /*  notification.error({
           message: "Error en el servidor",
           description: error.message,
-        });
+        }); */
+        console.log(error)
       }
     };
     fetchSales();
   }, [toggleUpdateTable]);
 
   const onPutSale = async () => {
-    let _response
-    if(dataModal.paymentMethod === "Efectivo") {
-      _response = await putSale(dataModal.id, {
-        billingType: dataModal.billingType,
-        paymentMethod: dataModal.paymentMethod,
-        initialPayment:  parseFloat(dataModal.initialPayment)*100,
-        receivedAmount: parseFloat(dataModal.received)*100,
+    try {
+      let _response;
+      if (dataModal.paymentMethod === "Efectivo") {
+        _response = await putSale(dataModal.id, {
+          billingType: dataModal.billingType,
+          paymentMethod: dataModal.paymentMethod,
+          initialPayment: parseFloat(dataModal.initialPayment) * 100,
+          receivedAmount: parseFloat(dataModal.received) * 100,
+        });
+      } else {
+        _response = await putSale(dataModal.id, {
+          billingType: dataModal.billingType,
+          paymentMethod: dataModal.paymentMethod,
+          initialPayment: parseFloat(dataModal.initialPayment) * 100,
+          referenceNumber: dataModal.referenceNumber,
+        });
+      }
+      notification.success({
+        message: "Pago a Cuenta registrado exitosamente",
       });
-      console.log('efectivo');
-    } else {
-      _response = await putSale(dataModal.id, {
-        billingType: dataModal.billingType,
-        paymentMethod: dataModal.paymentMethod,
-        initialPayment: parseFloat(dataModal.initialPayment)*100,
-        referenceNumber: dataModal.referenceNumber,
+      setIsVisible(false);
+      setToggleUpdateTable(true)
+    } catch (error) {
+      notification.error({
+        message: error.message,
       });
-      console.log("tarjeta");
     }
-    console.log('resp', _response)
   };
 
   return (
@@ -471,8 +482,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             gridColumnStart="2"
-            //TODO: Cambiar el router de este boton
-            onClick={async () => router.push(`/`)}
+            onClick={async () => router.push(`/cashHistory`)}
           >
             Historial de Caja
           </Button>

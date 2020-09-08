@@ -1,7 +1,7 @@
 import { baseProvider } from "./baseProvider";
 
 const postSale = async (body) => baseProvider.httpPost("sales", body);
-const getSales = async () => baseProvider.httpGet(`sales`);
+const getSales = async () => baseProvider.httpGet('sales?status=DUE');
 const putSale = async (proformaId, body) =>
   baseProvider.httpPut(`sales/${proformaId}/pay`, body);
 
