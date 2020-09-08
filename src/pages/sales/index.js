@@ -117,7 +117,7 @@ export default ({ setPageTitle }) => {
   const [lastName, setLastName] = useState("");
   const [idCondition, setIdCondition] = useState();
   const [dataModal, setDataModal] = useState([]);
-  console.log("modal", dataModal);
+
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -175,10 +175,11 @@ export default ({ setPageTitle }) => {
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
-        notification.error({
+       /*  notification.error({
           message: "Error en el servidor",
           description: error.message,
-        });
+        }); */
+        console.log(error)
       }
     };
     fetchSales();
@@ -206,7 +207,7 @@ export default ({ setPageTitle }) => {
         message: "Pago a Cuenta registrado exitosamente",
       });
       setIsVisible(false);
-      console.log("resp", _response);
+      setToggleUpdateTable(true)
     } catch (error) {
       notification.error({
         message: error.message,
