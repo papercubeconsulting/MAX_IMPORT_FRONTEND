@@ -205,6 +205,7 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: "Pago a Cuenta registrado exitosamente",
       });
+      setIsVisible(false);
       console.log("resp", _response);
     } catch (error) {
       notification.error({
