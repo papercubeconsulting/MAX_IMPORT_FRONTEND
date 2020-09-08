@@ -183,25 +183,32 @@ export default ({ setPageTitle }) => {
   }, [toggleUpdateTable]);
 
   const onPutSale = async () => {
-    let _response
-    if(dataModal.paymentMethod === "Efectivo") {
-      _response = await putSale(dataModal.id, {
-        billingType: dataModal.billingType,
-        paymentMethod: dataModal.paymentMethod,
-        initialPayment:  parseFloat(dataModal.initialPayment)*100,
-        receivedAmount: parseFloat(dataModal.received)*100,
+    try {
+      let _response;
+      if (dataModal.paymentMethod === "Efectivo") {
+        _response = await putSale(dataModal.id, {
+          billingType: dataModal.billingType,
+          paymentMethod: dataModal.paymentMethod,
+          initialPayment: parseFloat(dataModal.initialPayment) * 100,
+          receivedAmount: parseFloat(dataModal.received) * 100,
+        });
+      } else {
+        _response = await putSale(dataModal.id, {
+          billingType: dataModal.billingType,
+          paymentMethod: dataModal.paymentMethod,
+          initialPayment: parseFloat(dataModal.initialPayment) * 100,
+          referenceNumber: dataModal.referenceNumber,
+        });
+      }
+      notification.success({
+        message: "Pago a Cuenta registrado exitosamente",
       });
-      console.log('efectivo');
-    } else {
-      _response = await putSale(dataModal.id, {
-        billingType: dataModal.billingType,
-        paymentMethod: dataModal.paymentMethod,
-        initialPayment: parseFloat(dataModal.initialPayment)*100,
-        referenceNumber: dataModal.referenceNumber,
+      console.log("resp", _response);
+    } catch (error) {
+      notification.error({
+        message: error.message,
       });
-      console.log("tarjeta");
     }
-    console.log('resp', _response)
   };
 
   return (
