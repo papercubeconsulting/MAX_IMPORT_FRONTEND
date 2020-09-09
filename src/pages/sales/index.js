@@ -153,7 +153,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales();
+        const _sales = await getSales("DUE");
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,

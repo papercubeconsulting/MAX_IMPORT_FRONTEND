@@ -8,7 +8,8 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getUsers, userProvider } from "../../providers";
+import { getSales, getUsers, userProvider } from "../../providers";
+import { orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -25,72 +26,83 @@ export default ({ setPageTitle }) => {
   setPageTitle("Historial de Caja");
   const columns = [
     {
-      dataIndex: "createdAt",
+      dataIndex: "paidAt",
       title: "Fecha",
       width: "fit-content",
       align: "center",
+      render: (paidAt) =>
+        moment(paidAt, serverDateFormat).format(clientDateFormat),
     },
 
     {
-      dataIndex: "createdAt",
+      dataIndex: "paidAt",
       title: "Hora",
       width: "fit-content",
       align: "center",
+      render: (paidAt) => moment(paidAt).format(clientHourFormat),
     },
     {
-      dataIndex: "id",
+      dataIndex: "cashierId",
       title: "Cajero",
       width: "fit-content",
       align: "center",
     },
     {
-      dataIndex: "id",
+      dataIndex: "proformaId",
       title: "Proforma",
       width: "fit-content",
       align: "center",
+      render: (proformaId) => `N° ${proformaId}`,
     },
     {
-      dataIndex: "client",
+      dataIndex: "proforma",
       title: "Cliente",
       width: "fit-content",
       align: "center",
-    },
-    {
-      dataIndex: "totalUnits",
-      title: "Tot. Final",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "user",
-      title: "Cobro",
-      width: "fit-content",
-      align: "center",
+      render: (proforma) => proforma.client.name,
     },
     {
       dataIndex: "total",
+      title: "Tot. Final",
+      width: "fit-content",
+      align: "center",
+      render: (total) => `S/.${(total / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "initialPayment",
+      title: "Cobro",
+      width: "fit-content",
+      align: "center",
+      render: (initialPayment) => `S/.${(initialPayment / 100).toFixed(2)}`,
+      
+    },
+    {
+      dataIndex: "paymentMethod",
       title: "Medio de Pago",
       width: "fit-content",
       align: "center",
     },
 
     {
-      dataIndex: "sale",
+      dataIndex: "receivedAmount",
       title: "Recibido",
       width: "fit-content",
       align: "center",
+      render: (receivedAmount) => `S/.${(receivedAmount / 100).toFixed(2)}`,
     },
 
     {
-      dataIndex: "sale",
       title: "Vuelto",
       width: "fit-content",
       align: "center",
+      render: (id, dataSale) => `S/.${((dataSale.receivedAmount - dataSale.initialPayment) / 100).toFixed(2)}`,
     },
   ];
 
   const [windowHeight, setWindowHeight] = useState(0);
+  const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
@@ -143,6 +155,29 @@ export default ({ setPageTitle }) => {
     return [defaultOption, ...options];
   };
 
+  //Trae todas las ventas
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const _sales = await getSales("PAID");
+        setPagination({
+          position: ["bottomCenter"],
+          total: _sales.count,
+          current: _sales.page,
+          pageSize: _sales.pageSize,
+          showSizeChanger: false,
+        });
+        setsales(_sales.rows);
+      } catch (error) {
+        notification.error({
+          message: "Error en el servidor",
+          description: error.message,
+        });
+      }
+    };
+    fetchSales();
+  }, [toggleUpdateTable]);
+
   return (
     <>
       <Container height="20%">
@@ -191,10 +226,7 @@ export default ({ setPageTitle }) => {
             onChange={(value) => setUserId(value)}
             options={usersList()}
           />
-          <Button
-            type="primary"
-            gridColumnStart="4"
-          >
+          <Button type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
@@ -205,6 +237,7 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={pagination}
+          dataSource={orderBy(sales, "id", "asc")}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
