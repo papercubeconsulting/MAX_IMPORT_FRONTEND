@@ -22,7 +22,6 @@ import {
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  const router = useRouter();
   setPageTitle("Historial de Caja");
   const columns = [
     {
@@ -74,7 +73,6 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (initialPayment) => `S/.${(initialPayment / 100).toFixed(2)}`,
-      
     },
     {
       dataIndex: "paymentMethod",
@@ -95,7 +93,11 @@ export default ({ setPageTitle }) => {
       title: "Vuelto",
       width: "fit-content",
       align: "center",
-      render: (id, dataSale) => `S/.${((dataSale.receivedAmount - dataSale.initialPayment) / 100).toFixed(2)}`,
+      render: (id, dataSale) =>
+        `S/.${(
+          (dataSale.receivedAmount - dataSale.initialPayment) /
+          100
+        ).toFixed(2)}`,
     },
   ];
 
@@ -116,6 +118,11 @@ export default ({ setPageTitle }) => {
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
   const [me, setMe] = useState({ name: null });
+
+  //extraccion de params de url
+  const stateUpdateOrigin = useRef("url");
+  const router = useRouter();
+  const queryParams = router.query;
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -155,11 +162,16 @@ export default ({ setPageTitle }) => {
     return [defaultOption, ...options];
   };
 
-  //Trae todas las ventas
+  //Trae todas las ventas segun queryParams
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales("PAID");
+        const _sales = await getSales({
+          status: "PAID",
+          type: "STORE",
+          ...queryParams,
+        });
+        /* console.log("query", queryParams); */
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,
@@ -176,7 +188,30 @@ export default ({ setPageTitle }) => {
       }
     };
     fetchSales();
-  }, [toggleUpdateTable]);
+    if (stateUpdateOrigin.current === "url") {
+      urlToState();
+    }
+  }, [queryParams, toggleUpdateTable]);
+
+  const stateToUrl = async () => {
+    const params = {};
+    from && (params.paidAtFrom = from.format(serverDateFormat));
+    to && (params.paidAtTo = to.format(serverDateFormat));
+    page && (params.page = page);
+    documentNumber && (params.proformaId = documentNumber);
+    userId && (params.cashierId = userId);
+    await router.push(`/cashHistory${urlQueryParams(params)}`);
+  };
+
+  const searchWithState = () => {
+    stateToUrl();
+  };
+
+  const urlToState = () => {
+    setPage(queryParams.page || null);
+    setDocumentNumber(queryParams.id || null);
+    setUserId(queryParams.userId || null);
+  };
 
   return (
     <>
@@ -226,7 +261,11 @@ export default ({ setPageTitle }) => {
             onChange={(value) => setUserId(value)}
             options={usersList()}
           />
-          <Button type="primary" gridColumnStart="4">
+          <Button
+            type="primary"
+            gridColumnStart="4"
+            onClick={async () => searchWithState()}
+          >
             Buscar
           </Button>
         </Grid>
