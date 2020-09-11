@@ -141,8 +141,6 @@ export default () => {
               addonBefore="Averiados"
               value={stockByType("Averiado")}
             />
-          </Grid>
-          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <Input
               disabled
               addonBefore="Compatibilidad"
@@ -152,6 +150,11 @@ export default () => {
               disabled
               addonBefore="Nombre comercial"
               value={get(product, "tradename", "-")}
+            />
+            <Input
+              disabled
+              addonBefore="Precio sugerido S/."
+              value={(get(product, "suggestedPrice", "-")/100).toFixed(2)}
             />
           </Grid>
         </Grid>
