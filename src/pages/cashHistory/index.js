@@ -219,7 +219,7 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
-      <Container height="20%">
+      <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <Grid
@@ -277,7 +277,7 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Table
           columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
+          scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
           dataSource={orderBy(sales, "id", "asc")}
