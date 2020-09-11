@@ -45,7 +45,11 @@ export default ({ setPageTitle }) => {
       title: "Cajero",
       width: "fit-content",
       align: "center",
-    },
+      render: (cashierId) => {
+        const _users = (users.filter(user => user.id === cashierId))[0]
+        return (_users && _users.name)
+    }
+  },
     {
       dataIndex: "proformaId",
       title: "Proforma",
