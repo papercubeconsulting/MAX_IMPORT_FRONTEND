@@ -37,6 +37,7 @@ export const AddProduct = props => {
                 const _providers = await getProviders();
 
                 setProviders(_providers);
+         
             } catch (error) {
                 notification.error({
                     message: "Error en el servidor",
@@ -57,6 +58,7 @@ export const AddProduct = props => {
                 if (family.id) {
                     const _subfamilies = await getSubfamilies(family.id);
                     setSubfamilies(_subfamilies)
+                    setSubfamily(_subfamilies[0]?_subfamilies[0]:{});
                 }
             } catch (error) {
                 notification.error({
@@ -78,6 +80,7 @@ export const AddProduct = props => {
                 if (subfamily.id) {
                     const _elements = await getElements(subfamily.id);
                     setElements(_elements)
+                    setElement(_elements[0]?_elements[0]:{})
                 }
             } catch (error) {
                 notification.error({
