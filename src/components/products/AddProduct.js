@@ -24,7 +24,7 @@ export const AddProduct = props => {
     const [provider, setProvider] = useState({});
     const [suggestedPrice, setSuggestedPrice] = useState(0);
     const [compatibility, setCompatibility] = useState(null);
-    const [tradename, setTradename] = useState(null);
+    const [tradename, setTradename] = useState("-");
     const [imageBase64, setImageBase64] = useState(null);
 
     useEffect(() => {
@@ -123,10 +123,10 @@ export const AddProduct = props => {
     };
 
     const confirmAddProduct = () => {
-        if (suggestedPrice <= 0) {
+        if (suggestedPrice < 0) {
             return notification.error({
                 message: "Error al intentar subir producto",
-                description: "El precio debe ser mayor que 0"
+                description: "El precio debe ser positivo"
             });
         }
 
@@ -137,7 +137,7 @@ export const AddProduct = props => {
             });
         }
 
-        if (!provider || !family || !subfamily || !element || !model || !tradename || !suggestedPrice) {
+        if (!provider || !family || !subfamily || !element || !model ) {
             return notification.error({
                 message: "Error al intentar subir producto",
                 description: "Verifique que todos los campos se hallan rellenado"
