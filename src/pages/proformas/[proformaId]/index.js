@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid } from "../../../components";
+import { Button, Container, Grid, ModalProduct } from "../../../components";
 import { getProforma } from "../../../providers";
 import { get } from "lodash";
-import { Input, Table } from "antd";
+import { Input, Table, Modal } from "antd";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Información de proforma");
@@ -85,8 +85,12 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      render: (id) => (
-        <Button padding="0 0.5rem" type="primary">
+      render: (id, product) => (
+        <Button padding="0 0.5rem" type="primary" onClick={() => {
+          setIsVisible(true);
+          setIdModal(product.productId);
+          console.log(product);
+        }}>
           VER
         </Button>
       ),
@@ -96,6 +100,10 @@ export default ({ setPageTitle }) => {
   //costumizadas por JM
   const [proforma, setProforma] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
+
+   //Modal
+   const [isVisible, setIsVisible] = useState(false);
+   const [idModal, setIdModal] = useState('');
 
   //para setear el tamaño de pantalla
   useEffect(() => {
@@ -117,6 +125,20 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+    <Modal
+        visible={isVisible}
+        width="90%"
+        height="100%"
+        title="Información del producto"
+        onCancel={() => setIsVisible(false)}
+        footer={[
+          <Button type="primary" onClick={() => setIsVisible(false)}>
+            Cerrar
+          </Button>,
+        ]}
+      >
+        <ModalProduct id={idModal}></ModalProduct>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={proformaId} disabled addonBefore="Proforma" />
