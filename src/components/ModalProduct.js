@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container } from "./Container";
 import { Grid } from "./Grid";
-import { useRouter } from "next/router";
 import { getProduct } from "../providers";
 import { get } from "lodash";
 import { Input, Modal, Table } from "antd";
@@ -15,7 +14,6 @@ const ImagePreviewContainer = styled(Container)`
 
 export const ModalProduct = (props) => {
     
-    console.log('id', props.id);
     const stockByWarehouseColumns = [
         {
           title: "Almacén",
@@ -65,6 +63,21 @@ export const ModalProduct = (props) => {
       const [product, setProduct] = useState(null);
       const [showImagePreview, setShowImagePreview] = useState(false);
     
+      useEffect(() => {
+        const fetchProduct = async () => {
+          try {
+            const _product = await getProduct(props.id);
+            setProduct(_product);
+          } catch (error) {
+            router.back();
+          }
+        };
+    
+        fetchProduct();
+      }, [props.id]);
+
+      console.log('product', product);
+    
       const stockByType = (type) => {
         const stockByWarehouseTypeArray = get(product, "stockByWarehouseType", []);
     
@@ -87,10 +100,9 @@ export const ModalProduct = (props) => {
               <img src={get(product, "imageBase64", null)} alt="image" />
             </ImagePreviewContainer>
           </Modal>
-          <Container height="20%" flexDirection="column">
-            <Grid gridTemplateRows="2fr 1fr" gridGap="1rem">
+          <Container height="fit-content" flexDirection="column">
               <Grid
-                gridTemplateColumns="repeat(4, 1fr)"
+                gridTemplateColumns="repeat(3, 1fr)"
                 gridTemplateRows="repeat(2, 2rem)"
                 gridGap="1rem"
               >
@@ -150,7 +162,6 @@ export const ModalProduct = (props) => {
                   value={(get(product, "suggestedPrice", "-")/100).toFixed(2)}
                 />
               </Grid>
-            </Grid>
           </Container>
           <Container
             height="80%"

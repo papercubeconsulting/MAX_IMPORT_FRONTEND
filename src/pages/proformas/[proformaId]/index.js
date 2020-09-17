@@ -86,11 +86,14 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (id, product) => (
-        <Button padding="0 0.5rem" type="primary" onClick={() => {
-          setIsVisible(true);
-          setIdModal(product.productId);
-          console.log(product);
-        }}>
+        <Button
+          padding="0 0.5rem"
+          type="primary"
+          onClick={() => {
+            setIsVisible(true);
+            setIdModal(product.productId);
+          }}
+        >
           VER
         </Button>
       ),
@@ -101,9 +104,9 @@ export default ({ setPageTitle }) => {
   const [proforma, setProforma] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
 
-   //Modal
-   const [isVisible, setIsVisible] = useState(false);
-   const [idModal, setIdModal] = useState('');
+  //Modal
+  const [isVisible, setIsVisible] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   //para setear el tamaño de pantalla
   useEffect(() => {
@@ -125,17 +128,12 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
-    <Modal
+      <Modal
         visible={isVisible}
         width="90%"
-        height="100%"
         title="Información del producto"
         onCancel={() => setIsVisible(false)}
-        footer={[
-          <Button type="primary" onClick={() => setIsVisible(false)}>
-            Cerrar
-          </Button>,
-        ]}
+        footer={null}
       >
         <ModalProduct id={idModal}></ModalProduct>
       </Modal>
@@ -244,8 +242,8 @@ export default ({ setPageTitle }) => {
             <br />
             <Button
               type="primary"
-              disabled={(proforma.status==="CLOSED")}
-              onClick={async () => router.push(`/proforma?id=${ proformaId }`)}
+              disabled={proforma.status === "CLOSED"}
+              onClick={async () => router.push(`/proforma?id=${proformaId}`)}
             >
               EDITAR
             </Button>
@@ -294,7 +292,7 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Container>
       <Button
-      width="20%"
+        width="20%"
         margin="2% 5% 2% 40%"
         type="primary"
         onClick={async () => router.push(`/proformas`)}
