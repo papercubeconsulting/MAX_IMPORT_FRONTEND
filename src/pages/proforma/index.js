@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, Icon, Select } from "../../components";
+import {
+  Button,
+  Container,
+  Grid,
+  Icon,
+  Select,
+  ModalProduct,
+} from "../../components";
 import {
   getElements,
   getFamilies,
@@ -17,7 +24,7 @@ import {
   putProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table, notification } from "antd";
+import { Input, Table, notification, Modal } from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
@@ -32,7 +39,7 @@ export default ({ setPageTitle }) => {
       title: "",
       width: "fit-content",
       align: "center",
-      render: (id, record, index) => (index + 1),
+      render: (id, record, index) => index + 1,
     },
     {
       title: "Cód. Inventario",
@@ -302,9 +309,18 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      render: (id) => (
+      render: (id, product) => (
         <>
-          <Button padding="0 0.25rem" margin="0 0.25rem" type="primary">
+          <Button
+            disabled={product.product ? false : true}
+            padding="0 0.25rem"
+            margin="0 0.25rem"
+            type="primary"
+            onClick={() => {
+              setIsVisible(true);
+              setIdModal(product.product.id);
+            }}
+          >
             VER
           </Button>
           <Button
@@ -315,7 +331,6 @@ export default ({ setPageTitle }) => {
               setproformaProducts((prevState) =>
                 prevState
                   .filter((proformaProduct) => {
-                    /* console.log(proformaProduct.id, id); */
                     return proformaProduct.id !== id;
                   })
                   .map((proformaProduct, index) => ({
@@ -357,6 +372,10 @@ export default ({ setPageTitle }) => {
 
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
+
+  //Modal
+  const [isVisible, setIsVisible] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   // Credit/Due states 2 way input
   const [paid, setPaid] = useState(0);
@@ -653,11 +672,9 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma actualizada correctamente",
         });
-        //console.log(_response);
         setProforma(_response);
       } else {
         //Guarda la proforma
-        /* console.log('proformaProducts', proformaProducts); */
         const _response = await postProforma({
           clientId,
           discount: Math.round(totalPrice * discountPercentage),
@@ -673,7 +690,6 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma guardada correctamente",
         });
-        /* console.log('resp', _response); */
         setProforma(_response);
       }
       setLoadingSaveProforma(false);
@@ -688,6 +704,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisible}
+        width="90%"
+        title="Información del producto"
+        onCancel={() => setIsVisible(false)}
+        footer={null}
+      >
+        <ModalProduct id={idModal}></ModalProduct>
+      </Modal>
       {isModalAddProformaVisible && (
         <AddProforma
           visible={isModalAddProformaVisible}
