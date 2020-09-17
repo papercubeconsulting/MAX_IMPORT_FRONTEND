@@ -10,7 +10,6 @@ import {
   Select,
 } from "../../components";
 import { getProformas, getUsers, userProvider } from "../../providers";
-//import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -107,7 +106,7 @@ export default ({ setPageTitle }) => {
       title: "A Cuenta",
       width: "fit-content",
       align: "center",
-      render: (sale) => sale? `S/.${(sale.credit / 100).toFixed(2)}` : "-",
+      render: (sale) => (sale ? `S/.${(sale.credit / 100).toFixed(2)}` : "-"),
     },
 
     {
@@ -115,7 +114,7 @@ export default ({ setPageTitle }) => {
       title: "Tot. Deuda",
       width: "fit-content",
       align: "center",
-      render: (sale) => sale? `S/.${(sale.due / 100).toFixed(2)}` : "-",
+      render: (sale) => (sale ? `S/.${(sale.due / 100).toFixed(2)}` : "-"),
     },
   ];
 

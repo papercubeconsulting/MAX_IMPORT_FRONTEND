@@ -75,8 +75,6 @@ export const ModalProduct = (props) => {
     
         fetchProduct();
       }, [props.id]);
-
-      console.log('product', product);
     
       const stockByType = (type) => {
         const stockByWarehouseTypeArray = get(product, "stockByWarehouseType", []);

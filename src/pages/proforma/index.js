@@ -317,10 +317,8 @@ export default ({ setPageTitle }) => {
             margin="0 0.25rem"
             type="primary"
             onClick={() => {
-              product.product && setIsVisible(true);
+              setIsVisible(true);
               setIdModal(product.product.id);
-              console.log("product", product);
-              console.log("productid", product.product && product.product.id);
             }}
           >
             VER
@@ -333,7 +331,6 @@ export default ({ setPageTitle }) => {
               setproformaProducts((prevState) =>
                 prevState
                   .filter((proformaProduct) => {
-                    /* console.log(proformaProduct.id, id); */
                     return proformaProduct.id !== id;
                   })
                   .map((proformaProduct, index) => ({
@@ -675,11 +672,9 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma actualizada correctamente",
         });
-        //console.log(_response);
         setProforma(_response);
       } else {
         //Guarda la proforma
-        /* console.log('proformaProducts', proformaProducts); */
         const _response = await postProforma({
           clientId,
           discount: Math.round(totalPrice * discountPercentage),
@@ -695,7 +690,6 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma guardada correctamente",
         });
-        /* console.log('resp', _response); */
         setProforma(_response);
       }
       setLoadingSaveProforma(false);
