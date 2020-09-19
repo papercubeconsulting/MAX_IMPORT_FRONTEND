@@ -192,6 +192,7 @@ export default ({ setPageTitle }) => {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
           paymentMethod: dataModal.paymentMethod,
+          paymentType: dataModal.paymentType,
           initialPayment: parseFloat(dataModal.initialPayment) * 100,
           receivedAmount: parseFloat(dataModal.received) * 100,
         });
@@ -199,6 +200,7 @@ export default ({ setPageTitle }) => {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
           paymentMethod: dataModal.paymentMethod,
+          paymentType: dataModal.paymentType,
           initialPayment: parseFloat(dataModal.initialPayment) * 100,
           referenceNumber: dataModal.referenceNumber,
         });
@@ -257,6 +259,36 @@ export default ({ setPageTitle }) => {
             >
               <Radio value={"SALE"}>Venta</Radio>
               <Radio value={"CONSIGNMENT"}>Consignación</Radio>
+            </RadioGroup>
+          </Grid>
+          <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+            <h3>Tipo de pago:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="4"
+              gridTemplateColumns="repeat(2, 1fr)"
+              value={dataModal.paymentType}
+              onChange={(event) => {
+                setsales((prevState) => {
+                  const remainingsales = prevState.filter(
+                    (_sale) => _sale.id !== dataModal.id
+                  );
+                  return [
+                    ...remainingsales,
+                    {
+                      ...dataModal,
+                      paymentType: event.target.value,
+                    },
+                  ];
+                });
+                setDataModal({
+                  ...dataModal,
+                  paymentType: event.target.value,
+                });
+              }}
+            >
+              <Radio value={"CASH"}>Al contado</Radio>
+              <Radio value={"CREDIT"}>Crédito</Radio>
             </RadioGroup>
           </Grid>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
