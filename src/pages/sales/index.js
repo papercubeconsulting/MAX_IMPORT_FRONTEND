@@ -86,7 +86,7 @@ export default ({ setPageTitle }) => {
       render: (id, dataSale) => (
         <Button
           onClick={() => {
-            setDataModal(dataSale);
+            setDataModal({ ...dataSale, paymentMethod: "Efectivo" });
             setIsVisible(true);
             setIdCondition(dataSale.id);
             setName(dataSale.proforma.client.name);
@@ -153,7 +153,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales({status: "DUE"});
+        const _sales = await getSales({ status: "DUE" });
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,
@@ -175,11 +175,11 @@ export default ({ setPageTitle }) => {
         setName(_sales.rows[0].proforma.client.name);
         setLastName(_sales.rows[0].proforma.client.lastname);
       } catch (error) {
-       /*  notification.error({
+        /*  notification.error({
           message: "Error en el servidor",
           description: error.message,
         }); */
-        console.log(error)
+        console.log(error);
       }
     };
     fetchSales();
@@ -188,7 +188,8 @@ export default ({ setPageTitle }) => {
   const onPutSale = async () => {
     try {
       let _response;
-      if (dataModal.paymentMethod === "Efectivo") {
+      console.log("dataModal", dataModal);
+       if (dataModal.paymentMethod === "Efectivo") {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
           paymentMethod: dataModal.paymentMethod,
@@ -209,7 +210,7 @@ export default ({ setPageTitle }) => {
         message: "Pago a Cuenta registrado exitosamente",
       });
       setIsVisible(false);
-      setToggleUpdateTable(true)
+      setToggleUpdateTable(true);
     } catch (error) {
       notification.error({
         message: error.message,
@@ -278,12 +279,28 @@ export default ({ setPageTitle }) => {
                     {
                       ...dataModal,
                       paymentType: event.target.value,
+                      initialPayment:
+                        event.target.value === "CREDIT"
+                          ? dataModal.total / 100
+                          : dataModal.initialPayment,
+                      received:
+                        event.target.value === "CREDIT"
+                          ? dataModal.total / 100
+                          : dataModal.received,
                     },
                   ];
                 });
                 setDataModal({
                   ...dataModal,
                   paymentType: event.target.value,
+                  initialPayment:
+                    event.target.value === "CREDIT"
+                      ? dataModal.total / 100
+                      : dataModal.initialPayment,
+                  received:
+                    event.target.value === "CREDIT"
+                      ? dataModal.total / 100
+                      : dataModal.received,
                 });
               }}
             >
@@ -300,20 +317,9 @@ export default ({ setPageTitle }) => {
             />
           </Grid>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-              <h3>Pago a Cuenta:</h3>
-              <Checkbox
-                checked={dataModal.check}
-                onChange={(event) => {
-                  setDataModal({
-                    ...dataModal,
-                    check: !dataModal.check,
-                  });
-                }}
-              />
-            </Grid>
+            <h3>Pago a Cuenta:</h3>
             <Input
-              disabled={dataModal.check}
+              disabled={dataModal.paymentType === "CREDIT" ? true : false}
               value={dataModal.initialPayment}
               min={0}
               onChange={(event) => {
