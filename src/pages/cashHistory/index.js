@@ -13,12 +13,7 @@ import { orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
-import {
-  urlQueryParams,
-  clientDateFormat,
-  serverDateFormat,
-  clientHourFormat,
-} from "../../util";
+import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -26,19 +21,13 @@ export default ({ setPageTitle }) => {
   const columns = [
     {
       dataIndex: "paidAt",
-      title: "Fecha",
+      title: "Fecha y Hora",
       width: "fit-content",
       align: "center",
       render: (paidAt) =>
-        moment(paidAt, serverDateFormat).format(clientDateFormat),
-    },
-
-    {
-      dataIndex: "paidAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      render: (paidAt) => moment(paidAt).format(clientHourFormat),
+        `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
+          "hh:mm"
+        )}`,
     },
     {
       dataIndex: "cashierId",
@@ -46,10 +35,10 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (cashierId) => {
-        const _users = (users.filter(user => user.id === cashierId))[0]
-        return (_users && _users.name)
-    }
-  },
+        const _users = users.filter((user) => user.id === cashierId)[0];
+        return _users && _users.name;
+      },
+    },
     {
       dataIndex: "proformaId",
       title: "Proforma",
@@ -84,13 +73,20 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
     },
+    {
+      dataIndex: "referenceNumber",
+      title: "Número de referencia",
+      width: "fit-content",
+      align: "center",
+      render: (referenceNumber) => (referenceNumber ? referenceNumber : "-"),
+    },
 
     {
       dataIndex: "receivedAmount",
       title: "Recibido",
       width: "fit-content",
       align: "center",
-      render: (receivedAmount) => `S/.${(receivedAmount / 100).toFixed(2)}`,
+      render: (receivedAmount, dataSale) => dataSale.paymentMethod === "Efectivo"? `S/.${(receivedAmount / 100).toFixed(2)}` : "-",
     },
 
     {
@@ -98,10 +94,12 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (id, dataSale) =>
-        `S/.${(
-          (dataSale.receivedAmount - dataSale.initialPayment) /
-          100
-        ).toFixed(2)}`,
+        dataSale.paymentMethod === "Efectivo"
+          ? `S/.${(
+              (dataSale.receivedAmount - dataSale.initialPayment) /
+              100
+            ).toFixed(2)}`
+          : "-",
     },
   ];
 
@@ -173,9 +171,11 @@ export default ({ setPageTitle }) => {
         const _sales = await getSales({
           status: "PAID",
           type: "STORE",
+          paidAtFrom: from.format(serverDateFormat),
+          paidAtTo: to.format(serverDateFormat),
           ...queryParams,
         });
-        /* console.log("query", queryParams); */
+        console.log("query", queryParams);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,
@@ -280,7 +280,7 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={orderBy(sales, "id", "asc")}
+          dataSource={sales}
           onChange={(pagination) => setPage(pagination.current)}
         />
       </Container>
