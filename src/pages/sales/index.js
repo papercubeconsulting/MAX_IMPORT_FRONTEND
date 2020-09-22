@@ -169,8 +169,8 @@ export default ({ setPageTitle }) => {
           _sales.rows.map((elem) => {
             return {
               ...elem,
-              initialPayment: elem.initialPayment / 100,
-              received: elem.initialPayment / 100,
+              initialPayment: (elem.initialPayment / 100).toFixed(2),
+              received: (elem.initialPayment / 100).toFixed(2),
               check: true,
             };
           })
@@ -192,7 +192,7 @@ export default ({ setPageTitle }) => {
   const onPutSale = async () => {
     try {
       let _response;
-      console.log("dataModal", dataModal);
+      /* console.log("dataModal", dataModal); */
       if (dataModal.paymentMethod === "Efectivo") {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
