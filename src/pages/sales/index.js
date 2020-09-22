@@ -86,7 +86,11 @@ export default ({ setPageTitle }) => {
       render: (id, dataSale) => (
         <Button
           onClick={() => {
-            setDataModal({ ...dataSale, paymentMethod: "Efectivo" });
+            setDataModal({
+              ...dataSale,
+              paymentMethod: "Efectivo",
+              initial: dataSale.initialPayment,
+            });
             setIsVisible(true);
             setIdCondition(dataSale.id);
             setName(dataSale.proforma.client.name);
@@ -189,7 +193,7 @@ export default ({ setPageTitle }) => {
     try {
       let _response;
       console.log("dataModal", dataModal);
-       if (dataModal.paymentMethod === "Efectivo") {
+      if (dataModal.paymentMethod === "Efectivo") {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
           paymentMethod: dataModal.paymentMethod,
@@ -213,7 +217,7 @@ export default ({ setPageTitle }) => {
       setToggleUpdateTable(true);
     } catch (error) {
       notification.error({
-        message: error.message,
+        message: error.userMessage,
       });
     }
   };
@@ -280,12 +284,12 @@ export default ({ setPageTitle }) => {
                       ...dataModal,
                       paymentType: event.target.value,
                       initialPayment:
-                        event.target.value === "CREDIT"
-                          ? dataModal.total / 100
+                        event.target.value === "CASH"
+                          ? dataModal.initial
                           : dataModal.initialPayment,
                       received:
-                        event.target.value === "CREDIT"
-                          ? dataModal.total / 100
+                        event.target.value === "CASH"
+                          ? dataModal.initial
                           : dataModal.received,
                     },
                   ];
@@ -294,13 +298,10 @@ export default ({ setPageTitle }) => {
                   ...dataModal,
                   paymentType: event.target.value,
                   initialPayment:
-                    event.target.value === "CREDIT"
-                      ? dataModal.total / 100
+                    event.target.value === "CASH"
+                      ? dataModal.initial
                       : dataModal.initialPayment,
-                  received:
-                    event.target.value === "CREDIT"
-                      ? dataModal.total / 100
-                      : dataModal.received,
+                  received: dataModal.initial,
                 });
               }}
             >
@@ -319,7 +320,7 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
             <h3>Pago a Cuenta:</h3>
             <Input
-              disabled={dataModal.paymentType === "CREDIT" ? true : false}
+              disabled={dataModal.paymentType === "CASH" ? true : false}
               value={dataModal.initialPayment}
               min={0}
               onChange={(event) => {
