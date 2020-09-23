@@ -687,10 +687,8 @@ export default ({ setPageTitle }) => {
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
-        notification.success({
-          message: "Proforma guardada correctamente",
-        });
         setProforma(_response);
+        success(_response.id);
       }
       setLoadingSaveProforma(false);
       setSalesActivated(true);
@@ -700,6 +698,14 @@ export default ({ setPageTitle }) => {
       });
       setLoadingSaveProforma(false);
     }
+  };
+
+  // Modal de confirmación de creación de proforma
+
+  const success = (id) => {
+    Modal.success({
+      title: `La proforma N°${id} ha sido guardada correctamente`,
+    });
   };
 
   return (
