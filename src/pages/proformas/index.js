@@ -92,18 +92,18 @@ export default ({ setPageTitle }) => {
 
     {
       dataIndex: "sale",
-      title: "A Cuenta",
+      title: "Pagado",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/.${(sale.credit / 100).toFixed(2)}` : "-"),
+      render: (sale) => (sale ? `S/.${(sale.due / 100).toFixed(2)}` : "-"),
     },
 
     {
       dataIndex: "sale",
-      title: "Tot. Deuda",
+      title: "Crédito",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/.${(sale.due / 100).toFixed(2)}` : "-"),
+      render: (sale) => (sale ? `S/.${(sale.credit / 100).toFixed(2)}` : "-"),
     },
   ];
 
