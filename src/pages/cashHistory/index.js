@@ -7,10 +7,10 @@ import {
   Grid,
   Icon,
   Select,
+  ModalProforma,
 } from "../../components";
 import { getSales, getUsers, userProvider } from "../../providers";
-import { orderBy } from "lodash";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Modal } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
@@ -44,7 +44,16 @@ export default ({ setPageTitle }) => {
       title: "Proforma",
       width: "fit-content",
       align: "center",
-      render: (proformaId) => `N° ${proformaId}`,
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
     {
       dataIndex: "proforma",
@@ -86,7 +95,10 @@ export default ({ setPageTitle }) => {
       title: "Recibido",
       width: "fit-content",
       align: "center",
-      render: (receivedAmount, dataSale) => dataSale.paymentMethod === "Efectivo"? `S/.${(receivedAmount / 100).toFixed(2)}` : "-",
+      render: (receivedAmount, dataSale) =>
+        dataSale.paymentMethod === "Efectivo"
+          ? `S/.${(receivedAmount / 100).toFixed(2)}`
+          : "-",
     },
 
     {
@@ -125,6 +137,10 @@ export default ({ setPageTitle }) => {
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
+
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -178,7 +194,7 @@ export default ({ setPageTitle }) => {
         console.log("query", queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _sales.pageSize*_sales.pages,
+          total: _sales.pageSize * _sales.pages,
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
@@ -229,6 +245,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalProforma}
+        width="90%"
+        title="Información de la proforma"
+        onCancel={() => setIsVisibleModalProforma(false)}
+        footer={null}
+      >
+        <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
