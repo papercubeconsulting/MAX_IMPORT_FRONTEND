@@ -178,7 +178,7 @@ export default ({ setPageTitle }) => {
         console.log("query", queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _sales.count,
+          total: _sales.pageSize*_sales.pages,
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
@@ -197,6 +197,10 @@ export default ({ setPageTitle }) => {
     }
   }, [queryParams, toggleUpdateTable]);
 
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
+
   const stateToUrl = async () => {
     const params = {};
     from && (params.paidAtFrom = from.format(serverDateFormat));
@@ -212,9 +216,15 @@ export default ({ setPageTitle }) => {
   };
 
   const urlToState = () => {
-    setPage(queryParams.page || null);
+    setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
   };
 
   return (
@@ -281,7 +291,10 @@ export default ({ setPageTitle }) => {
           bordered
           pagination={pagination}
           dataSource={sales}
-          onChange={(pagination) => setPage(pagination.current)}
+          /* onChange={(pagination) => setPage(pagination.current)} */
+          onChange={(pagination) =>
+            updateState(setPage, pagination.current, true)
+          }
         />
       </Container>
       <Container height="15%">
