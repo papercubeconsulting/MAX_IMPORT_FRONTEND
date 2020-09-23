@@ -221,8 +221,8 @@ export default ({ setPageTitle }) => {
             <br />
             <Input
               value={
-                proforma.sale?.credit
-                  ? `S/.${(proforma.sale.credit / 100).toFixed(2)}`
+                proforma.sale?.due
+                  ? `S/.${(proforma.sale.due / 100).toFixed(2)}`
                   : `-`
               }
               disabled
@@ -232,8 +232,8 @@ export default ({ setPageTitle }) => {
 
             <Input
               value={
-                proforma.sale?.due
-                  ? `S/.${(proforma.sale.due / 100).toFixed(2)}`
+                proforma.sale?.credit
+                  ? `S/.${(proforma.sale.credit / 100).toFixed(2)}`
                   : `-`
               }
               disabled
