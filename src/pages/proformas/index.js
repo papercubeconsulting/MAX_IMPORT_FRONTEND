@@ -13,12 +13,7 @@ import { getProformas, getUsers, userProvider } from "../../providers";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
-import {
-  urlQueryParams,
-  clientDateFormat,
-  serverDateFormat,
-  clientHourFormat,
-} from "../../util";
+import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -41,19 +36,13 @@ export default ({ setPageTitle }) => {
     },
     {
       dataIndex: "createdAt",
-      title: "Fecha",
+      title: "Fecha de creación",
       width: "fit-content",
       align: "center",
       render: (createdAt) =>
-        moment(createdAt, serverDateFormat).format(clientDateFormat),
-    },
-
-    {
-      dataIndex: "createdAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      render: (createdAt) => moment(createdAt).format(clientHourFormat),
+        `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
       dataIndex: "id",
