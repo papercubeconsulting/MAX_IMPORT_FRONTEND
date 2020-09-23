@@ -6,6 +6,7 @@ import {
   Grid,
   Icon,
   Select,
+  ModalProforma,
 } from "../../components";
 import { RadioGroup } from "../../components/RadioGroup";
 import { getSales, getUsers, userProvider, putSale } from "../../providers";
@@ -41,7 +42,16 @@ export default ({ setPageTitle }) => {
       dataIndex: "proformaId",
       title: "Proforma",
       align: "center",
-      render: (proformaId) => `N° ${proformaId}`,
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
 
     {
@@ -129,6 +139,10 @@ export default ({ setPageTitle }) => {
 
   //Modal
   const [isVisible, setIsVisible] = useState(false);
+
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -487,6 +501,15 @@ export default ({ setPageTitle }) => {
             </Grid>
           )}
         </Grid>
+      </Modal>
+      <Modal
+        visible={isVisibleModalProforma}
+        width="90%"
+        title="Información de la proforma"
+        onCancel={() => setIsVisibleModalProforma(false)}
+        footer={null}
+      >
+        <ModalProforma id={idModal}></ModalProforma>
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
