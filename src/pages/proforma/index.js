@@ -50,49 +50,10 @@ export default ({ setPageTitle }) => {
     },
     {
       title: "Modelo",
-      dataIndex: "modelId",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (modelId, proformaProduct) => (
-        <Select
-          value={modelId}
-          onChange={async (value) => {
-            const product = await getProduct(value, { noStock: true });
-
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  id: proformaProduct.id,
-                  dbId: proformaProduct.dbId,
-                  productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity
-                    ? proformaProduct.quantity
-                    : 1,
-                  boxSize: proformaProduct.boxSize,
-                  familyId: proformaProduct.familyId,
-                  subfamilyId: proformaProduct.subfamilyId,
-                  elementId: proformaProduct.elementId,
-                  modelId: value,
-                  product: {
-                    ...product,
-                    suggestedPrice: product.suggestedPrice / 100,
-                  },
-                },
-              ];
-            });
-          }}
-          options={selectOptions(
-            models.filter(
-              (model) => model.elementId === proformaProduct.elementId
-            )
-          )}
-        />
-      ),
+      render: (product) => get(product, "modelName", null),
     },
     {
       title: "Nombre comercial",
@@ -195,11 +156,6 @@ export default ({ setPageTitle }) => {
         `S/.${(
           get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
         ).toFixed(2)}`,
-      /*
-        render: (id, row) =>
-        `S/.${(
-          price * get(row, "quantity", 0)
-        ).toFixed(2)}`,*/
     },
     {
       title: "Disponibilidad",
@@ -636,7 +592,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={addNewProduct}
         width="60%"
-        title="Seleccione el producto"
+        title="Seleccione datos del producto que desea agregar"
         onCancel={() => {
           setAddNewProduct(false);
           resetDataModal();
@@ -654,9 +610,8 @@ export default ({ setPageTitle }) => {
           <Button
             key="submit"
             type="primary"
-            onClick={() =>
+            onClick={() => {
               setproformaProducts((prevState) => {
-                /* console.log("viendo", prevState); */
                 return [
                   ...prevState,
                   {
@@ -672,8 +627,10 @@ export default ({ setPageTitle }) => {
                     },
                   },
                 ];
-              })
-            }
+              });
+              setAddNewProduct(false);
+              resetDataModal();
+            }}
           >
             Continuar
           </Button>,
@@ -681,11 +638,13 @@ export default ({ setPageTitle }) => {
       >
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Select
+            value={familyId}
             label="Familia"
             onChange={(value) => setFamilyId(value)}
             options={selectOptions(families)}
           />
           <Select
+            value={subFamilyId}
             label="subFamilia"
             onChange={(value) => setSubFamilyId(value)}
             options={selectOptions(
@@ -693,6 +652,7 @@ export default ({ setPageTitle }) => {
             )}
           />
           <Select
+            value={elementId}
             label="Elemento"
             onChange={(value) => setElementId(value)}
             options={selectOptions(
@@ -700,6 +660,7 @@ export default ({ setPageTitle }) => {
             )}
           />
           <Select
+            value={modelId}
             label="Modelo"
             onChange={async (value) => {
               setModelId(value);
@@ -711,7 +672,7 @@ export default ({ setPageTitle }) => {
               models.filter((model) => model.elementId === elementId)
             )}
           />
-          <Input addonBefore="Código" value={product.code} disabled />
+          <Input addonBefore="Cód. Inventario" value={product.code} disabled />
           <Input
             addonBefore="Nombre comercial"
             value={product.tradename}
