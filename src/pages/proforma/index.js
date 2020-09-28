@@ -49,110 +49,6 @@ export default ({ setPageTitle }) => {
       render: (product) => get(product, "code", null),
     },
     {
-      title: "Familia",
-      dataIndex: "familyId",
-      width: "fit-content",
-      align: "center",
-      render: (familyId, proformaProduct) => (
-        <Select
-          value={familyId}
-          onChange={(value) =>
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  id: proformaProduct.id,
-                  dbId: proformaProduct.dbId,
-                  productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity,
-                  boxSize: proformaProduct.boxSize,
-                  familyId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(families)}
-        />
-      ),
-    },
-    {
-      title: "Sub-Familia",
-      dataIndex: "subfamilyId",
-      width: "fit-content",
-      align: "center",
-      render: (subfamilyId, proformaProduct) => (
-        <Select
-          value={subfamilyId}
-          onChange={(value) =>
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  id: proformaProduct.id,
-                  dbId: proformaProduct.dbId,
-                  productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity,
-                  boxSize: proformaProduct.boxSize,
-                  familyId: proformaProduct.familyId,
-                  subfamilyId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(
-            subfamilies.filter(
-              (subFamily) => subFamily.familyId === proformaProduct.familyId
-            )
-          )}
-        />
-      ),
-    },
-    {
-      title: "Elemento",
-      dataIndex: "elementId",
-      width: "fit-content",
-      align: "center",
-      render: (elementId, proformaProduct) => (
-        <Select
-          value={elementId}
-          onChange={(value) =>
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  id: proformaProduct.id,
-                  dbId: proformaProduct.dbId,
-                  productBoxes: proformaProduct.productBoxes,
-                  quantity: proformaProduct.quantity,
-                  boxSize: proformaProduct.boxSize,
-                  familyId: proformaProduct.familyId,
-                  subfamilyId: proformaProduct.subfamilyId,
-                  elementId: value,
-                },
-              ];
-            })
-          }
-          options={selectOptions(
-            elements.filter(
-              (element) => element.subfamilyId === proformaProduct.subfamilyId
-            )
-          )}
-        />
-      ),
-    },
-    {
       title: "Modelo",
       dataIndex: "modelId",
       width: "fit-content",
@@ -197,6 +93,13 @@ export default ({ setPageTitle }) => {
           )}
         />
       ),
+    },
+    {
+      title: "Nombre comercial",
+      dataIndex: "product",
+      width: "fit-content",
+      align: "center",
+      render: (product) => get(product, "tradename", null),
     },
     {
       title: "Cantidad",
@@ -373,7 +276,15 @@ export default ({ setPageTitle }) => {
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
 
-  //Modal
+  //Modal para agregar nuevo producto
+  const [addNewProduct, setAddNewProduct] = useState(true);
+  const [familyId, setFamilyId] = useState("");
+  const [subFamilyId, setSubFamilyId] = useState("");
+  const [elementId, setElementId] = useState("");
+  const [modelId, setModelId] = useState("");
+  const [product, setProduct] = useState("");
+
+  //Modal de informacion del producto
   const [isVisible, setIsVisible] = useState(false);
   const [idModal, setIdModal] = useState("");
 
@@ -675,6 +586,7 @@ export default ({ setPageTitle }) => {
         setProforma(_response);
       } else {
         //Guarda la proforma
+        console.log("a ver que se envia", proformaProducts);
         const _response = await postProforma({
           clientId,
           discount: Math.round(totalPrice * discountPercentage),
@@ -687,6 +599,7 @@ export default ({ setPageTitle }) => {
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
+        console.log("nueva proforma", _response);
         setProforma(_response);
         success(_response.id);
       }
@@ -708,8 +621,104 @@ export default ({ setPageTitle }) => {
     });
   };
 
+  // resetea data del modal addNewProduct
+
+  const resetDataModal = () => {
+    setFamilyId("");
+    setSubFamilyId("");
+    setElementId("");
+    setModelId("");
+    setProduct("");
+  };
+
   return (
     <>
+      <Modal
+        visible={addNewProduct}
+        width="60%"
+        title="Seleccione el producto"
+        onCancel={() => {
+          setAddNewProduct(false);
+          resetDataModal();
+        }}
+        footer={[
+          <Button
+            key="back"
+            onClick={() => {
+              setAddNewProduct(false);
+              resetDataModal();
+            }}
+          >
+            Cancelar
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={() =>
+              setproformaProducts((prevState) => {
+                /* console.log("viendo", prevState); */
+                return [
+                  ...prevState,
+                  {
+                    id: proformaProducts.length + 1,
+                    quantity: 1,
+                    familyId,
+                    subFamilyId,
+                    elementId,
+                    modelId,
+                    product: {
+                      ...product,
+                      suggestedPrice: product.suggestedPrice / 100,
+                    },
+                  },
+                ];
+              })
+            }
+          >
+            Continuar
+          </Button>,
+        ]}
+      >
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+          <Select
+            label="Familia"
+            onChange={(value) => setFamilyId(value)}
+            options={selectOptions(families)}
+          />
+          <Select
+            label="subFamilia"
+            onChange={(value) => setSubFamilyId(value)}
+            options={selectOptions(
+              subfamilies.filter((subFamily) => subFamily.familyId === familyId)
+            )}
+          />
+          <Select
+            label="Elemento"
+            onChange={(value) => setElementId(value)}
+            options={selectOptions(
+              elements.filter((element) => element.subfamilyId === subFamilyId)
+            )}
+          />
+          <Select
+            label="Modelo"
+            onChange={async (value) => {
+              setModelId(value);
+              const _product = await getProduct(value, { noStock: true });
+              setProduct(_product);
+              console.log("product", _product);
+            }}
+            options={selectOptions(
+              models.filter((model) => model.elementId === elementId)
+            )}
+          />
+          <Input addonBefore="Código" value={product.code} disabled />
+          <Input
+            addonBefore="Nombre comercial"
+            value={product.tradename}
+            disabled
+          />
+        </Grid>
+      </Modal>
       <Modal
         visible={isVisible}
         width="90%"
@@ -832,13 +841,16 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content" padding="2rem 1rem 1rem">
         <Button
           padding="0 0.5rem"
-          onClick={() =>
-            setproformaProducts((prevState) => [
-              ...prevState,
-              { id: proformaProducts.length + 1 },
-            ])
-          }
+          /* onClick={() =>
+            setproformaProducts((prevState) => {
+              console.log("viendo", prevState);
+              return [...prevState, { id: proformaProducts.length + 1 }];
+            })
+          } */
           type="primary"
+          onClick={() => {
+            setAddNewProduct(true);
+          }}
         >
           <Icon fontSize="1rem" icon={faPlus} />
           Agregar producto
