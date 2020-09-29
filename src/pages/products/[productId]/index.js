@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Container, Grid } from "../../../components";
+import { Container, Grid, Icon} from "../../../components";
 import { useRouter } from "next/router";
-import { getProduct } from "../../../providers";
+import { getProduct, updateProduct } from "../../../providers";
 import { get } from "lodash";
-import { Input, Modal, Table } from "antd";
+import {toBase64} from "../../../util";
+import { Input, Modal, Table, Button, notification, Upload } from "antd";
 import styled from "styled-components";
+import {faUpload} from "@fortawesome/free-solid-svg-icons";
 
 export default () => {
   const stockByWarehouseColumns = [
@@ -56,6 +58,12 @@ export default () => {
   const [product, setProduct] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
 
+  // campos editables de producto
+  const [suggestedPrice, setSuggestedPrice] = useState("");
+  const [compatibility, setCompatibility] = useState("");
+  const [tradename, setTradename] = useState("");
+  const [imageBase64, setImageBase64] = useState(null);
+
   const router = useRouter();
   const { productId } = router.query;
 
@@ -64,6 +72,10 @@ export default () => {
       try {
         const _product = await getProduct(productId);
         setProduct(_product);
+        console.log("product", _product);
+        setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
+        setCompatibility(_product.compatibility);
+        setTradename(_product.tradename);
       } catch (error) {
         router.back();
       }
@@ -80,6 +92,31 @@ export default () => {
     );
 
     return get(stockByWarehouseType, "stock", 0);
+  };
+
+  // Actualiza campos del producto
+
+  const updateProductFields = async () => {
+    console.log("campos", {
+      suggestedPrice: parseFloat(suggestedPrice) * 100,
+      compatibility,
+      tradename,
+    });
+    /* try {
+      const _response = await updateProduct(productId, {
+        suggestedPrice: parseFloat(suggestedPrice) * 100,
+        compatibility,
+        tradename,
+      });
+      console.log("resp", _response);
+      notification.success({
+        message: "Producto actualizado correctamente",
+      });
+    } catch (error) {
+      notification.error({
+        message: error.message,
+      });
+    } */
   };
 
   return (
@@ -142,20 +179,33 @@ export default () => {
               value={stockByType("Averiado")}
             />
             <Input
-              disabled
               addonBefore="Compatibilidad"
-              value={get(product, "compatibility", "-")}
+              value={compatibility}
+              onChange={(e) => {
+                setCompatibility(e.target.value);
+              }}
             />
             <Input
-              disabled
               addonBefore="Nombre comercial"
-              value={get(product, "tradename", "-")}
+              value={tradename}
+              onChange={(e) => {
+                setTradename(e.target.value);
+              }}
             />
             <Input
-              disabled
               addonBefore="Precio sugerido S/."
-              value={(get(product, "suggestedPrice", "-")/100).toFixed(2)}
+              value={suggestedPrice}
+              onChange={(e) => {
+                setSuggestedPrice(e.target.value);
+              }}
             />
+            <Button
+              type="primary"
+              gridColumnStart="4"
+              onClick={updateProductFields}
+            >
+              Actualizar
+            </Button>
           </Grid>
         </Grid>
       </Container>
@@ -199,6 +249,17 @@ export default () => {
                     alt="product-image"
                   />
                 )}
+                <Upload className="ant-upload-wrapper"
+                            beforeUpload={async file => {
+                                const encodedImage = await toBase64(file);
+                                setImageBase64(encodedImage);
+                            }}
+                            accept="image/png, image/jpeg">
+                        <Button>
+                            <Icon icon={faUpload}/>
+                            Imagen
+                        </Button>
+                    </Upload>
               </Container>
             </Grid>
           </div>
