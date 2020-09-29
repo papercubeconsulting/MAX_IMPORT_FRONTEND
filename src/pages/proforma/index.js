@@ -37,35 +37,32 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       title: "",
-      width: "fit-content",
+      width: "40px",
       align: "center",
       render: (id, record, index) => index + 1,
     },
     {
       title: "Cód. Inventario",
       dataIndex: "product",
-      width: "fit-content",
+      /* width: "fit-content", */
       align: "center",
       render: (product) => get(product, "code", null),
     },
     {
       title: "Modelo",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "modelName", null),
     },
     {
-      title: "Nombre comercial",
+      title: "Nombre Comercial",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "tradename", null),
     },
     {
       title: "Cantidad",
       dataIndex: "quantity",
-      width: "fit-content",
       align: "center",
       render: (quantity, proformaProduct) => (
         <Input
@@ -94,7 +91,6 @@ export default ({ setPageTitle }) => {
     {
       title: "Precio",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product, proformaProduct) => {
         return (
@@ -150,7 +146,6 @@ export default ({ setPageTitle }) => {
     {
       title: "Subtotal",
       dataIndex: "id",
-      width: "fit-content",
       align: "center",
       render: (id, row) =>
         `S/.${(
@@ -160,14 +155,13 @@ export default ({ setPageTitle }) => {
     {
       title: "Disponibilidad",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "availableStock", 0),
     },
     {
       dataIndex: "id",
-      width: "fit-content",
       align: "center",
+      width: "120px",
       render: (id, product) => (
         <>
           <Button
@@ -233,7 +227,7 @@ export default ({ setPageTitle }) => {
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
 
   //Modal para agregar nuevo producto
-  const [addNewProduct, setAddNewProduct] = useState(true);
+  const [addNewProduct, setAddNewProduct] = useState(false);
   const [familyId, setFamilyId] = useState("");
   const [subFamilyId, setSubFamilyId] = useState("");
   const [elementId, setElementId] = useState("");
@@ -592,7 +586,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={addNewProduct}
         width="60%"
-        title="Seleccione datos del producto que desea agregar"
+        title="Seleccione los datos del producto que desea agregar"
         onCancel={() => {
           setAddNewProduct(false);
           resetDataModal();
@@ -623,7 +617,7 @@ export default ({ setPageTitle }) => {
                     modelId,
                     product: {
                       ...product,
-                      suggestedPrice: product.suggestedPrice / 100,
+                      suggestedPrice: (product.suggestedPrice / 100).toFixed(2),
                     },
                   },
                 ];
@@ -645,7 +639,7 @@ export default ({ setPageTitle }) => {
           />
           <Select
             value={subFamilyId}
-            label="subFamilia"
+            label="Sub-Familia"
             onChange={(value) => setSubFamilyId(value)}
             options={selectOptions(
               subfamilies.filter((subFamily) => subFamily.familyId === familyId)
