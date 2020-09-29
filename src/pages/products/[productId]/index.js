@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { Container, Grid, Icon} from "../../../components";
+import { Container, Grid, Icon } from "../../../components";
 import { useRouter } from "next/router";
 import { getProduct, updateProduct } from "../../../providers";
 import { get } from "lodash";
-import {toBase64} from "../../../util";
+import { toBase64 } from "../../../util";
 import { Input, Modal, Table, Button, notification, Upload } from "antd";
 import styled from "styled-components";
-import {faUpload} from "@fortawesome/free-solid-svg-icons";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
 export default () => {
   const stockByWarehouseColumns = [
@@ -97,17 +97,26 @@ export default () => {
   // Actualiza campos del producto
 
   const updateProductFields = async () => {
-    console.log("campos", {
-      suggestedPrice: parseFloat(suggestedPrice) * 100,
-      compatibility,
-      tradename,
-    });
-    /* try {
-      const _response = await updateProduct(productId, {
-        suggestedPrice: parseFloat(suggestedPrice) * 100,
-        compatibility,
-        tradename,
-      });
+    try {
+      let body;
+      if (imageBase64) {
+        body = {
+          suggestedPrice: parseFloat(suggestedPrice) * 100,
+          compatibility,
+          tradename,
+          imageBase64,
+        };
+        console.log("si hay img");
+      } else {
+        body = {
+          suggestedPrice: parseFloat(suggestedPrice) * 100,
+          compatibility,
+          tradename,
+        };
+        console.log("no hay imagen subida");
+      }
+      console.log("campos", body);
+      const _response = await updateProduct(productId, body);
       console.log("resp", _response);
       notification.success({
         message: "Producto actualizado correctamente",
@@ -116,7 +125,7 @@ export default () => {
       notification.error({
         message: error.message,
       });
-    } */
+    }
   };
 
   return (
@@ -198,6 +207,9 @@ export default () => {
               onChange={(e) => {
                 setSuggestedPrice(e.target.value);
               }}
+              onBlur={(e) => {
+                setSuggestedPrice(parseFloat(e.target.value || "0").toFixed(2));
+              }}
             />
             <Button
               type="primary"
@@ -249,17 +261,19 @@ export default () => {
                     alt="product-image"
                   />
                 )}
-                <Upload className="ant-upload-wrapper"
-                            beforeUpload={async file => {
-                                const encodedImage = await toBase64(file);
-                                setImageBase64(encodedImage);
-                            }}
-                            accept="image/png, image/jpeg">
-                        <Button>
-                            <Icon icon={faUpload}/>
-                            Imagen
-                        </Button>
-                    </Upload>
+                <Upload
+                  className="ant-upload-wrapper"
+                  beforeUpload={async (file) => {
+                    const encodedImage = await toBase64(file);
+                    setImageBase64(encodedImage);
+                  }}
+                  accept="image/png, image/jpeg"
+                >
+                  <Button>
+                    <Icon icon={faUpload} />
+                    Imagen
+                  </Button>
+                </Upload>
               </Container>
             </Grid>
           </div>
