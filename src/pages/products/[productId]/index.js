@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Container, Grid, Icon } from "../../../components";
 import { useRouter } from "next/router";
 import { getProduct, updateProduct } from "../../../providers";
@@ -63,6 +63,7 @@ export default () => {
   const [compatibility, setCompatibility] = useState("");
   const [tradename, setTradename] = useState("");
   const [imageBase64, setImageBase64] = useState(null);
+  const [disabled, setDisabled] = useState(true);
 
   const router = useRouter();
   const { productId } = router.query;
@@ -72,7 +73,6 @@ export default () => {
       try {
         const _product = await getProduct(productId);
         setProduct(_product);
-        console.log("product", _product);
         setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
         setCompatibility(_product.compatibility);
         setTradename(_product.tradename);
@@ -127,6 +127,21 @@ export default () => {
       });
     }
   };
+
+  // habilitar o deshabilitar boton de actualizar
+  useEffect(() => {
+    if (
+      (suggestedPrice === (product?.suggestedPrice / 100).toFixed(2) ||
+        suggestedPrice === "") &&
+      (compatibility === product?.compatibility || compatibility === "") &&
+      (tradename === product?.tradename || tradename === "") &&
+      imageBase64 === null
+    ) {
+      setDisabled(true);
+    } else {
+      setDisabled(false);
+    }
+  }, [suggestedPrice, compatibility, tradename, imageBase64]);
 
   return (
     <>
@@ -215,6 +230,7 @@ export default () => {
               type="primary"
               gridColumnStart="4"
               onClick={updateProductFields}
+              disabled={disabled}
             >
               Actualizar
             </Button>
@@ -263,9 +279,16 @@ export default () => {
                 )}
                 <Upload
                   className="ant-upload-wrapper"
-                  beforeUpload={async (file) => {
-                    const encodedImage = await toBase64(file);
-                    setImageBase64(encodedImage);
+                  onChange={async (info) => {
+                    /* console.log("entender", info); */
+                    if (info.file.status === "done") {
+                      const encodedImage = await toBase64(
+                        info.file.originFileObj
+                      );
+                      setImageBase64(encodedImage);
+                    } else {
+                      setImageBase64(null);
+                    }
                   }}
                   accept="image/png, image/jpeg"
                 >
