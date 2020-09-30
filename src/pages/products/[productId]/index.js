@@ -118,6 +118,9 @@ export default () => {
       console.log("campos", body);
       const _response = await updateProduct(productId, body);
       console.log("resp", _response);
+      if (imageBase64) {
+        window.location.reload();
+      }
       notification.success({
         message: "Producto actualizado correctamente",
       });

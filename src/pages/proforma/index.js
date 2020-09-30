@@ -67,6 +67,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (quantity, proformaProduct) => (
         <Input
+          style={{ textAlign: "center" }}
           key={proformaProducts.length}
           value={quantity}
           onChange={(event) => {
@@ -89,12 +90,13 @@ export default ({ setPageTitle }) => {
       ),
     },
     {
-      title: "Precio",
+      title: "Precio S/",
       dataIndex: "product",
       align: "center",
       render: (product, proformaProduct) => {
         return (
           <Input
+            style={{ textAlign: "center" }}
             value={get(product, "suggestedPrice", 0)}
             min={0}
             onChange={(event) => {
@@ -137,7 +139,6 @@ export default ({ setPageTitle }) => {
               });
               event.persist();
             }}
-            addonBefore="S/."
           />
         );
       },
@@ -147,7 +148,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       align: "center",
       render: (id, row) =>
-        `S/.${(
+        `S/ ${(
           get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
         ).toFixed(2)}`,
     },
@@ -160,7 +161,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       align: "center",
-      width: "120px",
+      width: "110px",
       render: (id, product) => (
         <>
           <Button
@@ -795,12 +796,6 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content" padding="2rem 1rem 1rem">
         <Button
           padding="0 0.5rem"
-          /* onClick={() =>
-            setproformaProducts((prevState) => {
-              console.log("viendo", prevState);
-              return [...prevState, { id: proformaProducts.length + 1 }];
-            })
-          } */
           type="primary"
           onClick={() => {
             setAddNewProduct(true);
@@ -812,92 +807,96 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
-            <Input
-              value={paid}
-              type="number"
-              min={0}
-              onChange={(event) => {
-                setPaid(event.target.value);
-                setDue(
-                  (
-                    finalPrice -
-                    parseFloat(event.target.value || "0").toFixed(2)
-                  ).toFixed(2)
-                );
-              }}
-              onBlur={(event) => {
-                setPaid(parseFloat(event.target.value || "0").toFixed(2));
-                //TODO: Credit no puede ser negativo
-                setDue(
-                  (
-                    finalPrice -
-                    parseFloat(event.target.value || "0").toFixed(2)
-                  ).toFixed(2)
-                );
-              }}
-              addonBefore="A Cuenta S/."
-            />
-            <Input
-              value={due}
-              type="number"
-              min={0}
-              max={finalPrice}
-              onChange={(event) => {
-                setDue(event.target.value);
-                setPaid(
-                  (
-                    finalPrice -
-                    parseFloat(event.target.value || "0").toFixed(2)
-                  ).toFixed(2)
-                );
-              }}
-              onBlur={(event) => {
-                setDue(parseFloat(event.target.value || "0").toFixed(2));
-                //TODO: Due no puede ser mayor a finalPrice
-                setPaid(
-                  (
-                    finalPrice -
-                    parseFloat(event.target.value || "0").toFixed(2)
-                  ).toFixed(2)
-                );
-              }}
-              addonBefore="Deuda S/."
-            />
+          <Grid>
+            <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem">
+              <Input
+                value={paid}
+                type="number"
+                min={0}
+                onChange={(event) => {
+                  setPaid(event.target.value);
+                  setDue(
+                    (
+                      finalPrice -
+                      parseFloat(event.target.value || "0").toFixed(2)
+                    ).toFixed(2)
+                  );
+                }}
+                onBlur={(event) => {
+                  setPaid(parseFloat(event.target.value || "0").toFixed(2));
+                  //TODO: Credit no puede ser negativo
+                  setDue(
+                    (
+                      finalPrice -
+                      parseFloat(event.target.value || "0").toFixed(2)
+                    ).toFixed(2)
+                  );
+                }}
+                addonBefore="A Cuenta S/"
+              />
+              <Input
+                value={due}
+                type="number"
+                min={0}
+                max={finalPrice}
+                onChange={(event) => {
+                  setDue(event.target.value);
+                  setPaid(
+                    (
+                      finalPrice -
+                      parseFloat(event.target.value || "0").toFixed(2)
+                    ).toFixed(2)
+                  );
+                }}
+                onBlur={(event) => {
+                  setDue(parseFloat(event.target.value || "0").toFixed(2));
+                  //TODO: Due no puede ser mayor a finalPrice
+                  setPaid(
+                    (
+                      finalPrice -
+                      parseFloat(event.target.value || "0").toFixed(2)
+                    ).toFixed(2)
+                  );
+                }}
+                addonBefore="Deuda S/"
+              />
+            </Grid>
             <br />
-            <Button
-              onClick={onSaveProforma}
-              loading={loadingSaveProforma}
-              disabled={!(clientId && proformaProducts.length)}
-              type="primary"
-            >
-              Guardar
-            </Button>
-            <Button
-              type="primary"
-              disabled={!salesActivated}
-              onClick={() => handlePayButton(1)}
-            >
-              Venta en Tienda
-            </Button>
-            <Button
-              type="primary"
-              disabled={!salesActivated}
-              onClick={() => handlePayButton(2)}
-            >
-              Venta No Presencial
-            </Button>
+            <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+              <Button
+                onClick={onSaveProforma}
+                loading={loadingSaveProforma}
+                disabled={!(clientId && proformaProducts.length)}
+                type="primary"
+              >
+                Guardar
+              </Button>
+              <Button
+                type="primary"
+                disabled={!salesActivated}
+                onClick={() => handlePayButton(1)}
+              >
+                Venta en Tienda
+              </Button>
+              <Button
+                type="primary"
+                disabled={!salesActivated}
+                onClick={() => handlePayButton(2)}
+              >
+                Venta No Presencial
+              </Button>
+            </Grid>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
               disabled
               value={totalPrice.toFixed(2)}
-              addonBefore="Total S/."
+              addonBefore="Total S/"
             />
             <br />
             <Input
               value={discount}
-              addonBefore="Descuento S/."
+              addonBefore="Descuento S/"
               type="number"
               min={0}
               onChange={(event) => {
@@ -946,7 +945,7 @@ export default ({ setPageTitle }) => {
                 );
               }}
             />
-            <Input disabled value={finalPrice} addonBefore="Total Final S/." />
+            <Input disabled value={finalPrice} addonBefore="Total Final S/" />
             <br />
           </Grid>
         </Grid>
