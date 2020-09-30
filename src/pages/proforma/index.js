@@ -63,6 +63,7 @@ export default ({ setPageTitle }) => {
     {
       title: "Cantidad",
       dataIndex: "quantity",
+      width: "100px",
       align: "center",
       render: (quantity, proformaProduct) => (
         <Input
@@ -84,7 +85,6 @@ export default ({ setPageTitle }) => {
             });
             event.persist();
           }}
-          type="number"
         />
       ),
     },
@@ -96,7 +96,6 @@ export default ({ setPageTitle }) => {
         return (
           <Input
             value={get(product, "suggestedPrice", 0)}
-            type="number"
             min={0}
             onChange={(event) => {
               setproformaProducts((prevState) => {
