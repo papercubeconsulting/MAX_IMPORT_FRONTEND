@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import {
+  Button,
+  Container,
+  DatePicker,
+  Grid,
+  Icon,
+  Select,
+} from "../../components";
 import { getUsers, userProvider } from "../../providers";
 import { Input, notification, Table } from "antd";
 
@@ -9,11 +16,11 @@ import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Despachos");
+  setPageTitle("Historial de Despachos");
   const columns = [
     {
       dataIndex: "index",
-      title: "Turno",
+      title: "Nro",
       width: "fit-content",
       align: "center",
     },
@@ -23,9 +30,9 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       /* render: (paidAt) =>
-        `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-          "hh:mm"
-        )}`, */
+          `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
+            "hh:mm"
+          )}`, */
     },
     {
       dataIndex: "paidAt",
@@ -33,9 +40,9 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       /* render: (paidAt) =>
-          `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-            "hh:mm"
-          )}`, */
+            `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
+              "hh:mm"
+            )}`, */
     },
     {
       dataIndex: "proformaId",
@@ -43,10 +50,10 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       /* render: (proformaId) => (
-          <a>
-            N°{proformaId}
-          </a>
-        ), */
+            <a>
+              N°{proformaId}
+            </a>
+          ), */
     },
     {
       dataIndex: "proforma",
@@ -55,8 +62,14 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
+      dataIndex: "proforma",
+      title: "Despachador",
+      width: "fit-content",
+      align: "center",
+    },
+    {
       dataIndex: "total",
-      title: "Tip. Despacho",
+      title: "Tip. Desp.",
       width: "fit-content",
       align: "center",
     },
@@ -73,10 +86,16 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      title: "",
+      title: "Estatus",
       width: "fit-content",
       align: "center",
-      render: (id, dataSale) => <Button type={"primary"}>Atender</Button>,
+      /*  render: (id, dataSale) => <Button type={"primary"}>Atender</Button>, */
+    },
+    {
+      dataIndex: "paymentMethod",
+      title: "Fecha de atención",
+      width: "fit-content",
+      align: "center",
     },
   ];
 
@@ -85,8 +104,6 @@ export default ({ setPageTitle }) => {
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
-
-  //Datos del usuario
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
 
@@ -97,10 +114,6 @@ export default ({ setPageTitle }) => {
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
 
-  //para el filtro por cliente
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
-
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
@@ -110,7 +123,7 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  //Obtiene a los vendedores
+  //Obtiene a los usuarios
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -133,12 +146,12 @@ export default ({ setPageTitle }) => {
   /* useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getDispatches();
+        const _dispatches = await getDispatches({});
         setPagination({
           position: ["bottomCenter"],
-          total: _sales.pageSize * _sales.pages,
-          current: _sales.page,
-          pageSize: _sales.pageSize,
+          total: _dispatches.pageSize * _dispatches.pages,
+          current: _dispatches.page,
+          pageSize: _dispatches.pageSize,
           showSizeChanger: false,
         });
         setDispatches(_dispatches.rows);
@@ -165,7 +178,7 @@ export default ({ setPageTitle }) => {
     to && (params.paidAtTo = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    await router.push(`/dispatch${urlQueryParams(params)}`);
+    await router.push(`/cashHistory${urlQueryParams(params)}`);
   };
 
   const searchWithState = () => {
@@ -225,12 +238,8 @@ export default ({ setPageTitle }) => {
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-          <Input
-            value={name}
-            placeholder="Nombre/Razón Soc."
-            addonBefore="Cliente"
-          />
-          <Input value={lastName} placeholder="Apellidos" />
+          <Select label="Despachador" />
+          <Select label="Estado" />
           <Button
             type="primary"
             gridColumnStart="4"
@@ -257,9 +266,9 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             gridColumnStart="2"
-            onClick={async () => router.push(`/dispatchHistory`)}
+            onClick={async () => router.push(`/dispatch`)}
           >
-            Historial de Despachos
+            Regresar
           </Button>
         </Grid>
       </Container>
