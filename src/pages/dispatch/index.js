@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, DatePicker, Grid, Icon } from "../../components";
-import { getUsers, userProvider } from "../../providers";
+import { getUsers, userProvider, getProformas } from "../../providers";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -12,53 +12,51 @@ export default ({ setPageTitle }) => {
   setPageTitle("Despachos");
   const columns = [
     {
-      dataIndex: "index",
+      dataIndex: "id",
       title: "Turno",
       width: "fit-content",
       align: "center",
+      render: (id, data, index) => index + 1,
     },
     {
-      dataIndex: "paidAt",
+      dataIndex: "createdAt",
       title: "Fecha",
       width: "fit-content",
       align: "center",
-      /* render: (paidAt) =>
-        `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-          "hh:mm"
-        )}`, */
+      render: (createdAt) => moment(createdAt).format("DD/MM/YYYY"),
     },
     {
-      dataIndex: "paidAt",
+      dataIndex: "createdAt",
       title: "Hora",
       width: "fit-content",
       align: "center",
-      /* render: (paidAt) =>
-          `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-            "hh:mm"
-          )}`, */
+      render: (createdAt) => moment(createdAt).format("hh:mm"),
     },
     {
-      dataIndex: "proformaId",
+      dataIndex: "id",
       title: "Proforma",
       width: "fit-content",
       align: "center",
-      /* render: (proformaId) => (
+      /* render: (id) => (
           <a>
-            N°{proformaId}
+            N°{id}
           </a>
         ), */
+      render: (id) => `N°${id}`,
     },
     {
-      dataIndex: "proforma",
+      dataIndex: "client",
       title: "Cliente",
       width: "fit-content",
       align: "center",
+      render: (client) => client.name,
     },
     {
-      dataIndex: "total",
+      dataIndex: "sale",
       title: "Tip. Despacho",
       width: "fit-content",
       align: "center",
+      render: (sale) => sale.dispatchmentType,
     },
     {
       dataIndex: "initialPayment",
@@ -67,16 +65,17 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      dataIndex: "paymentMethod",
+      dataIndex: "totalUnits",
       title: "Unidades",
       width: "fit-content",
       align: "center",
+      render: (totalUnits) => totalUnits,
     },
     {
       title: "",
       width: "fit-content",
       align: "center",
-      render: (id, dataSale) => <Button type={"primary"}>Atender</Button>,
+      render: (id, data) => <Button type={"primary"}>Atender</Button>,
     },
   ];
 
@@ -94,12 +93,12 @@ export default ({ setPageTitle }) => {
   const [from, setFrom] = useState(moment().subtract(7, "days"));
   const [to, setTo] = useState(moment());
 
-  //para el filtro por nro doc
+  //para el filtro por nro proforma
   const [documentNumber, setDocumentNumber] = useState(null);
 
   //para el filtro por cliente
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setName] = useState(null);
+  const [lastName, setLastName] = useState(null);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -130,18 +129,22 @@ export default ({ setPageTitle }) => {
   }, []);
 
   //Trae todas los despachos segun queryParams
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getDispatches();
+        const _dispatches = await getProformas({
+          dispatchStatus: "OPEN",
+          ...queryParams,
+        });
         setPagination({
           position: ["bottomCenter"],
-          total: _sales.pageSize * _sales.pages,
-          current: _sales.page,
-          pageSize: _sales.pageSize,
+          total: _dispatches.pageSize * _dispatches.pages,
+          current: _dispatches.page,
+          pageSize: _dispatches.pageSize,
           showSizeChanger: false,
         });
         setDispatches(_dispatches.rows);
+        console.log("despachos", _dispatches);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -153,7 +156,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]); */
+  }, [queryParams, toggleUpdateTable]);
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -161,10 +164,12 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.paidAtFrom = from.format(serverDateFormat));
-    to && (params.paidAtTo = to.format(serverDateFormat));
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
-    documentNumber && (params.proformaId = documentNumber);
+    documentNumber && (params.id = documentNumber);
+    name && (params.name = name);
+    lastName && (params.lastname = lastName);
     await router.push(`/dispatch${urlQueryParams(params)}`);
   };
 
@@ -175,6 +180,8 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.id || null);
+    setName(queryParams.name || null);
+    setLastName(queryParams.lastname || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -229,8 +236,13 @@ export default ({ setPageTitle }) => {
             value={name}
             placeholder="Nombre/Razón Soc."
             addonBefore="Cliente"
+            onChange={(e) => setName(e.target.value)}
           />
-          <Input value={lastName} placeholder="Apellidos" />
+          <Input
+            value={lastName}
+            placeholder="Apellidos"
+            onChange={(e) => setLastName(e.target.value)}
+          />
           <Button
             type="primary"
             gridColumnStart="4"

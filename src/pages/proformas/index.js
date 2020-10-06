@@ -276,12 +276,16 @@ export default ({ setPageTitle }) => {
       label: "Todos",
     },
     {
-      value: "PENDING",
-      label: "Pendiente",
+      value: "COMPLETED",
+      label: "Despachado",
     },
     {
-      value: "DISPATCHED",
-      label: "Despachado",
+      value: "OPEN",
+      label: "Habilitado",
+    },
+    {
+      value: "LOCKED",
+      label: "Pendiente",
     },
   ];
 
