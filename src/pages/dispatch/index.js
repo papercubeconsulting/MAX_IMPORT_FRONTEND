@@ -59,10 +59,12 @@ export default ({ setPageTitle }) => {
       render: (sale) => sale.dispatchmentType,
     },
     {
-      dataIndex: "initialPayment",
+      dataIndex: "sale",
       title: "Agencia",
       width: "fit-content",
       align: "center",
+      render: (sale) =>
+        sale.dispatchmentType === "DELIVERY" ? sale.deliveryAgency.name : "-",
     },
     {
       dataIndex: "totalUnits",
