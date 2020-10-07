@@ -64,7 +64,7 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (sale) =>
-        sale.dispatchmentType ? sale.deliveryAgency.name : "-",
+        sale.dispatchmentType === "DELIVERY" ? sale.deliveryAgency.name : "-",
     },
     {
       dataIndex: "totalUnits",
