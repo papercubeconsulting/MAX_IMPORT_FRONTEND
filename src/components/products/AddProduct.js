@@ -146,11 +146,46 @@ export const AddProduct = (props) => {
         description: "Elija un proveedor de la lista indicada",
       });
     }
-
-    if (!provider || !family || !subfamily || !element || !model) {
+    if (!family.name) {
       return notification.error({
         message: "Error al intentar subir producto",
-        description: "Verifique que todos los campos se hallan rellenado",
+        description: "Ingrese una familia",
+      });
+    }
+    if (!family.code) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese el código de la familia",
+      });
+    }
+    if (!subfamily.name) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese una subfamilia",
+      });
+    }
+    if (!subfamily.code) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese el código de la subfamilia",
+      });
+    }
+    if (!element.name) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese un elemento",
+      });
+    }
+    if (!element.code) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese el código del elemento",
+      });
+    }
+    if (!model.name) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese un modelo",
       });
     }
 
@@ -233,7 +268,6 @@ export const AddProduct = (props) => {
       props.trigger(false);
 
       const response = await postProduct(body);
-      console.log("response", response);
 
       props.toggleUpdateTable((prevState) => !prevState);
 
@@ -242,7 +276,6 @@ export const AddProduct = (props) => {
         content: `Código de inventario: ${response.code}`,
       });
     } catch (error) {
-      console.log("error", error);
       Modal.error({
         title: "Error al crear nuevo ítem de inventario",
         content: error.userMessage,
