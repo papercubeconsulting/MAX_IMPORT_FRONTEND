@@ -21,3 +21,5 @@ export * from "./banks";
 export * from "./deliveryAgencies";
 
 export * from "./sales";
+
+export * from "./dispatches";
