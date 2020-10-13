@@ -54,13 +54,12 @@ export default ({ setPageTitle }) => {
       render: (sale) => sale.dispatchmentType,
     },
     {
-      dataIndex: "dispatchmentType",
+      dataIndex: "id",
       title: "Agencia",
       width: "fit-content",
       align: "center",
-      /* render: (dispatchmentType) =>
-        dispatchmentType === "DELIVERY" ? deliveryAgencyId : "-", */
-      render: (dispatchmentType) => dispatchmentType,
+      render: (id, data) =>
+        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
     },
     {
       dataIndex: "proforma",
@@ -174,7 +173,7 @@ export default ({ setPageTitle }) => {
     from && (params.from = from.format(serverDateFormat));
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
-    documentNumber && (params.id = documentNumber);
+    documentNumber && (params.proformaId = documentNumber);
     name && (params.name = name);
     lastName && (params.lastname = lastName);
     await router.push(`/dispatch${urlQueryParams(params)}`);
@@ -186,7 +185,7 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
+    setDocumentNumber(queryParams.proformaId || null);
     setName(queryParams.name || null);
     setLastName(queryParams.lastname || null);
   };

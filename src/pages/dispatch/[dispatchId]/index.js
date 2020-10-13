@@ -209,7 +209,7 @@ export default ({ setPageTitle }) => {
           />
         </Grid>
       </Container>
-      <Container padding="0px" width="100vw" height="35%">
+      <Container height="fit-content">
         <Table
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
