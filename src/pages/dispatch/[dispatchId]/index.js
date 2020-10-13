@@ -56,6 +56,12 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
+      title: "Cantidad despachada",
+      dataIndex: "dispatched",
+      width: "fit-content",
+      align: "center",
+    },
+    {
       title: "Disponibilidad",
       dataIndex: "product",
       width: "fit-content",
@@ -155,26 +161,47 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <Input
-            value={moment(dispatch.createdAt).format(clientDateFormat)}
+            value={moment().format(clientDateFormat)}
             disabled
             addonBefore="Fecha"
           />
           <Input value={dispatch.proformaId} disabled addonBefore="Proforma" />
-
-          <Input disabled addonBefore="Estatus" />
-
-          <Input disabled addonBefore="Cliente" />
-          <Input disabled />
-
-          <Input disabled addonBefore="DNI / RUC" />
-          <Input disabled addonBefore="Dirección" />
-
-          <Input disabled addonBefore="Departamento" />
-
-          <Input disabled addonBefore="Provincia" />
-
-          <Input disabled addonBefore="Distrito" />
-
+          <Input
+            value={dispatch.sale?.status === "DUE" ? "Adeuda" : "Pagado"}
+            disabled
+            addonBefore="Estatus"
+          />
+          <Input
+            value={dispatch.proforma?.client.name}
+            disabled
+            addonBefore="Cliente"
+          />
+          <Input value={dispatch.proforma?.client.lastname} disabled />
+          <Input
+            value={dispatch.proforma?.client.idNumber}
+            disabled
+            addonBefore="DNI / RUC"
+          />
+          <Input
+            value={dispatch.proforma?.client.address}
+            disabled
+            addonBefore="Dirección"
+          />
+          <Input
+            value={dispatch.proforma?.client.region}
+            disabled
+            addonBefore="Departamento"
+          />
+          <Input
+            value={dispatch.proforma?.client.province}
+            disabled
+            addonBefore="Provincia"
+          />
+          <Input
+            value={dispatch.proforma?.client.district}
+            disabled
+            addonBefore="Distrito"
+          />
           <Input
             value={dispatch.deliveryAgency?.name}
             disabled
