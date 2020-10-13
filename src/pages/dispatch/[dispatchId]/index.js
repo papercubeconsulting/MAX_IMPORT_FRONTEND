@@ -1,19 +1,11 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  Button,
-  Container,
-  Grid,
-  ModalProduct,
-  DatePicker,
-  Icon,
-} from "../../../components";
-import { userProvider } from "../../../providers";
+import { Button, Container, Grid, ModalProduct } from "../../../components";
+import { getDispatch, userProvider } from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal } from "antd";
 import moment from "moment";
 import { clientDateFormat } from "../../../util";
-import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Despacho de pedido");
@@ -34,24 +26,28 @@ export default ({ setPageTitle }) => {
       dataIndex: "product",
       width: "fit-content",
       align: "center",
+      render: (product) => get(product, "familyName", null),
     },
     {
       title: "Sub-Familia",
       dataIndex: "product",
       width: "fit-content",
       align: "center",
+      render: (product) => get(product, "subfamilyName", null),
     },
     {
       title: "Elemento",
       dataIndex: "product",
       width: "fit-content",
       align: "center",
+      render: (product) => get(product, "elementName", null),
     },
     {
       title: "Modelo",
       dataIndex: "product",
       width: "fit-content",
       align: "center",
+      render: (product) => get(product, "modelName", null),
     },
     {
       title: "Cantidad",
@@ -61,21 +57,24 @@ export default ({ setPageTitle }) => {
     },
     {
       title: "Disponibilidad",
-      dataIndex: "unitPrice",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
+      render: (product) => get(product, "availableStock", null),
     },
     {
-      dataIndex: "id",
+      dataIndex: "product",
       width: "fit-content",
       align: "center",
-      render: (id, product) => (
+      render: (product) => (
         <Button
           padding="0 0.5rem"
           type="primary"
           onClick={() => {
             setIsVisible(true);
-            setIdModal(product.productId);
+            console.log(product.id);
+            setIdModal(product.id);
+            console.log(product);
           }}
         >
           VER
@@ -83,10 +82,14 @@ export default ({ setPageTitle }) => {
       ),
     },
     {
-      title: "",
-      dataIndex: "subtotal",
+      dataIndex: "id",
       width: "fit-content",
       align: "center",
+      render: (id, product) => (
+        <Button padding="0 0.5rem" type="primary">
+          Despachar
+        </Button>
+      ),
     },
   ];
 
@@ -124,17 +127,18 @@ export default ({ setPageTitle }) => {
   }, []);
 
   //trae el despacho por Id
-  /* useMemo(() => {
+  useMemo(() => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
+        console.log(_dispatch);
         setDispatch(_dispatch);
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     };
     dispatchId && fetchProforma();
-  }, [router]); */
+  }, [router]);
 
   return (
     <>
@@ -150,8 +154,12 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
-          <Input disabled addonBefore="Fecha" />
-          <Input disabled addonBefore="Proforma" />
+          <Input
+            value={moment(dispatch.createdAt).format(clientDateFormat)}
+            disabled
+            addonBefore="Fecha"
+          />
+          <Input value={dispatch.proformaId} disabled addonBefore="Proforma" />
 
           <Input disabled addonBefore="Estatus" />
 
@@ -167,7 +175,11 @@ export default ({ setPageTitle }) => {
 
           <Input disabled addonBefore="Distrito" />
 
-          <Input disabled addonBefore="Agencia" />
+          <Input
+            value={dispatch.deliveryAgency?.name}
+            disabled
+            addonBefore="Agencia"
+          />
         </Grid>
       </Container>
       <Container padding="0px" width="100vw" height="35%">
@@ -176,7 +188,9 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
           pagination={false}
-          dataSource={dispatch}
+          dataSource={
+            dispatch.dispatchedProducts ? dispatch.dispatchedProducts : []
+          }
         />
       </Container>
       <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
