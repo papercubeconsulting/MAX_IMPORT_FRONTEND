@@ -91,9 +91,13 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      render: (id, product) => (
-        <Button padding="0 0.5rem" type="primary">
-          Despachar
+      render: (id, data) => (
+        <Button
+          disabled={data.quantity === data.dispatched}
+          padding="0 0.5rem"
+          type="primary"
+        >
+          {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
         </Button>
       ),
     },
