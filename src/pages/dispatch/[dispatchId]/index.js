@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getDispatch, userProvider } from "../../../providers";
+import { getDispatch, userProvider, getProductBox } from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal, Checkbox } from "antd";
 import moment from "moment";
@@ -141,7 +141,20 @@ export default ({ setPageTitle }) => {
     );
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
-        console.log(get(data, "codeResult.code", null));
+        const codeProduct = get(data, "codeResult.code", null);
+        console.log(codeProduct);
+        const fetchProductBox = async () => {
+          try {
+            const _productBox = await getProductBox(codeProduct);
+            setDataProduct(_productBox);
+            console.log("_productBox", _productBox);
+          } catch (error) {
+            console.log(error);
+          }
+        };
+        codeProduct && fetchProductBox();
+        setIsVisibleReadProductCode(false);
+        setIsVisibleConfirmDispatch(true);
         Quagga.stop();
       }
     });
@@ -149,8 +162,9 @@ export default ({ setPageTitle }) => {
 
   //Modal Confirmar despacho
   const [isVisibleConfirmDispatch, setIsVisibleConfirmDispatch] = useState(
-    true
+    false
   );
+  const [dataProduct, setDataProduct] = useState();
 
   //datos del usuario
   const [me, setMe] = useState({ name: null });
@@ -212,19 +226,34 @@ export default ({ setPageTitle }) => {
       >
         <Container height="fit-content">
           <Grid gridTemplateColumns="2fr 3fr" gridGap="1rem">
-            <Input addonBefore="Familia" />
-            <Input addonBefore="Ubicación" />
-            <Input addonBefore="Sub-Familia" />
+            <Input
+              value={dataProduct?.product.familyName}
+              addonBefore="Familia"
+            />
+            <Input
+              value={dataProduct?.warehouse.name}
+              addonBefore="Ubicación"
+            />
+            <Input
+              value={dataProduct?.product.subfamilyName}
+              addonBefore="Sub-Familia"
+            />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
-              <Input addonBefore="Tipo de caja" />
+              <Input value={dataProduct?.boxSize} addonBefore="Tipo de caja" />
               <Input />
             </Grid>
-            <Input addonBefore="Elemento" />
+            <Input
+              value={dataProduct?.product.elementName}
+              addonBefore="Elemento"
+            />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
-              <Input addonBefore="Disponibles" />
+              <Input value={dataProduct?.stock} addonBefore="Disponibles" />
               <Input />
             </Grid>
-            <Input addonBefore="Modelo" />
+            <Input
+              value={dataProduct?.product.modelName}
+              addonBefore="Modelo"
+            />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
               <Input addonBefore="A Despachar" />
               <Checkbox>Toda la caja</Checkbox>
