@@ -5,6 +5,7 @@ import { getDispatch, userProvider } from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal } from "antd";
 import moment from "moment";
+import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
 
 export default ({ setPageTitle }) => {
@@ -96,6 +97,10 @@ export default ({ setPageTitle }) => {
           disabled={data.quantity === data.dispatched}
           padding="0 0.5rem"
           type="primary"
+          onClick={() => {
+            setIsVisibleReadProductCode(true);
+            scanBarcode();
+          }}
         >
           {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
         </Button>
@@ -106,9 +111,41 @@ export default ({ setPageTitle }) => {
   const [dispatch, setDispatch] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
 
-  //Modal
+  //Modal Producto
   const [isVisible, setIsVisible] = useState(false);
   const [idModal, setIdModal] = useState("");
+
+  //Modal ReadProductCode
+  const [isVisibleReadProductCode, setIsVisibleReadProductCode] = useState(
+    true
+  );
+  const scanBarcode = () => {
+    Quagga.init(
+      {
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+        },
+        decoder: {
+          readers: ["code_128_reader"],
+        },
+      },
+      (error) => {
+        if (error) {
+          console.log(error);
+          return;
+        }
+        console.log("Initialization finished. Ready to start");
+        Quagga.start();
+      }
+    );
+    Quagga.onProcessed((data) => {
+      if (get(data, "codeResult", null)) {
+        console.log(get(data, "codeResult.code", null));
+        Quagga.stop();
+      }
+    });
+  };
 
   //datos del usuario
   const [me, setMe] = useState({ name: null });
@@ -152,6 +189,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleReadProductCode}
+        width="50%"
+        title="Información del producto"
+        onCancel={() => setIsVisibleReadProductCode(false)}
+        footer={null}
+      >
+        <div id="interactive" class="viewport"></div>
+      </Modal>
       <Modal
         visible={isVisible}
         width="90%"
