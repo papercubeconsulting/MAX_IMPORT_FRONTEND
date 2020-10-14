@@ -160,12 +160,12 @@ export default ({ setPageTitle }) => {
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
         const codeProduct = get(data, "codeResult.code", null);
-        console.log(codeProduct);
+        /* console.log(codeProduct); */
         const fetchProductBox = async () => {
           try {
             const _productBox = await getProductBox(codeProduct);
             setDataProduct(_productBox);
-            console.log("_productBox", _productBox);
+            /* console.log("_productBox", _productBox); */
           } catch (error) {
             console.log(error);
           }
@@ -184,6 +184,7 @@ export default ({ setPageTitle }) => {
   );
   const [dataProduct, setDataProduct] = useState();
   const [quantity, setQuantity] = useState();
+  const [check, setCheck] = useState(false);
 
   const confirmDispatch = () => {
     console.log(dispatchId, {
@@ -222,7 +223,7 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
-        console.log(_dispatch);
+        /* console.log(_dispatch); */
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
@@ -299,10 +300,22 @@ export default ({ setPageTitle }) => {
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
               <Input
                 value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+                onChange={(e) => {
+                  setQuantity(e.target.value);
+                  dataProduct?.stock === Number(e.target.value)
+                    ? setCheck(true)
+                    : setCheck(false);
+                }}
                 addonBefore="A Despachar"
               />
-              <Checkbox checked={dataProduct?.stock === Number(quantity)}>
+              <Checkbox
+                checked={check}
+                onChange={(e) => {
+                  /* console.log("checked", e.target.checked); */
+                  setCheck(e.target.checked);
+                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                }}
+              >
                 Toda la caja
               </Checkbox>
             </Grid>
