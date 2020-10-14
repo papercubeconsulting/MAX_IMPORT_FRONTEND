@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
 import { getDispatch, userProvider } from "../../../providers";
 import { get } from "lodash";
-import { Input, Table, Modal } from "antd";
+import { Input, Table, Modal, Checkbox } from "antd";
 import moment from "moment";
 import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
@@ -117,7 +117,7 @@ export default ({ setPageTitle }) => {
 
   //Modal ReadProductCode
   const [isVisibleReadProductCode, setIsVisibleReadProductCode] = useState(
-    true
+    false
   );
   const scanBarcode = () => {
     Quagga.init(
@@ -146,6 +146,11 @@ export default ({ setPageTitle }) => {
       }
     });
   };
+
+  //Modal Confirmar despacho
+  const [isVisibleConfirmDispatch, setIsVisibleConfirmDispatch] = useState(
+    true
+  );
 
   //datos del usuario
   const [me, setMe] = useState({ name: null });
@@ -192,11 +197,43 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleReadProductCode}
         width="50%"
-        title="Información del producto"
+        title="Escaneo de producto"
         onCancel={() => setIsVisibleReadProductCode(false)}
         footer={null}
       >
         <div id="interactive" class="viewport"></div>
+      </Modal>
+      <Modal
+        visible={isVisibleConfirmDispatch}
+        width="60%"
+        title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        onCancel={() => setIsVisibleConfirmDispatch(false)}
+        footer={null}
+      >
+        <Container height="fit-content">
+          <Grid gridTemplateColumns="2fr 3fr" gridGap="1rem">
+            <Input addonBefore="Familia" />
+            <Input addonBefore="Ubicación" />
+            <Input addonBefore="Sub-Familia" />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input addonBefore="Tipo de caja" />
+              <Input />
+            </Grid>
+            <Input addonBefore="Elemento" />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input addonBefore="Disponibles" />
+              <Input />
+            </Grid>
+            <Input addonBefore="Modelo" />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input addonBefore="A Despachar" />
+              <Checkbox>Toda la caja</Checkbox>
+            </Grid>
+          </Grid>
+        </Container>
+        <Button width="30%" margin="2% 5% 2% 40%" type="primary">
+          Confirmar Despacho
+        </Button>
       </Modal>
       <Modal
         visible={isVisible}
