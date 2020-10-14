@@ -7,6 +7,22 @@ import { Input, Table, Modal, Checkbox } from "antd";
 import moment from "moment";
 import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
+import styled from "styled-components";
+
+const QRScanner = styled.div`
+  .viewport {
+    width: 60%;
+    height: 60%;
+    margin: auto;
+    video {
+      width: 100%;
+    }
+  }
+  .drawingBuffer {
+    width: 0;
+    height: 0;
+  }
+`;
 
 export default ({ setPageTitle }) => {
   setPageTitle("Despacho de pedido");
@@ -79,9 +95,7 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => {
             setIsVisible(true);
-            console.log(product.id);
             setIdModal(product.id);
-            console.log(product);
           }}
         >
           VER
@@ -99,7 +113,6 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => {
             setIsVisibleReadProductCode(true);
-            scanBarcode();
           }}
         >
           {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
@@ -211,11 +224,15 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleReadProductCode}
         width="50%"
-        title="Escaneo de producto"
         onCancel={() => setIsVisibleReadProductCode(false)}
         footer={null}
       >
-        <div id="interactive" class="viewport"></div>
+        <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
+          <Button onClick={scanBarcode}>Escanear Código de barras</Button>
+          <QRScanner>
+            <div id="interactive" className="viewport"></div>
+          </QRScanner>
+        </Grid>
       </Modal>
       <Modal
         visible={isVisibleConfirmDispatch}
@@ -228,30 +245,43 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="2fr 3fr" gridGap="1rem">
             <Input
               value={dataProduct?.product.familyName}
+              disabled
               addonBefore="Familia"
             />
             <Input
               value={dataProduct?.warehouse.name}
+              disabled
               addonBefore="Ubicación"
             />
             <Input
               value={dataProduct?.product.subfamilyName}
+              disabled
               addonBefore="Sub-Familia"
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
-              <Input value={dataProduct?.boxSize} addonBefore="Tipo de caja" />
-              <Input />
+              <Input
+                value={dataProduct?.boxSize}
+                disabled
+                addonBefore="Tipo de caja"
+              />
+              <Input disabled value="Unid./Caja" />
             </Grid>
             <Input
               value={dataProduct?.product.elementName}
+              disabled
               addonBefore="Elemento"
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
-              <Input value={dataProduct?.stock} addonBefore="Disponibles" />
-              <Input />
+              <Input
+                value={dataProduct?.stock}
+                disabled
+                addonBefore="Disponibles"
+              />
+              <Input disabled value="Unidades" />
             </Grid>
             <Input
               value={dataProduct?.product.modelName}
+              disabled
               addonBefore="Modelo"
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
