@@ -1,11 +1,33 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getDispatch, userProvider } from "../../../providers";
+import {
+  getDispatch,
+  userProvider,
+  getProductBox,
+  postDispatchProduct,
+} from "../../../providers";
 import { get } from "lodash";
-import { Input, Table, Modal } from "antd";
+import { Input, Table, Modal, Checkbox } from "antd";
 import moment from "moment";
+import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
+import styled from "styled-components";
+
+const QRScanner = styled.div`
+  .viewport {
+    width: 60%;
+    height: 60%;
+    margin: auto;
+    video {
+      width: 100%;
+    }
+  }
+  .drawingBuffer {
+    width: 0;
+    height: 0;
+  }
+`;
 
 export default ({ setPageTitle }) => {
   setPageTitle("Despacho de pedido");
@@ -56,6 +78,12 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
+      title: "Cantidad despachada",
+      dataIndex: "dispatched",
+      width: "fit-content",
+      align: "center",
+    },
+    {
       title: "Disponibilidad",
       dataIndex: "product",
       width: "fit-content",
@@ -72,9 +100,7 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => {
             setIsVisible(true);
-            console.log(product.id);
             setIdModal(product.id);
-            console.log(product);
           }}
         >
           VER
@@ -85,9 +111,16 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       width: "fit-content",
       align: "center",
-      render: (id, product) => (
-        <Button padding="0 0.5rem" type="primary">
-          Despachar
+      render: (id, data) => (
+        <Button
+          disabled={data.quantity === data.dispatched}
+          padding="0 0.5rem"
+          type="primary"
+          onClick={() => {
+            setIsVisibleReadProductCode(true);
+          }}
+        >
+          {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
         </Button>
       ),
     },
@@ -96,9 +129,68 @@ export default ({ setPageTitle }) => {
   const [dispatch, setDispatch] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
 
-  //Modal
+  //Modal Producto
   const [isVisible, setIsVisible] = useState(false);
   const [idModal, setIdModal] = useState("");
+
+  //Modal ReadProductCode
+  const [isVisibleReadProductCode, setIsVisibleReadProductCode] = useState(
+    false
+  );
+  const scanBarcode = () => {
+    Quagga.init(
+      {
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+        },
+        decoder: {
+          readers: ["code_128_reader"],
+        },
+      },
+      (error) => {
+        if (error) {
+          console.log(error);
+          return;
+        }
+        console.log("Initialization finished. Ready to start");
+        Quagga.start();
+      }
+    );
+    Quagga.onProcessed((data) => {
+      if (get(data, "codeResult", null)) {
+        const codeProduct = get(data, "codeResult.code", null);
+        /* console.log(codeProduct); */
+        const fetchProductBox = async () => {
+          try {
+            const _productBox = await getProductBox(codeProduct);
+            setDataProduct(_productBox);
+            /* console.log("_productBox", _productBox); */
+          } catch (error) {
+            console.log(error);
+          }
+        };
+        codeProduct && fetchProductBox();
+        setIsVisibleReadProductCode(false);
+        setIsVisibleConfirmDispatch(true);
+        Quagga.stop();
+      }
+    });
+  };
+
+  //Modal Confirmar despacho
+  const [isVisibleConfirmDispatch, setIsVisibleConfirmDispatch] = useState(
+    false
+  );
+  const [dataProduct, setDataProduct] = useState();
+  const [quantity, setQuantity] = useState();
+  const [check, setCheck] = useState(false);
+
+  const confirmDispatch = () => {
+    console.log(dispatchId, {
+      quantity,
+    });
+  };
 
   //datos del usuario
   const [me, setMe] = useState({ name: null });
@@ -131,7 +223,7 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
-        console.log(_dispatch);
+        /* console.log(_dispatch); */
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
@@ -142,6 +234,102 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleReadProductCode}
+        width="50%"
+        onCancel={() => setIsVisibleReadProductCode(false)}
+        footer={null}
+      >
+        <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
+          <Button onClick={scanBarcode}>Escanear Código de barras</Button>
+          <QRScanner>
+            <div id="interactive" className="viewport"></div>
+          </QRScanner>
+        </Grid>
+      </Modal>
+      <Modal
+        visible={isVisibleConfirmDispatch}
+        width="60%"
+        title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        onCancel={() => setIsVisibleConfirmDispatch(false)}
+        footer={null}
+      >
+        <Container height="fit-content">
+          <Grid gridTemplateColumns="2fr 3fr" gridGap="1rem">
+            <Input
+              value={dataProduct?.product.familyName}
+              disabled
+              addonBefore="Familia"
+            />
+            <Input
+              value={dataProduct?.warehouse.name}
+              disabled
+              addonBefore="Ubicación"
+            />
+            <Input
+              value={dataProduct?.product.subfamilyName}
+              disabled
+              addonBefore="Sub-Familia"
+            />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input
+                value={dataProduct?.boxSize}
+                disabled
+                addonBefore="Tipo de caja"
+              />
+              <Input disabled value="Unid./Caja" />
+            </Grid>
+            <Input
+              value={dataProduct?.product.elementName}
+              disabled
+              addonBefore="Elemento"
+            />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input
+                value={dataProduct?.stock}
+                disabled
+                addonBefore="Disponibles"
+              />
+              <Input disabled value="Unidades" />
+            </Grid>
+            <Input
+              value={dataProduct?.product.modelName}
+              disabled
+              addonBefore="Modelo"
+            />
+            <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
+              <Input
+                value={quantity}
+                onChange={(e) => {
+                  setQuantity(e.target.value);
+                  dataProduct?.stock === Number(e.target.value)
+                    ? setCheck(true)
+                    : setCheck(false);
+                }}
+                addonBefore="A Despachar"
+              />
+              <Checkbox
+                checked={check}
+                onChange={(e) => {
+                  /* console.log("checked", e.target.checked); */
+                  setCheck(e.target.checked);
+                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                }}
+              >
+                Toda la caja
+              </Checkbox>
+            </Grid>
+          </Grid>
+        </Container>
+        <Button
+          onClick={confirmDispatch}
+          width="30%"
+          margin="2% 5% 2% 40%"
+          type="primary"
+        >
+          Confirmar Despacho
+        </Button>
+      </Modal>
       <Modal
         visible={isVisible}
         width="90%"
@@ -155,26 +343,47 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <Input
-            value={moment(dispatch.createdAt).format(clientDateFormat)}
+            value={moment().format(clientDateFormat)}
             disabled
             addonBefore="Fecha"
           />
           <Input value={dispatch.proformaId} disabled addonBefore="Proforma" />
-
-          <Input disabled addonBefore="Estatus" />
-
-          <Input disabled addonBefore="Cliente" />
-          <Input disabled />
-
-          <Input disabled addonBefore="DNI / RUC" />
-          <Input disabled addonBefore="Dirección" />
-
-          <Input disabled addonBefore="Departamento" />
-
-          <Input disabled addonBefore="Provincia" />
-
-          <Input disabled addonBefore="Distrito" />
-
+          <Input
+            value={dispatch.sale?.status === "DUE" ? "Adeuda" : "Pagado"}
+            disabled
+            addonBefore="Estatus"
+          />
+          <Input
+            value={dispatch.proforma?.client.name}
+            disabled
+            addonBefore="Cliente"
+          />
+          <Input value={dispatch.proforma?.client.lastname} disabled />
+          <Input
+            value={dispatch.proforma?.client.idNumber}
+            disabled
+            addonBefore="DNI / RUC"
+          />
+          <Input
+            value={dispatch.proforma?.client.address}
+            disabled
+            addonBefore="Dirección"
+          />
+          <Input
+            value={dispatch.proforma?.client.region}
+            disabled
+            addonBefore="Departamento"
+          />
+          <Input
+            value={dispatch.proforma?.client.province}
+            disabled
+            addonBefore="Provincia"
+          />
+          <Input
+            value={dispatch.proforma?.client.district}
+            disabled
+            addonBefore="Distrito"
+          />
           <Input
             value={dispatch.deliveryAgency?.name}
             disabled
@@ -182,7 +391,7 @@ export default ({ setPageTitle }) => {
           />
         </Grid>
       </Container>
-      <Container padding="0px" width="100vw" height="35%">
+      <Container height="fit-content">
         <Table
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
