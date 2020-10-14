@@ -1,7 +1,12 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getDispatch, userProvider, getProductBox } from "../../../providers";
+import {
+  getDispatch,
+  userProvider,
+  getProductBox,
+  postDispatchProduct,
+} from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal, Checkbox } from "antd";
 import moment from "moment";
@@ -178,6 +183,13 @@ export default ({ setPageTitle }) => {
     false
   );
   const [dataProduct, setDataProduct] = useState();
+  const [quantity, setQuantity] = useState();
+
+  const confirmDispatch = () => {
+    console.log(dispatchId, {
+      quantity,
+    });
+  };
 
   //datos del usuario
   const [me, setMe] = useState({ name: null });
@@ -285,12 +297,23 @@ export default ({ setPageTitle }) => {
               addonBefore="Modelo"
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
-              <Input addonBefore="A Despachar" />
-              <Checkbox>Toda la caja</Checkbox>
+              <Input
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                addonBefore="A Despachar"
+              />
+              <Checkbox checked={dataProduct?.stock === Number(quantity)}>
+                Toda la caja
+              </Checkbox>
             </Grid>
           </Grid>
         </Container>
-        <Button width="30%" margin="2% 5% 2% 40%" type="primary">
+        <Button
+          onClick={confirmDispatch}
+          width="30%"
+          margin="2% 5% 2% 40%"
+          type="primary"
+        >
           Confirmar Despacho
         </Button>
       </Modal>
