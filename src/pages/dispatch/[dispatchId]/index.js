@@ -253,7 +253,9 @@ export default ({ setPageTitle }) => {
     dispatchId && fetchProforma();
   }, [router, isVisibleConfirmDispatch]);
 
-  //Finalizar despacho
+  // Finalizar despacho
+  const [isVisibleFinishDispatch, setIsVisibleFinishDispatch] = useState(false);
+
   const finishDispatch = async () => {
     try {
       const _resp = await postFinishDispatch(dispatchId);
@@ -271,6 +273,34 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleFinishDispatch}
+        width="40%"
+        onCancel={() => setIsVisibleFinishDispatch(false)}
+        footer={null}
+      >
+        <Container
+          height="fit-content"
+          flexDirection="column"
+          alignItems="center"
+        >
+          <p style={{ fontWeight: "bold" }}>
+            ¿Está seguro que desea finalizar el despacho total?
+          </p>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+            <Button onClick={finishDispatch} margin="auto" type="primary">
+              Si, confirmar
+            </Button>
+            <Button
+              margin="auto"
+              type="primary"
+              onClick={() => setIsVisibleFinishDispatch(false)}
+            >
+              No, regresar
+            </Button>
+          </Grid>
+        </Container>
+      </Modal>
       <Modal
         visible={isVisibleReadProductCode}
         width="50%"
@@ -446,7 +476,7 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
           <Button
-            onClick={finishDispatch}
+            onClick={() => setIsVisibleFinishDispatch(true)}
             width="30%"
             margin="2% 5% 2% 40%"
             type="primary"
