@@ -198,6 +198,7 @@ export default ({ setPageTitle }) => {
       });
       console.log("respuesta", _resp);
       setIsVisibleConfirmDispatch(false);
+      setQuantity();
     } catch (error) {
       console.log(error);
     }
@@ -234,14 +235,13 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
-        /* console.log(_dispatch); */
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
       }
     };
     dispatchId && fetchProforma();
-  }, [router]);
+  }, [router, isVisibleConfirmDispatch]);
 
   return (
     <>
@@ -262,7 +262,10 @@ export default ({ setPageTitle }) => {
         visible={isVisibleConfirmDispatch}
         width="60%"
         title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
-        onCancel={() => setIsVisibleConfirmDispatch(false)}
+        onCancel={() => {
+          setIsVisibleConfirmDispatch(false);
+          setQuantity();
+        }}
         footer={null}
       >
         <Container height="fit-content">
