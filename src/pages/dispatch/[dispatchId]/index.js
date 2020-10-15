@@ -389,7 +389,7 @@ export default ({ setPageTitle }) => {
           />
           <Input value={dispatch.proformaId} disabled addonBefore="Proforma" />
           <Input
-            value={dispatch.sale?.status === "DUE" ? "Adeuda" : "Pagado"}
+            value={dispatch.status === "OPEN" ? "Pendiente" : "Completado"}
             disabled
             addonBefore="Estatus"
           />
