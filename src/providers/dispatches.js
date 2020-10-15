@@ -6,7 +6,7 @@ const getDispatch = async (dispatchId) =>
   baseProvider.httpGet(`dispatches/${dispatchId}`);
 const postDispatchProduct = async (dispatchId, dispatchedProductId, body) =>
   baseProvider.httpPost(
-    `dispatches​/${dispatchId}​/dispatchedProducts​/${dispatchedProductId}​/dispatch`,
+    `dispatches/${dispatchId}/dispatchedProducts/${dispatchedProductId}/dispatch`,
     body
   );
 

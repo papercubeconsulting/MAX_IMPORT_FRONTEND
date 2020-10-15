@@ -190,11 +190,17 @@ export default ({ setPageTitle }) => {
   const [dispatchedProductId, setDispatchedProductId] = useState();
   const [productBoxId, setProductBoxId] = useState();
 
-  const confirmDispatch = () => {
-    console.log(dispatchId, dispatchedProductId, {
-      quantity,
-      productBoxId,
-    });
+  const confirmDispatch = async () => {
+    try {
+      const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, {
+        quantity,
+        productBoxId,
+      });
+      console.log("respuesta", _resp);
+      setIsVisibleConfirmDispatch(false);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   //datos del usuario
