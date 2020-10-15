@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, DatePicker, Grid, Icon } from "../../components";
-import { getUsers, userProvider, getProformas } from "../../providers";
+import { getUsers, userProvider, getDispatches } from "../../providers";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -23,7 +23,7 @@ export default ({ setPageTitle }) => {
       title: "Fecha",
       width: "fit-content",
       align: "center",
-      render: (createdAt) => moment(createdAt).format("DD/MM/YYYY"),
+      render: (createdAt) => moment(createdAt).format("DD/MM"),
     },
     {
       dataIndex: "createdAt",
@@ -33,23 +33,18 @@ export default ({ setPageTitle }) => {
       render: (createdAt) => moment(createdAt).format("hh:mm"),
     },
     {
-      dataIndex: "id",
+      dataIndex: "proformaId",
       title: "Proforma",
       width: "fit-content",
       align: "center",
-      /* render: (id) => (
-          <a>
-            N°{id}
-          </a>
-        ), */
-      render: (id) => `N°${id}`,
+      render: (proformaId) => `N°${proformaId}`,
     },
     {
-      dataIndex: "client",
+      dataIndex: "proforma",
       title: "Cliente",
       width: "fit-content",
       align: "center",
-      render: (client) => client.name,
+      render: (proforma) => proforma.client.name,
     },
     {
       dataIndex: "sale",
@@ -59,25 +54,33 @@ export default ({ setPageTitle }) => {
       render: (sale) => sale.dispatchmentType,
     },
     {
-      dataIndex: "sale",
+      dataIndex: "id",
       title: "Agencia",
       width: "fit-content",
       align: "center",
-      render: (sale) =>
-        sale.dispatchmentType === "DELIVERY" ? sale.deliveryAgency.name : "-",
+      render: (id, data) =>
+        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
     },
     {
-      dataIndex: "totalUnits",
+      dataIndex: "proforma",
       title: "Unidades",
       width: "fit-content",
       align: "center",
-      render: (totalUnits) => totalUnits,
+      render: (proforma) => proforma.totalUnits,
     },
     {
+      dataIndex: "id",
       title: "",
       width: "fit-content",
       align: "center",
-      render: (id, data) => <Button type={"primary"}>Atender</Button>,
+      render: (id, data) => (
+        <Button
+          onClick={async () => router.push(`/dispatch/${id}`)}
+          type={"primary"}
+        >
+          Atender
+        </Button>
+      ),
     },
   ];
 
@@ -134,10 +137,11 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getProformas({
-          dispatchStatus: "OPEN",
+        const _dispatches = await getDispatches({
+          status: "OPEN",
           ...queryParams,
         });
+        console.log("disp", _dispatches);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,
@@ -169,7 +173,7 @@ export default ({ setPageTitle }) => {
     from && (params.from = from.format(serverDateFormat));
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
-    documentNumber && (params.id = documentNumber);
+    documentNumber && (params.proformaId = documentNumber);
     name && (params.name = name);
     lastName && (params.lastname = lastName);
     await router.push(`/dispatch${urlQueryParams(params)}`);
@@ -181,7 +185,7 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
+    setDocumentNumber(queryParams.proformaId || null);
     setName(queryParams.name || null);
     setLastName(queryParams.lastname || null);
   };
