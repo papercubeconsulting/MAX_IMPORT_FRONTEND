@@ -8,7 +8,7 @@ import {
   postDispatchProduct,
 } from "../../../providers";
 import { get } from "lodash";
-import { Input, Table, Modal, Checkbox } from "antd";
+import { Input, Table, Modal, Checkbox, notification } from "antd";
 import moment from "moment";
 import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
@@ -192,15 +192,28 @@ export default ({ setPageTitle }) => {
 
   const confirmDispatch = async () => {
     try {
+      if (quantity <= 0) {
+        notification.error({
+          message: "Error al confirmar despacho",
+          description: "La cantidad a despachar debe ser un numero mayor a 0",
+        });
+        return;
+      }
       const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, {
         quantity,
         productBoxId,
       });
-      console.log("respuesta", _resp);
+      /* console.log("respuesta", _resp); */
+      notification.success({
+        message: "Despacho realizado exitosamente",
+      });
       setIsVisibleConfirmDispatch(false);
       setQuantity();
     } catch (error) {
-      console.log(error);
+      notification.error({
+        message: "Error al confirmar despacho",
+        description: error.userMessage,
+      });
     }
   };
 
