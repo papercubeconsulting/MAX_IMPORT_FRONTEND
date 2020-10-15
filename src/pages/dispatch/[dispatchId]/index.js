@@ -118,6 +118,7 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => {
             setIsVisibleReadProductCode(true);
+            setDispatchedProductId(id);
           }}
         >
           {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
@@ -165,6 +166,7 @@ export default ({ setPageTitle }) => {
           try {
             const _productBox = await getProductBox(codeProduct);
             setDataProduct(_productBox);
+            setProductBoxId(_productBox.id);
             /* console.log("_productBox", _productBox); */
           } catch (error) {
             console.log(error);
@@ -183,12 +185,15 @@ export default ({ setPageTitle }) => {
     false
   );
   const [dataProduct, setDataProduct] = useState();
-  const [quantity, setQuantity] = useState();
   const [check, setCheck] = useState(false);
+  const [quantity, setQuantity] = useState();
+  const [dispatchedProductId, setDispatchedProductId] = useState();
+  const [productBoxId, setProductBoxId] = useState();
 
   const confirmDispatch = () => {
-    console.log(dispatchId, {
+    console.log(dispatchId, dispatchedProductId, {
       quantity,
+      productBoxId,
     });
   };
 
@@ -301,7 +306,7 @@ export default ({ setPageTitle }) => {
               <Input
                 value={quantity}
                 onChange={(e) => {
-                  setQuantity(e.target.value);
+                  setQuantity(Number(e.target.value));
                   dataProduct?.stock === Number(e.target.value)
                     ? setCheck(true)
                     : setCheck(false);
