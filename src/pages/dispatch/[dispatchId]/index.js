@@ -6,6 +6,7 @@ import {
   userProvider,
   getProductBox,
   postDispatchProduct,
+  postFinishDispatch,
 } from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal, Checkbox, notification } from "antd";
@@ -228,10 +229,6 @@ export default ({ setPageTitle }) => {
         setMe(_me);
       } catch (error) {
         console.log(error);
-        /* notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        }); */
       }
     };
 
@@ -255,6 +252,22 @@ export default ({ setPageTitle }) => {
     };
     dispatchId && fetchProforma();
   }, [router, isVisibleConfirmDispatch]);
+
+  //Finalizar despacho
+  const finishDispatch = async () => {
+    try {
+      const _resp = await postFinishDispatch(dispatchId);
+      console.log(_resp);
+      notification.success({
+        message: "Despacho finalizado exitosamente",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error al finalizar despacho",
+        description: error.userMessage,
+      });
+    }
+  };
 
   return (
     <>
@@ -432,7 +445,12 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-          <Button width="30%" margin="2% 5% 2% 40%" type="primary">
+          <Button
+            onClick={finishDispatch}
+            width="30%"
+            margin="2% 5% 2% 40%"
+            type="primary"
+          >
             Finalizar despacho
           </Button>
           <Button

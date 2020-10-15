@@ -9,5 +9,7 @@ const postDispatchProduct = async (dispatchId, dispatchedProductId, body) =>
     `dispatches/${dispatchId}/dispatchedProducts/${dispatchedProductId}/dispatch`,
     body
   );
+const postFinishDispatch = async (dispatchId) =>
+  baseProvider.httpPost(`dispatches/${dispatchId}/finish`);
 
-export { getDispatches, getDispatch, postDispatchProduct };
+export { getDispatches, getDispatch, postDispatchProduct, postFinishDispatch };
