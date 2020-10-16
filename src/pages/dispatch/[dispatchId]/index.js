@@ -6,9 +6,10 @@ import {
   userProvider,
   getProductBox,
   postDispatchProduct,
+  postFinishDispatch,
 } from "../../../providers";
 import { get } from "lodash";
-import { Input, Table, Modal, Checkbox } from "antd";
+import { Input, Table, Modal, Checkbox, notification } from "antd";
 import moment from "moment";
 import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
@@ -190,11 +191,31 @@ export default ({ setPageTitle }) => {
   const [dispatchedProductId, setDispatchedProductId] = useState();
   const [productBoxId, setProductBoxId] = useState();
 
-  const confirmDispatch = () => {
-    console.log(dispatchId, dispatchedProductId, {
-      quantity,
-      productBoxId,
-    });
+  const confirmDispatch = async () => {
+    try {
+      if (quantity <= 0) {
+        notification.error({
+          message: "Error al confirmar despacho",
+          description: "La cantidad a despachar debe ser un numero mayor a 0",
+        });
+        return;
+      }
+      const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, {
+        quantity,
+        productBoxId,
+      });
+      /* console.log("respuesta", _resp); */
+      notification.success({
+        message: "Despacho realizado exitosamente",
+      });
+      setIsVisibleConfirmDispatch(false);
+      setQuantity();
+    } catch (error) {
+      notification.error({
+        message: "Error al confirmar despacho",
+        description: error.userMessage,
+      });
+    }
   };
 
   //datos del usuario
@@ -208,10 +229,6 @@ export default ({ setPageTitle }) => {
         setMe(_me);
       } catch (error) {
         console.log(error);
-        /* notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        }); */
       }
     };
 
@@ -228,17 +245,62 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
-        /* console.log(_dispatch); */
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
       }
     };
     dispatchId && fetchProforma();
-  }, [router]);
+  }, [router, isVisibleConfirmDispatch]);
+
+  // Finalizar despacho
+  const [isVisibleFinishDispatch, setIsVisibleFinishDispatch] = useState(false);
+
+  const finishDispatch = async () => {
+    try {
+      const _resp = await postFinishDispatch(dispatchId);
+      console.log(_resp);
+      notification.success({
+        message: "Despacho finalizado exitosamente",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error al finalizar despacho",
+        description: error.userMessage,
+      });
+    }
+  };
 
   return (
     <>
+      <Modal
+        visible={isVisibleFinishDispatch}
+        width="40%"
+        onCancel={() => setIsVisibleFinishDispatch(false)}
+        footer={null}
+      >
+        <Container
+          height="fit-content"
+          flexDirection="column"
+          alignItems="center"
+        >
+          <p style={{ fontWeight: "bold" }}>
+            ¿Está seguro que desea finalizar el despacho total?
+          </p>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+            <Button onClick={finishDispatch} margin="auto" type="primary">
+              Si, confirmar
+            </Button>
+            <Button
+              margin="auto"
+              type="primary"
+              onClick={() => setIsVisibleFinishDispatch(false)}
+            >
+              No, regresar
+            </Button>
+          </Grid>
+        </Container>
+      </Modal>
       <Modal
         visible={isVisibleReadProductCode}
         width="50%"
@@ -256,7 +318,10 @@ export default ({ setPageTitle }) => {
         visible={isVisibleConfirmDispatch}
         width="60%"
         title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
-        onCancel={() => setIsVisibleConfirmDispatch(false)}
+        onCancel={() => {
+          setIsVisibleConfirmDispatch(false);
+          setQuantity();
+        }}
         footer={null}
       >
         <Container height="fit-content">
@@ -354,7 +419,7 @@ export default ({ setPageTitle }) => {
           />
           <Input value={dispatch.proformaId} disabled addonBefore="Proforma" />
           <Input
-            value={dispatch.sale?.status === "DUE" ? "Adeuda" : "Pagado"}
+            value={dispatch.status === "OPEN" ? "Pendiente" : "Completado"}
             disabled
             addonBefore="Estatus"
           />
@@ -410,7 +475,12 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-          <Button width="30%" margin="2% 5% 2% 40%" type="primary">
+          <Button
+            onClick={() => setIsVisibleFinishDispatch(true)}
+            width="30%"
+            margin="2% 5% 2% 40%"
+            type="primary"
+          >
             Finalizar despacho
           </Button>
           <Button
