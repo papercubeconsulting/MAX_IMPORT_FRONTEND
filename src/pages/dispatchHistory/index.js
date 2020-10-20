@@ -21,14 +21,13 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "index",
       title: "Nro",
-      width: "fit-content",
+      width: "60px",
       align: "center",
       render: (id, data, index) => index + 1,
     },
     {
       dataIndex: "createdAt",
       title: "Fecha y hora",
-      width: "fit-content",
       align: "center",
       render: (createdAt) =>
         `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
@@ -38,21 +37,18 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "proformaId",
       title: "Proforma",
-      width: "fit-content",
       align: "center",
       render: (proformaId) => `N°${proformaId}`,
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
-      width: "fit-content",
       align: "center",
       render: (proforma) => proforma.client.name,
     },
     {
       dataIndex: "dispatcherId",
       title: "Despachador",
-      width: "fit-content",
       align: "center",
       render: (dispatcherId) => {
         const _users = users.filter((user) => user.id === dispatcherId)[0];
@@ -62,7 +58,6 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "sale",
       title: "Tip. Desp.",
-      width: "fit-content",
       align: "center",
       render: (sale) =>
         sale.dispatchmentType === "DELIVERY" ? "Envío" : "En Tienda",
@@ -70,7 +65,6 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       title: "Agencia",
-      width: "fit-content",
       align: "center",
       render: (id, data) =>
         data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
@@ -78,14 +72,12 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "proforma",
       title: "Unidades",
-      width: "fit-content",
       align: "center",
       render: (proforma) => proforma.totalUnits,
     },
     {
       dataIndex: "id",
       title: "",
-      width: "fit-content",
       align: "center",
       render: (id, data) => (
         <Button
@@ -100,7 +92,6 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "completedAt",
       title: "Fecha de atención",
-      width: "fit-content",
       align: "center",
       render: (completedAt) =>
         completedAt
