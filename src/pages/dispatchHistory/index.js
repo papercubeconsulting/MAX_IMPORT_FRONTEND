@@ -129,6 +129,9 @@ export default ({ setPageTitle }) => {
   //para el filtro por cajero
   const [userId, setUserId] = useState(null);
 
+  //para el filtro por estado del despacho
+  const [status, setStatus] = useState(null);
+
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
@@ -172,6 +175,26 @@ export default ({ setPageTitle }) => {
     return [defaultOption, ...options];
   };
 
+  // estados del despacho
+  const statusOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "LOCKED",
+      label: "Bloqueado",
+    },
+    {
+      value: "OPEN",
+      label: "Habilitado",
+    },
+    {
+      value: "COMPLETED",
+      label: "Completado",
+    },
+  ];
+
   //Trae todas los despachos segun queryParams
   useEffect(() => {
     const fetchDispatches = async () => {
@@ -210,6 +233,7 @@ export default ({ setPageTitle }) => {
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
     /* userId && (params.dispatcherId = userId); */
+    status && (params.status = status);
     await router.push(`/dispatchHistory${urlQueryParams(params)}`);
   };
 
@@ -221,6 +245,7 @@ export default ({ setPageTitle }) => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
     /* setUserId(queryParams.dispatcherId || null); */
+    setStatus(queryParams.status || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -277,7 +302,12 @@ export default ({ setPageTitle }) => {
             onChange={(value) => setUserId(value)}
             options={usersList()}
           />
-          <Select label="Estado" />
+          <Select
+            value={status}
+            label="Estado"
+            onChange={(value) => setStatus(value)}
+            options={statusOptions}
+          />
           <Button
             type="primary"
             gridColumnStart="4"
