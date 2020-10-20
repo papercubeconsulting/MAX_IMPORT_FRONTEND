@@ -22,70 +22,58 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "paidAt",
       title: "Fecha y Hora",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "cashierId",
       title: "Canal",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "total",
       title: "Tipo Venta",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "initialPayment",
       title: "Comprobant.",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "paymentMethod",
       title: "Total Final",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "referenceNumber",
       title: "A Cuenta",
-      width: "fit-content",
       align: "center",
     },
     {
       dataIndex: "receivedAmount",
       title: "Tot. Deuda",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Medio Pag.",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Cajero",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "",
-      width: "fit-content",
       align: "center",
     },
   ];
@@ -156,7 +144,7 @@ export default ({ setPageTitle }) => {
   };
 
   //Trae todas las ventas segun queryParams
-  useEffect(() => {
+  /* useEffect(() => {
     const fetchSales = async () => {
       try {
         const _sales = await getSales({
@@ -166,7 +154,6 @@ export default ({ setPageTitle }) => {
           paidAtTo: to.format(serverDateFormat),
           ...queryParams,
         });
-        console.log("query", queryParams);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
@@ -186,7 +173,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]);
+  }, [queryParams, toggleUpdateTable]); */
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -217,6 +204,20 @@ export default ({ setPageTitle }) => {
     setState(value);
     !isPagination && setPage(undefined);
   };
+
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
+    },
+    getCheckboxProps: (record) => ({
+      name: record.name,
+    }),
+  };
+  const [selectionType, setSelectionType] = useState("checkbox");
 
   return (
     <>
@@ -273,6 +274,10 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="fit-content">
         <Table
+          rowSelection={{
+            type: selectionType,
+            ...rowSelection,
+          }}
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
