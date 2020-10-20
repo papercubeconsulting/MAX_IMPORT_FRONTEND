@@ -487,7 +487,7 @@ export default ({ setPageTitle }) => {
             width="30%"
             margin="2% 5% 2% 40%"
             type="primary"
-            onClick={async () => router.push(`/dispatch`)}
+            onClick={async () => router.back()}
           >
             Regresar
           </Button>

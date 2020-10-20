@@ -8,7 +8,7 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getUsers, userProvider } from "../../providers";
+import { getUsers, userProvider, getDispatches } from "../../providers";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
@@ -23,43 +23,31 @@ export default ({ setPageTitle }) => {
       title: "Nro",
       width: "fit-content",
       align: "center",
+      render: (id, data, index) => index + 1,
     },
     {
-      dataIndex: "paidAt",
-      title: "Fecha",
+      dataIndex: "createdAt",
+      title: "Fecha y hora",
       width: "fit-content",
       align: "center",
-      /* render: (paidAt) =>
-          `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-            "hh:mm"
-          )}`, */
-    },
-    {
-      dataIndex: "paidAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      /* render: (paidAt) =>
-            `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-              "hh:mm"
-            )}`, */
+      render: (createdAt) =>
+        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
       width: "fit-content",
       align: "center",
-      /* render: (proformaId) => (
-            <a>
-              N°{proformaId}
-            </a>
-          ), */
+      render: (proformaId) => `N°${proformaId}`,
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
       width: "fit-content",
       align: "center",
+      render: (proforma) => proforma.client.name,
     },
     {
       dataIndex: "proforma",
@@ -68,34 +56,53 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      dataIndex: "total",
+      dataIndex: "sale",
       title: "Tip. Desp.",
       width: "fit-content",
       align: "center",
+      render: (sale) => sale.dispatchmentType,
     },
     {
-      dataIndex: "initialPayment",
+      dataIndex: "id",
       title: "Agencia",
       width: "fit-content",
       align: "center",
+      render: (id, data) =>
+        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
     },
     {
-      dataIndex: "paymentMethod",
+      dataIndex: "proforma",
       title: "Unidades",
       width: "fit-content",
       align: "center",
+      render: (proforma) => proforma.totalUnits,
     },
     {
-      title: "Estatus",
+      dataIndex: "id",
+      title: "",
       width: "fit-content",
       align: "center",
-      /*  render: (id, dataSale) => <Button type={"primary"}>Atender</Button>, */
+      render: (id, data) => (
+        <Button
+          onClick={async () => router.push(`/dispatch/${id}`)}
+          type={"primary"}
+          disabled={data.status === "COMPLETED"}
+        >
+          {data.status === "COMPLETED" ? "Atendido" : "Atender"}
+        </Button>
+      ),
     },
     {
-      dataIndex: "paymentMethod",
+      dataIndex: "completedAt",
       title: "Fecha de atención",
       width: "fit-content",
       align: "center",
+      render: (completedAt) =>
+        completedAt
+          ? `${moment(completedAt).format("DD/MM")}- ${moment(
+              completedAt
+            ).format("hh:mm")}`
+          : "-",
     },
   ];
 
@@ -143,10 +150,11 @@ export default ({ setPageTitle }) => {
   }, []);
 
   //Trae todas los despachos segun queryParams
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getDispatches({});
+        const _dispatches = await getDispatches(queryParams);
+        console.log("despachos", _dispatches);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,
@@ -166,7 +174,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]); */
+  }, [queryParams, toggleUpdateTable]);
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
