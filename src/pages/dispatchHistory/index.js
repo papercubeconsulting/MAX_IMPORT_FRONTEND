@@ -50,17 +50,22 @@ export default ({ setPageTitle }) => {
       render: (proforma) => proforma.client.name,
     },
     {
-      dataIndex: "proforma",
+      dataIndex: "dispatcherId",
       title: "Despachador",
       width: "fit-content",
       align: "center",
+      render: (dispatcherId) => {
+        const _users = users.filter((user) => user.id === dispatcherId)[0];
+        return _users ? _users.name : "-";
+      },
     },
     {
       dataIndex: "sale",
       title: "Tip. Desp.",
       width: "fit-content",
       align: "center",
-      render: (sale) => sale.dispatchmentType,
+      render: (sale) =>
+        sale.dispatchmentType === "DELIVERY" ? "Envío" : "En Tienda",
     },
     {
       dataIndex: "id",
