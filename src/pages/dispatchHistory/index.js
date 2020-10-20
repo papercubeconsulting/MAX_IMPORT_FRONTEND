@@ -187,11 +187,11 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.paidAtFrom = from.format(serverDateFormat));
-    to && (params.paidAtTo = to.format(serverDateFormat));
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    await router.push(`/cashHistory${urlQueryParams(params)}`);
+    await router.push(`/dispatchHistory${urlQueryParams(params)}`);
   };
 
   const searchWithState = () => {
@@ -200,7 +200,7 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
+    setDocumentNumber(queryParams.proformaId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
