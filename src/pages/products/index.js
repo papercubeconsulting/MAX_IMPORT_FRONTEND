@@ -162,7 +162,7 @@ export default ({ setPageTitle }) => {
         const _products = await getProducts(queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _products.pageSize*_products.pages,
+          total: _products.pageSize * _products.pages,
           current: _products.page,
           pageSize: _products.pageSize,
           showSizeChanger: false,
@@ -179,8 +179,6 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") urlToState();
     fetchProducts();
   }, [queryParams, toggleUpdateTable]);
-
-  /* console.log('pagination', pagination); */
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -210,10 +208,15 @@ export default ({ setPageTitle }) => {
           setSubfamilies([]);
           setSubfamilyId(null);
         }
-
         if (familyId) {
           const _subfamilies = await getSubfamilies(familyId);
           setSubfamilies(_subfamilies);
+          /* console.log("subfamilies", _subfamilies); */
+          setSubfamilyId(
+            _subfamilies[0] && _subfamilies[0].name === "-"
+              ? _subfamilies[0].id
+              : null
+          );
         }
       } catch (error) {
         notification.error({
@@ -237,6 +240,9 @@ export default ({ setPageTitle }) => {
         if (subfamilyId) {
           const _elements = await getElements(subfamilyId);
           setElements(_elements);
+          setElementId(
+            _elements[0] && _elements[0].name === "-" ? _elements[0].id : null
+          );
         }
       } catch (error) {
         notification.error({
