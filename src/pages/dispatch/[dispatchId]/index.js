@@ -40,60 +40,52 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       title: "Ítem",
-      width: "fit-content",
+      width: "70px",
       align: "center",
       render: (id, record, index) => index + 1,
     },
     {
       title: "Familia",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "familyName", null),
     },
     {
       title: "Sub-Familia",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "subfamilyName", null),
     },
     {
       title: "Elemento",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "elementName", null),
     },
     {
       title: "Modelo",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "modelName", null),
     },
     {
       title: "Cantidad",
       dataIndex: "quantity",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Cantidad despachada",
       dataIndex: "dispatched",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Disponibilidad",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "availableStock", null),
     },
     {
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => (
         <Button
@@ -110,7 +102,6 @@ export default ({ setPageTitle }) => {
     },
     {
       dataIndex: "id",
-      width: "fit-content",
       align: "center",
       render: (id, data) => (
         <Button
@@ -487,7 +478,7 @@ export default ({ setPageTitle }) => {
             width="30%"
             margin="2% 5% 2% 40%"
             type="primary"
-            onClick={async () => router.push(`/dispatch`)}
+            onClick={async () => router.back()}
           >
             Regresar
           </Button>

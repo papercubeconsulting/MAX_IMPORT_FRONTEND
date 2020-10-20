@@ -7,108 +7,94 @@ import {
   Grid,
   Icon,
   Select,
+  ModalProforma,
 } from "../../components";
-import { getUsers, userProvider, getDispatches } from "../../providers";
-import { Input, notification, Table } from "antd";
+import { getSales, getUsers, userProvider } from "../../providers";
+import { Input, notification, Table, Modal } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Historial de Despachos");
+  setPageTitle("Administración Ventas");
   const columns = [
     {
-      dataIndex: "index",
-      title: "Nro",
-      width: "60px",
+      dataIndex: "paidAt",
+      title: "Fecha y Hora",
+      width: "fit-content",
       align: "center",
-      render: (id, data, index) => index + 1,
     },
     {
-      dataIndex: "createdAt",
-      title: "Fecha y hora",
+      dataIndex: "cashierId",
+      title: "Canal",
+      width: "fit-content",
       align: "center",
-      render: (createdAt) =>
-        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
-          "hh:mm"
-        )}`,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
+      width: "fit-content",
       align: "center",
-      render: (proformaId) => `N°${proformaId}`,
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
+      width: "fit-content",
       align: "center",
-      render: (proforma) => proforma.client.name,
     },
     {
-      dataIndex: "dispatcherId",
-      title: "Despachador",
+      dataIndex: "total",
+      title: "Tipo Venta",
+      width: "fit-content",
       align: "center",
-      render: (dispatcherId) => {
-        const _users = users.filter((user) => user.id === dispatcherId)[0];
-        return _users ? _users.name : "-";
-      },
     },
     {
-      dataIndex: "sale",
-      title: "Tip. Desp.",
+      dataIndex: "initialPayment",
+      title: "Comprobant.",
+      width: "fit-content",
       align: "center",
-      render: (sale) =>
-        sale.dispatchmentType === "DELIVERY" ? "Envío" : "En Tienda",
     },
     {
-      dataIndex: "id",
-      title: "Agencia",
+      dataIndex: "paymentMethod",
+      title: "Total Final",
+      width: "fit-content",
       align: "center",
-      render: (id, data) =>
-        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
     },
     {
-      dataIndex: "proforma",
-      title: "Unidades",
+      dataIndex: "referenceNumber",
+      title: "A Cuenta",
+      width: "fit-content",
       align: "center",
-      render: (proforma) => proforma.totalUnits,
     },
     {
-      dataIndex: "id",
+      dataIndex: "receivedAmount",
+      title: "Tot. Deuda",
+      width: "fit-content",
+      align: "center",
+    },
+    {
+      title: "Medio Pag.",
+      width: "fit-content",
+      align: "center",
+    },
+    {
+      title: "Cajero",
+      width: "fit-content",
+      align: "center",
+    },
+    {
       title: "",
+      width: "fit-content",
       align: "center",
-      render: (id, data) => (
-        <Button
-          onClick={async () => router.push(`/dispatch/${id}`)}
-          type={"primary"}
-          disabled={data.status === "COMPLETED"}
-        >
-          {data.status === "COMPLETED" ? "Atendido" : "Atender"}
-        </Button>
-      ),
-    },
-    {
-      dataIndex: "completedAt",
-      title: "Fecha de atención",
-      align: "center",
-      render: (completedAt) =>
-        completedAt
-          ? `${moment(completedAt).format("DD/MM")}- ${moment(
-              completedAt
-            ).format("hh:mm")}`
-          : "-",
     },
   ];
 
   const [windowHeight, setWindowHeight] = useState(0);
-  const [dispatches, setDispatches] = useState([]);
+  const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
-  const [users, setUsers] = useState([]);
-  const [me, setMe] = useState({ name: null });
 
   //para el filtro por fecha
   const [from, setFrom] = useState(moment().subtract(7, "days"));
@@ -117,22 +103,25 @@ export default ({ setPageTitle }) => {
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
 
-  //para el filtro por cajero
+  //para el filtro por vendedor
+  const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
-
-  //para el filtro por estado del despacho
-  const [status, setStatus] = useState(null);
+  const [me, setMe] = useState({ name: null });
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
 
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
+
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  //Obtiene a los usuarios
+  //Obtiene a los vendedores
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -151,7 +140,7 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  // lista de despachadores
+  // lista de cajeros
   const usersList = () => {
     const options = users.map((user) => ({
       value: user.id,
@@ -166,40 +155,26 @@ export default ({ setPageTitle }) => {
     return [defaultOption, ...options];
   };
 
-  // estados del despacho
-  const statusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "LOCKED",
-      label: "Bloqueado",
-    },
-    {
-      value: "OPEN",
-      label: "Habilitado",
-    },
-    {
-      value: "COMPLETED",
-      label: "Completado",
-    },
-  ];
-
-  //Trae todas los despachos segun queryParams
+  //Trae todas las ventas segun queryParams
   useEffect(() => {
-    const fetchDispatches = async () => {
+    const fetchSales = async () => {
       try {
-        const _dispatches = await getDispatches(queryParams);
-        console.log("despachos", _dispatches);
+        const _sales = await getSales({
+          status: "PAID",
+          type: "STORE",
+          paidAtFrom: from.format(serverDateFormat),
+          paidAtTo: to.format(serverDateFormat),
+          ...queryParams,
+        });
+        console.log("query", queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _dispatches.pageSize * _dispatches.pages,
-          current: _dispatches.page,
-          pageSize: _dispatches.pageSize,
+          total: _sales.pageSize * _sales.pages,
+          current: _sales.page,
+          pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setDispatches(_dispatches.rows);
+        setsales(_sales.rows);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -207,7 +182,7 @@ export default ({ setPageTitle }) => {
         });
       }
     };
-    fetchDispatches();
+    fetchSales();
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
@@ -219,13 +194,12 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.from = from.format(serverDateFormat));
-    to && (params.to = to.format(serverDateFormat));
+    from && (params.paidAtFrom = from.format(serverDateFormat));
+    to && (params.paidAtTo = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    /* userId && (params.dispatcherId = userId); */
-    status && (params.status = status);
-    await router.push(`/dispatchHistory${urlQueryParams(params)}`);
+    userId && (params.cashierId = userId);
+    await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
   const searchWithState = () => {
@@ -234,9 +208,8 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.proformaId || null);
-    /* setUserId(queryParams.dispatcherId || null); */
-    setStatus(queryParams.status || null);
+    setDocumentNumber(queryParams.id || null);
+    setUserId(queryParams.userId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -247,6 +220,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalProforma}
+        width="90%"
+        title="Información de la proforma"
+        onCancel={() => setIsVisibleModalProforma(false)}
+        footer={null}
+      >
+        <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
@@ -281,29 +263,10 @@ export default ({ setPageTitle }) => {
               }
             />
           </Grid>
-          <Input
-            value={documentNumber}
-            onChange={(event) => setDocumentNumber(event.target.value)}
-            placeholder="Nº Proforma"
-            addonBefore="Proforma"
-          />
-          <Select
-            value={userId}
-            label="Despachador"
-            onChange={(value) => setUserId(value)}
-            options={usersList()}
-          />
-          <Select
-            value={status}
-            label="Estado"
-            onChange={(value) => setStatus(value)}
-            options={statusOptions}
-          />
-          <Button
-            type="primary"
-            gridColumnStart="4"
-            onClick={async () => searchWithState()}
-          >
+          <Input placeholder="Nº Proforma" addonBefore="Proforma" />
+          <Select label="Tipo Venta" />
+          <Select label="Comprobante" />
+          <Button type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
@@ -314,19 +277,18 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={dispatches}
+          dataSource={sales}
           onChange={(pagination) =>
             updateState(setPage, pagination.current, true)
           }
         />
       </Container>
       <Container height="15%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
-          <Button
-            type="primary"
-            gridColumnStart="2"
-            onClick={async () => router.push(`/dispatch`)}
-          >
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+          <Button type="primary" gridColumnStart="2">
+            Crear Archivo SIGO
+          </Button>
+          <Button type="primary" gridColumnStart="3">
             Regresar
           </Button>
         </Grid>
