@@ -126,6 +126,9 @@ export default ({ setPageTitle }) => {
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
 
+  //para el filtro por cajero
+  const [userId, setUserId] = useState(null);
+
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
@@ -153,6 +156,21 @@ export default ({ setPageTitle }) => {
 
     initialize();
   }, []);
+
+  // lista de despachadores
+  const usersList = () => {
+    const options = users.map((user) => ({
+      value: user.id,
+      label: user.name,
+    }));
+
+    const defaultOption = {
+      value: null,
+      label: "Todos",
+    };
+
+    return [defaultOption, ...options];
+  };
 
   //Trae todas los despachos segun queryParams
   useEffect(() => {
@@ -191,6 +209,7 @@ export default ({ setPageTitle }) => {
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
+    /* userId && (params.dispatcherId = userId); */
     await router.push(`/dispatchHistory${urlQueryParams(params)}`);
   };
 
@@ -201,6 +220,7 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
+    /* setUserId(queryParams.dispatcherId || null); */
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -251,7 +271,12 @@ export default ({ setPageTitle }) => {
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-          <Select label="Despachador" />
+          <Select
+            value={userId}
+            label="Despachador"
+            onChange={(value) => setUserId(value)}
+            options={usersList()}
+          />
           <Select label="Estado" />
           <Button
             type="primary"
