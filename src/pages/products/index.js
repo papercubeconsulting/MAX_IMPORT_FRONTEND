@@ -329,6 +329,8 @@ export default ({ setPageTitle }) => {
     !isPagination && setPage(undefined);
   };
 
+  console.log("viendo modelo", model);
+
   return (
     <>
       {isModalAddProductVisible && (
@@ -408,7 +410,7 @@ export default ({ setPageTitle }) => {
             onSelect={(value) => {
               const _model = models.find((model) => model.id === value);
               updateState(setModelId, _model?.id);
-              setModel(_model);
+              _model ? setModel(_model) : setModel({ name: "Todos" });
             }}
             onSearch={(value) => {
               setModel((prevValue) => ({
