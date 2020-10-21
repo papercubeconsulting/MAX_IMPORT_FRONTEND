@@ -87,6 +87,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "product",
       align: "center",
+      width: "70px",
       render: (product) => (
         <Button
           padding="0 0.5rem"
@@ -116,6 +117,15 @@ export default ({ setPageTitle }) => {
           {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
         </Button>
       ),
+    },
+    {
+      title: "Fecha de atención",
+      dataIndex: "updatedAt",
+      align: "center",
+      render: (updatedAt) =>
+        `${moment(updatedAt).format("DD/MM")} ${moment(updatedAt).format(
+          "hh:mm"
+        )}`,
     },
   ];
 
@@ -471,6 +481,7 @@ export default ({ setPageTitle }) => {
             width="30%"
             margin="2% 5% 2% 40%"
             type="primary"
+            disabled={dispatch.status === "COMPLETED"}
           >
             Finalizar despacho
           </Button>

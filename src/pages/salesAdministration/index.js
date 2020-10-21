@@ -289,11 +289,15 @@ export default ({ setPageTitle }) => {
         />
       </Container>
       <Container height="15%">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
           <Button type="primary" gridColumnStart="2">
             Crear Archivo SIGO
           </Button>
-          <Button type="primary" gridColumnStart="3">
+          <Button
+            type="primary"
+            gridColumnStart="3"
+            onClick={async () => router.back()}
+          >
             Regresar
           </Button>
         </Grid>
