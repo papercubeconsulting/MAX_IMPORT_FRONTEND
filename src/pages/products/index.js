@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, Icon, Select } from "../../components";
+import {
+  Button,
+  Container,
+  Grid,
+  Icon,
+  Select,
+  AutoComplete,
+} from "../../components";
 import { Input, notification, Table } from "antd";
 import {
   getElements,
@@ -136,6 +143,7 @@ export default ({ setPageTitle }) => {
   const [subfamilyId, setSubfamilyId] = useState(null);
   const [elementId, setElementId] = useState(null);
   const [modelId, setModelId] = useState(null);
+  const [model, setModel] = useState(null);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -265,6 +273,7 @@ export default ({ setPageTitle }) => {
 
         if (elementId) {
           const _models = await getModels(elementId);
+          console.log(_models);
           setModels(_models);
         }
       } catch (error) {
@@ -290,7 +299,6 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-
     page && (params.page = page);
     stock && (params.stock = stock);
     code && (params.code = code);
@@ -298,7 +306,6 @@ export default ({ setPageTitle }) => {
     familyId && subfamilyId && (params.subfamilyId = subfamilyId);
     subfamilyId && elementId && (params.elementId = elementId);
     elementId && modelId && (params.modelId = modelId);
-
     await router.push(`/products${urlQueryParams(params)}`);
   };
 
@@ -388,11 +395,42 @@ export default ({ setPageTitle }) => {
             label="Elemento"
             options={selectOptions(elements)}
           />
-          <Select
+          {/* <Select
             value={modelId}
             onChange={(value) => updateState(setModelId, value)}
             label="Modelo"
             options={selectOptions(models)}
+          /> */}
+          {/* <AutoComplete
+            label="Modelo"
+            value={modelId}
+            color={"white"}
+            onSelect={(value) => {
+              const _model = models.find((model) => model.id === value);
+              updateState(setModelId, _model?.id);
+            }}
+            onSearch={(value) => {
+              console.log("value en search", value);
+              setModelId(value);
+            }}
+            _options={selectOptions(models)}
+          /> */}
+          <AutoComplete
+            label="Modelo"
+            color={""}
+            value={model?.name}
+            onSelect={(value) => {
+              const _model = models.find((model) => model.id === value);
+              updateState(setModelId, _model?.id);
+              setModel(_model);
+            }}
+            /* onSearch={(value) => {
+              console.log(value);
+            }} */
+            _options={selectOptions(models)}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().includes(input.toLowerCase())
+            }
           />
         </Grid>
       </Container>
