@@ -24,7 +24,7 @@ export default ({ setPageTitle }) => {
       title: "Fecha y Hora",
       align: "center",
       render: (createdAt) =>
-        `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
+        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
           "hh:mm"
         )}`,
     },
@@ -147,21 +147,6 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  // lista de cajeros
-  const usersList = () => {
-    const options = users.map((user) => ({
-      value: user.id,
-      label: user.name,
-    }));
-
-    const defaultOption = {
-      value: null,
-      label: "Todos",
-    };
-
-    return [defaultOption, ...options];
-  };
-
   //Trae todas las ventas segun queryParams
   useEffect(() => {
     const fetchSales = async () => {
@@ -198,7 +183,6 @@ export default ({ setPageTitle }) => {
     to && (params.paidAtTo = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    userId && (params.cashierId = userId);
     await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
@@ -208,8 +192,7 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
-    setUserId(queryParams.userId || null);
+    setDocumentNumber(queryParams.proformaId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -277,10 +260,15 @@ export default ({ setPageTitle }) => {
               }
             />
           </Grid>
-          <Input placeholder="Nº Proforma" addonBefore="Proforma" />
+          <Input
+            value={documentNumber}
+            onChange={(event) => setDocumentNumber(event.target.value)}
+            placeholder="Nº Proforma"
+            addonBefore="Proforma"
+          />
           <Select label="Tipo Venta" />
           <Select label="Comprobante" />
-          <Button type="primary" gridColumnStart="4">
+          <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
