@@ -401,20 +401,6 @@ export default ({ setPageTitle }) => {
             label="Modelo"
             options={selectOptions(models)}
           /> */}
-          {/* <AutoComplete
-            label="Modelo"
-            value={modelId}
-            color={"white"}
-            onSelect={(value) => {
-              const _model = models.find((model) => model.id === value);
-              updateState(setModelId, _model?.id);
-            }}
-            onSearch={(value) => {
-              console.log("value en search", value);
-              setModelId(value);
-            }}
-            _options={selectOptions(models)}
-          /> */}
           <AutoComplete
             label="Modelo"
             color={""}
@@ -424,9 +410,12 @@ export default ({ setPageTitle }) => {
               updateState(setModelId, _model?.id);
               setModel(_model);
             }}
-            /* onSearch={(value) => {
-              console.log(value);
-            }} */
+            onSearch={(value) => {
+              setModel((prevValue) => ({
+                name: value,
+                code: prevValue?.id ? "" : prevValue?.code,
+              }));
+            }}
             _options={selectOptions(models)}
             filterOption={(input, option) =>
               option.children.toLowerCase().includes(input.toLowerCase())
