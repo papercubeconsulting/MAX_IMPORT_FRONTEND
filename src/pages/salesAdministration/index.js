@@ -20,57 +20,76 @@ export default ({ setPageTitle }) => {
   setPageTitle("Administración Ventas");
   const columns = [
     {
-      dataIndex: "paidAt",
+      dataIndex: "createdAt",
       title: "Fecha y Hora",
       align: "center",
+      render: (createdAt) =>
+        `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
-      dataIndex: "cashierId",
+      dataIndex: "typeDescription",
       title: "Canal",
       align: "center",
+      render: (typeDescription) => typeDescription,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
       align: "center",
+      render: (proformaId) => `N°${proformaId}`,
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
       align: "center",
+      render: (proforma) => proforma.client.name,
+    },
+    {
+      dataIndex: "paymentTypeDescription",
+      title: "Tipo Venta",
+      align: "center",
+      render: (paymentTypeDescription) => paymentTypeDescription,
+    },
+    {
+      dataIndex: "billingTypeDescription",
+      title: "Comprobant.",
+      align: "center",
+      render: (billingTypeDescription) => billingTypeDescription,
     },
     {
       dataIndex: "total",
-      title: "Tipo Venta",
+      title: "Total Final",
       align: "center",
+      render: (total) => `S/ ${(total / 100).toFixed(2)}`,
     },
     {
       dataIndex: "initialPayment",
-      title: "Comprobant.",
+      title: "A Cuenta",
       align: "center",
+      render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "due",
+      title: "Tot. Deuda",
+      align: "center",
+      render: (due) => `S/ ${(due / 100).toFixed(2)}`,
     },
     {
       dataIndex: "paymentMethod",
-      title: "Total Final",
-      align: "center",
-    },
-    {
-      dataIndex: "referenceNumber",
-      title: "A Cuenta",
-      align: "center",
-    },
-    {
-      dataIndex: "receivedAmount",
-      title: "Tot. Deuda",
-      align: "center",
-    },
-    {
       title: "Medio Pag.",
       align: "center",
+      render: (paymentMethod) => (paymentMethod ? paymentMethod : "-"),
     },
     {
+      dataIndex: "cashierId",
       title: "Cajero",
       align: "center",
+      render: (cashierId) => {
+        const _users = users.filter((user) => user.id === cashierId)[0];
+        return _users ? _users.name : "-";
+      },
     },
     {
       title: "",
@@ -144,16 +163,10 @@ export default ({ setPageTitle }) => {
   };
 
   //Trae todas las ventas segun queryParams
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales({
-          status: "PAID",
-          type: "STORE",
-          paidAtFrom: from.format(serverDateFormat),
-          paidAtTo: to.format(serverDateFormat),
-          ...queryParams,
-        });
+        const _sales = await getSales(queryParams);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
@@ -173,7 +186,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]); */
+  }, [queryParams, toggleUpdateTable]);
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
