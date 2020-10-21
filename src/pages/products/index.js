@@ -329,8 +329,6 @@ export default ({ setPageTitle }) => {
     !isPagination && setPage(undefined);
   };
 
-  console.log("viendo modelo", model);
-
   return (
     <>
       {isModalAddProductVisible && (
@@ -405,7 +403,8 @@ export default ({ setPageTitle }) => {
           /> */}
           <AutoComplete
             label="Modelo"
-            color={""}
+            color={"white"}
+            colorFont={"#5F5F7F"}
             value={model?.name}
             onSelect={(value) => {
               const _model = models.find((model) => model.id === value);
