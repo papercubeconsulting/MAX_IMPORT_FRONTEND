@@ -20,72 +20,79 @@ export default ({ setPageTitle }) => {
   setPageTitle("Administración Ventas");
   const columns = [
     {
-      dataIndex: "paidAt",
+      dataIndex: "createdAt",
       title: "Fecha y Hora",
-      width: "fit-content",
       align: "center",
+      render: (createdAt) =>
+        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
-      dataIndex: "cashierId",
+      dataIndex: "typeDescription",
       title: "Canal",
-      width: "fit-content",
       align: "center",
+      render: (typeDescription) => typeDescription,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
-      width: "fit-content",
       align: "center",
+      render: (proformaId) => `N°${proformaId}`,
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
-      width: "fit-content",
       align: "center",
+      render: (proforma) => proforma.client.name,
+    },
+    {
+      dataIndex: "paymentTypeDescription",
+      title: "Tipo Venta",
+      align: "center",
+      render: (paymentTypeDescription) => paymentTypeDescription,
+    },
+    {
+      dataIndex: "billingTypeDescription",
+      title: "Comprobant.",
+      align: "center",
+      render: (billingTypeDescription) => billingTypeDescription,
     },
     {
       dataIndex: "total",
-      title: "Tipo Venta",
-      width: "fit-content",
+      title: "Total Final",
       align: "center",
+      render: (total) => `S/ ${(total / 100).toFixed(2)}`,
     },
     {
       dataIndex: "initialPayment",
-      title: "Comprobant.",
-      width: "fit-content",
+      title: "A Cuenta",
       align: "center",
+      render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "due",
+      title: "Tot. Deuda",
+      align: "center",
+      render: (due) => `S/ ${(due / 100).toFixed(2)}`,
     },
     {
       dataIndex: "paymentMethod",
-      title: "Total Final",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "referenceNumber",
-      title: "A Cuenta",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "receivedAmount",
-      title: "Tot. Deuda",
-      width: "fit-content",
-      align: "center",
-    },
-    {
       title: "Medio Pag.",
-      width: "fit-content",
       align: "center",
+      render: (paymentMethod) => (paymentMethod ? paymentMethod : "-"),
     },
     {
+      dataIndex: "cashierId",
       title: "Cajero",
-      width: "fit-content",
       align: "center",
+      render: (cashierId) => {
+        const _users = users.filter((user) => user.id === cashierId)[0];
+        return _users ? _users.name : "-";
+      },
     },
     {
       title: "",
-      width: "fit-content",
       align: "center",
     },
   ];
@@ -140,33 +147,11 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  // lista de cajeros
-  const usersList = () => {
-    const options = users.map((user) => ({
-      value: user.id,
-      label: user.name,
-    }));
-
-    const defaultOption = {
-      value: null,
-      label: "Todos",
-    };
-
-    return [defaultOption, ...options];
-  };
-
   //Trae todas las ventas segun queryParams
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales({
-          status: "PAID",
-          type: "STORE",
-          paidAtFrom: from.format(serverDateFormat),
-          paidAtTo: to.format(serverDateFormat),
-          ...queryParams,
-        });
-        console.log("query", queryParams);
+        const _sales = await getSales(queryParams);
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
@@ -198,7 +183,6 @@ export default ({ setPageTitle }) => {
     to && (params.paidAtTo = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    userId && (params.cashierId = userId);
     await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
@@ -208,8 +192,7 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
-    setUserId(queryParams.userId || null);
+    setDocumentNumber(queryParams.proformaId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -217,6 +200,20 @@ export default ({ setPageTitle }) => {
     setState(value);
     !isPagination && setPage(undefined);
   };
+
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
+    },
+    getCheckboxProps: (record) => ({
+      name: record.name,
+    }),
+  };
+  const [selectionType, setSelectionType] = useState("checkbox");
 
   return (
     <>
@@ -263,16 +260,25 @@ export default ({ setPageTitle }) => {
               }
             />
           </Grid>
-          <Input placeholder="Nº Proforma" addonBefore="Proforma" />
+          <Input
+            value={documentNumber}
+            onChange={(event) => setDocumentNumber(event.target.value)}
+            placeholder="Nº Proforma"
+            addonBefore="Proforma"
+          />
           <Select label="Tipo Venta" />
           <Select label="Comprobante" />
-          <Button type="primary" gridColumnStart="4">
+          <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
       </Container>
       <Container height="fit-content">
         <Table
+          rowSelection={{
+            type: selectionType,
+            ...rowSelection,
+          }}
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
@@ -284,11 +290,15 @@ export default ({ setPageTitle }) => {
         />
       </Container>
       <Container height="15%">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
           <Button type="primary" gridColumnStart="2">
             Crear Archivo SIGO
           </Button>
-          <Button type="primary" gridColumnStart="3">
+          <Button
+            type="primary"
+            gridColumnStart="3"
+            onClick={async () => router.back()}
+          >
             Regresar
           </Button>
         </Grid>

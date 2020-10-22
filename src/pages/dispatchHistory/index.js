@@ -83,9 +83,8 @@ export default ({ setPageTitle }) => {
         <Button
           onClick={async () => router.push(`/dispatch/${id}`)}
           type={"primary"}
-          disabled={data.status === "COMPLETED"}
         >
-          {data.status === "COMPLETED" ? "Atendido" : "Atender"}
+          Atendido
         </Button>
       ),
     },
@@ -119,9 +118,6 @@ export default ({ setPageTitle }) => {
 
   //para el filtro por cajero
   const [userId, setUserId] = useState(null);
-
-  //para el filtro por estado del despacho
-  const [status, setStatus] = useState(null);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -166,31 +162,14 @@ export default ({ setPageTitle }) => {
     return [defaultOption, ...options];
   };
 
-  // estados del despacho
-  const statusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "LOCKED",
-      label: "Bloqueado",
-    },
-    {
-      value: "OPEN",
-      label: "Habilitado",
-    },
-    {
-      value: "COMPLETED",
-      label: "Completado",
-    },
-  ];
-
   //Trae todas los despachos segun queryParams
   useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getDispatches(queryParams);
+        const _dispatches = await getDispatches({
+          status: "COMPLETED",
+          ...queryParams,
+        });
         console.log("despachos", _dispatches);
         setPagination({
           position: ["bottomCenter"],
@@ -223,8 +202,7 @@ export default ({ setPageTitle }) => {
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    /* userId && (params.dispatcherId = userId); */
-    status && (params.status = status);
+    userId && (params.dispatcherId = userId);
     await router.push(`/dispatchHistory${urlQueryParams(params)}`);
   };
 
@@ -235,8 +213,7 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
-    /* setUserId(queryParams.dispatcherId || null); */
-    setStatus(queryParams.status || null);
+    setUserId(queryParams.dispatcherId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -292,12 +269,6 @@ export default ({ setPageTitle }) => {
             label="Despachador"
             onChange={(value) => setUserId(value)}
             options={usersList()}
-          />
-          <Select
-            value={status}
-            label="Estado"
-            onChange={(value) => setStatus(value)}
-            options={statusOptions}
           />
           <Button
             type="primary"
