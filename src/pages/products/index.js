@@ -219,7 +219,6 @@ export default ({ setPageTitle }) => {
         if (familyId) {
           const _subfamilies = await getSubfamilies(familyId);
           setSubfamilies(_subfamilies);
-          /* console.log("subfamilies", _subfamilies); */
           setSubfamilyId(
             _subfamilies[0] && _subfamilies[0].name === "-"
               ? _subfamilies[0].id
