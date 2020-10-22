@@ -219,7 +219,6 @@ export default ({ setPageTitle }) => {
         if (familyId) {
           const _subfamilies = await getSubfamilies(familyId);
           setSubfamilies(_subfamilies);
-          /* console.log("subfamilies", _subfamilies); */
           setSubfamilyId(
             _subfamilies[0] && _subfamilies[0].name === "-"
               ? _subfamilies[0].id
@@ -275,6 +274,7 @@ export default ({ setPageTitle }) => {
           const _models = await getModels(elementId);
           console.log(_models);
           setModels(_models);
+          setModel(null);
         }
       } catch (error) {
         notification.error({
@@ -405,7 +405,7 @@ export default ({ setPageTitle }) => {
             label="Modelo"
             color={"white"}
             colorFont={"#5F5F7F"}
-            value={model?.name}
+            value={model ? model.name : ""}
             onSelect={(value) => {
               const _model = models.find((model) => model.id === value);
               updateState(setModelId, _model?.id);
@@ -418,9 +418,15 @@ export default ({ setPageTitle }) => {
               }));
             }}
             _options={selectOptions(models)}
-            filterOption={(input, option) =>
-              option.children.toLowerCase().includes(input.toLowerCase())
-            }
+            filterOption={(input, option) => {
+              /* console.log("viendo que pasa", input, option); */
+              if (typeof input === "number") {
+                return;
+              }
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
           />
         </Grid>
       </Container>

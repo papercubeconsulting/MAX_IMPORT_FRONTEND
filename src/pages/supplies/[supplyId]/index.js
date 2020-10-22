@@ -85,55 +85,87 @@ export default ({setPageTitle}) => {
             dataIndex: "subfamilyId",
             width: "fit-content",
             align: "center",
-            render: (subfamilyId, suppliedProduct) =>
-                <Select value={subfamilyId}
-                        disabled={disabled}
-                        onChange={value => setSuppliedProducts(prevState => {
-                            const remainingSuppliedProducts = prevState
-                                .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
+            render: (subfamilyId, suppliedProduct) =>{
+                /* console.log('subfamilyId', subfamilyId); */
+                if(suppliedProduct.familyId && !subfamilyId) {
+                    /* console.log('ora si subfamiliaaaa') */
+                    const _subfamily = subfamilies.filter(subFamily => subFamily.familyId === suppliedProduct.familyId)
+                    /* console.log('subfamilias elegidas', _subfamily) */
+                    const _choseSubFamily = _subfamily.find(elem => elem.name === '-')
+                    if(_choseSubFamily) {
+                        subfamilyId = _choseSubFamily.id
+                        suppliedProduct.subfamilyId = _choseSubFamily.id
+                    }
+                    /* console.log(' a ver q paso aqui XD', _choseSubFamily) */
+                } else {
+                    /* console.log('aun no se puede poner una subfamilia') */
+                }
+                return(<Select value={subfamilyId}
+                disabled={disabled}
+                onChange={value => {
+                    setSuppliedProducts(prevState => {
+                        const remainingSuppliedProducts = prevState
+                            .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
 
-                            return [
-                                ...remainingSuppliedProducts,
-                                {
-                                    id: suppliedProduct.id,
-                                    dbId: suppliedProduct.dbId,
-                                    productBoxes: suppliedProduct.productBoxes,
-                                    quantity: suppliedProduct.quantity,
-                                    boxSize: suppliedProduct.boxSize,
-                                    familyId: suppliedProduct.familyId,
-                                    subfamilyId: value
-                                }
-                            ]
-                        })}
-                        options={selectOptions(subfamilies.filter(subFamily => subFamily.familyId === suppliedProduct.familyId))}/>
+                        return [
+                            ...remainingSuppliedProducts,
+                            {
+                                id: suppliedProduct.id,
+                                dbId: suppliedProduct.dbId,
+                                productBoxes: suppliedProduct.productBoxes,
+                                quantity: suppliedProduct.quantity,
+                                boxSize: suppliedProduct.boxSize,
+                                familyId: suppliedProduct.familyId,
+                                subfamilyId: value
+                            }
+                        ]
+                    })
+                }}
+                options={selectOptions(subfamilies.filter(subFamily => subFamily.familyId === suppliedProduct.familyId))}/>)
+            }
         },
         {
             title: "Elemento",
             dataIndex: "elementId",
             width: "fit-content",
             align: "center",
-            render: (elementId, suppliedProduct) =>
-                <Select value={elementId}
-                        disabled={disabled}
-                        onChange={value => setSuppliedProducts(prevState => {
-                            const remainingSuppliedProducts = prevState
-                                .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
+            render: (elementId, suppliedProduct) =>{
+                console.log('elementId', elementId);
+                if(suppliedProduct.subfamilyId && !elementId) {
+                    console.log('ora si elementoooo')
+                    const _element = elements.filter(element => element.subfamilyId === suppliedProduct.subfamilyId)
+                    console.log('elementos elegidos', _element)
+                    const _choseElement = _element.find(elem => elem.name === '-')
+                    if(_choseElement) {
+                        elementId = _choseElement.id
+                        suppliedProduct.elementId = _choseElement.id
+                    }
+                    console.log(' a ver q paso aqui XD', _choseElement)
+                } else {
+                    console.log('aun no se puede poner un elementId')
+                }
+                return (<Select value={elementId}
+                    disabled={disabled}
+                    onChange={value => setSuppliedProducts(prevState => {
+                        const remainingSuppliedProducts = prevState
+                            .filter(_suppliedProduct => _suppliedProduct.id !== suppliedProduct.id);
 
-                            return [
-                                ...remainingSuppliedProducts,
-                                {
-                                    id: suppliedProduct.id,
-                                    dbId: suppliedProduct.dbId,
-                                    productBoxes: suppliedProduct.productBoxes,
-                                    quantity: suppliedProduct.quantity,
-                                    boxSize: suppliedProduct.boxSize,
-                                    familyId: suppliedProduct.familyId,
-                                    subfamilyId: suppliedProduct.subfamilyId,
-                                    elementId: value
-                                }
-                            ]
-                        })}
-                        options={selectOptions(elements.filter(element => element.subfamilyId === suppliedProduct.subfamilyId))}/>
+                        return [
+                            ...remainingSuppliedProducts,
+                            {
+                                id: suppliedProduct.id,
+                                dbId: suppliedProduct.dbId,
+                                productBoxes: suppliedProduct.productBoxes,
+                                quantity: suppliedProduct.quantity,
+                                boxSize: suppliedProduct.boxSize,
+                                familyId: suppliedProduct.familyId,
+                                subfamilyId: suppliedProduct.subfamilyId,
+                                elementId: value
+                            }
+                        ]
+                    })}
+                    options={selectOptions(elements.filter(element => element.subfamilyId === suppliedProduct.subfamilyId))}/>)
+            }
         },
         {
             title: "Modelo",
@@ -277,6 +309,7 @@ export default ({setPageTitle}) => {
         const fetchFamilies = async () => {
             const _families = await getFamilies(providerId);
             setFamilies(_families);
+            console.log('_families', _families);
         };
         if (providerId) fetchFamilies();
     }, [providerId]);
@@ -285,6 +318,7 @@ export default ({setPageTitle}) => {
         const fetchSubfamilies = async () => {
             const _subfamilies = await getSubfamilies(null, providerId);
             setSubfamilies(_subfamilies);
+            console.log('_sub', _subfamilies);
         };
         if (providerId) fetchSubfamilies();
     }, [providerId]);
