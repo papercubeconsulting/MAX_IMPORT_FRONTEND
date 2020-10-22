@@ -71,10 +71,10 @@ export default ({ setPageTitle }) => {
       render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
     },
     {
-      dataIndex: "due",
-      title: "Tot. Deuda",
+      dataIndex: "credit",
+      title: "Crédito",
       align: "center",
-      render: (due) => `S/ ${(due / 100).toFixed(2)}`,
+      render: (credit) => `S/ ${(credit / 100).toFixed(2)}`,
     },
     {
       dataIndex: "paymentMethod",
@@ -92,8 +92,17 @@ export default ({ setPageTitle }) => {
       },
     },
     {
+      dataIndex: "id",
       title: "",
       align: "center",
+      render: (id, data) => (
+        <Button
+          onClick={async () => router.push(`/dispatch/${id}`)}
+          type={"primary"}
+        >
+          {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
+        </Button>
+      ),
     },
   ];
 
@@ -151,7 +160,10 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales(queryParams);
+        const _sales = await getSales({
+          status: "PAID",
+          ...queryParams,
+        });
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
@@ -159,6 +171,7 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
+        console.log(_sales.rows);
         setsales(_sales.rows);
       } catch (error) {
         notification.error({
