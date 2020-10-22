@@ -119,6 +119,9 @@ export default ({ setPageTitle }) => {
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
 
+  //para el filtro por tipo de comprobante
+  const [billingType, setBillingType] = useState(null);
+
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -196,6 +199,7 @@ export default ({ setPageTitle }) => {
     to && (params.paidAtTo = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
+    billingType && (params.billingType = billingType);
     await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
@@ -206,6 +210,7 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
+    setBillingType(queryParams.billingType || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -213,6 +218,21 @@ export default ({ setPageTitle }) => {
     setState(value);
     !isPagination && setPage(undefined);
   };
+
+  const billingTypeOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "CONSIGNMENT",
+      label: "Consignación",
+    },
+    {
+      value: "SALE",
+      label: "Venta",
+    },
+  ];
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
@@ -280,7 +300,12 @@ export default ({ setPageTitle }) => {
             addonBefore="Proforma"
           />
           <Select label="Tipo Venta" />
-          <Select label="Comprobante" />
+          <Select
+            value={billingType}
+            onChange={(value) => setBillingType(value)}
+            label="Comprobante"
+            options={billingTypeOptions}
+          />
           <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
