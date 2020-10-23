@@ -38,7 +38,16 @@ export default ({ setPageTitle }) => {
       dataIndex: "proformaId",
       title: "Proforma",
       align: "center",
-      render: (proformaId) => `N°${proformaId}`,
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
     {
       dataIndex: "proforma",
@@ -167,6 +176,7 @@ export default ({ setPageTitle }) => {
       try {
         const _sales = await getSales({
           status: "PAID",
+          orderBy: "createdAt",
           ...queryParams,
         });
         setPagination({
