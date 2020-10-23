@@ -75,7 +75,7 @@ export default ({ setPageTitle }) => {
     },
     {
       dataIndex: "initialPayment",
-      title: "A Cuenta",
+      title: "Al contado",
       align: "center",
       render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
     },
@@ -129,6 +129,9 @@ export default ({ setPageTitle }) => {
 
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
+
+  //para el filtro por tipo de comprobante
+  const [paymentType, setPaymentType] = useState(null);
 
   //para el filtro por tipo de comprobante
   const [billingType, setBillingType] = useState(null);
@@ -212,6 +215,7 @@ export default ({ setPageTitle }) => {
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
     billingType && (params.billingType = billingType);
+    paymentType && (params.paymentType = paymentType);
     await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
@@ -223,6 +227,7 @@ export default ({ setPageTitle }) => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
     setBillingType(queryParams.billingType || null);
+    setPaymentType(queryParams.paymentType || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -243,6 +248,21 @@ export default ({ setPageTitle }) => {
     {
       value: "SALE",
       label: "Venta",
+    },
+  ];
+
+  const paymentTypeOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "CASH",
+      label: "Contado",
+    },
+    {
+      value: "CREDIT",
+      label: "Crédito",
     },
   ];
 
@@ -311,7 +331,12 @@ export default ({ setPageTitle }) => {
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-          <Select label="Tipo Venta" />
+          <Select
+            value={paymentType}
+            onChange={(value) => setPaymentType(value)}
+            label="Tipo Venta"
+            options={paymentTypeOptions}
+          />
           <Select
             value={billingType}
             onChange={(value) => setBillingType(value)}
