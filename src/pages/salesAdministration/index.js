@@ -115,8 +115,8 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
 
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);

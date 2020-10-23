@@ -212,7 +212,7 @@ export default ({ setPageTitle }) => {
         const _models = models.filter(
           (model) => model.elementId === suppliedProduct.elementId
         );
-        console.log("modelId", modelId);
+        /* console.log("modelId", modelId); */
         return (
           <AutoComplete
             color={"white"}
@@ -220,7 +220,7 @@ export default ({ setPageTitle }) => {
             disabled={disabled}
             value={model && modelId? model.name : ""}
             onSelect={async (value) => {
-              console.log("value en onselect", value);
+              /* console.log("value en onselect", value); */
               let selectedModel = models.find((model) => model.id === value);
               setModel(selectedModel);
               const product = await getProduct(value, { noStock: true });
