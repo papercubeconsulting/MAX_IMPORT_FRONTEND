@@ -97,7 +97,9 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (id, data) => (
         <Button
-          onClick={async () => router.push(`/dispatch/${id}`)}
+          onClick={async () =>
+            router.push(`/cashHistory?proformaId=${data.proformaId}`)
+          }
           type={"primary"}
         >
           {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}

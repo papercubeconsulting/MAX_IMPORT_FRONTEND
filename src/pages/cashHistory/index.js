@@ -233,8 +233,8 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
-    setUserId(queryParams.userId || null);
+    setDocumentNumber(queryParams.proformaId || null);
+    setUserId(queryParams.cashierId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -327,7 +327,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             gridColumnStart="2"
-            onClick={async () => router.push(`/sales`)}
+            onClick={async () => router.back()}
           >
             Regresar
           </Button>
