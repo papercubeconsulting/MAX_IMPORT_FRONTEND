@@ -218,7 +218,7 @@ export default ({ setPageTitle }) => {
             color={"white"}
             colorFont={"#5F5F7F"}
             disabled={disabled}
-            value={model ? model.name : ""}
+            value={model && modelId? model.name : ""}
             onSelect={async (value) => {
               console.log("value en onselect", value);
               let selectedModel = models.find((model) => model.id === value);
@@ -256,7 +256,6 @@ export default ({ setPageTitle }) => {
             }}
             _options={selectOptions(_models)}
             filterOption={(input, option) => {
-              console.log("viendo que pasa", input, option);
               if (typeof input === "number") {
                 return;
               }
@@ -383,7 +382,6 @@ export default ({ setPageTitle }) => {
     const fetchFamilies = async () => {
       const _families = await getFamilies(providerId);
       setFamilies(_families);
-      console.log("_families", _families);
     };
     if (providerId) fetchFamilies();
   }, [providerId]);
@@ -392,7 +390,6 @@ export default ({ setPageTitle }) => {
     const fetchSubfamilies = async () => {
       const _subfamilies = await getSubfamilies(null, providerId);
       setSubfamilies(_subfamilies);
-      console.log("_sub", _subfamilies);
     };
     if (providerId) fetchSubfamilies();
   }, [providerId]);
