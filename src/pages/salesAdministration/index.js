@@ -197,8 +197,8 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.paidAtFrom = from.format(serverDateFormat));
-    to && (params.paidAtTo = to.format(serverDateFormat));
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
     billingType && (params.billingType = billingType);
