@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import {
+  Button,
+  Container,
+  DatePicker,
+  Grid,
+  Icon,
+  ModalProforma,
+} from "../../components";
 import { getUsers, userProvider, getDispatches } from "../../providers";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Modal } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
@@ -37,7 +44,16 @@ export default ({ setPageTitle }) => {
       title: "Proforma",
       width: "fit-content",
       align: "center",
-      render: (proformaId) => `N°${proformaId}`,
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
     {
       dataIndex: "proforma",
@@ -93,6 +109,10 @@ export default ({ setPageTitle }) => {
   //Datos del usuario
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
+
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   //para el filtro por fecha
   const [from, setFrom] = useState(moment().subtract(7, "days"));
@@ -198,6 +218,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalProforma}
+        width="90%"
+        title="Información de la proforma"
+        onCancel={() => setIsVisibleModalProforma(false)}
+        footer={null}
+      >
+        <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
