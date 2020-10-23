@@ -171,7 +171,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales({ status: "DUE" });
+        const _sales = await getSales({ status: "DUE", orderBy: "createdAt" });
         setPagination({
           position: ["bottomCenter"],
           total: _sales.count,

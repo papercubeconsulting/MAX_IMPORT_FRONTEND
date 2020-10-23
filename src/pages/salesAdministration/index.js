@@ -38,7 +38,16 @@ export default ({ setPageTitle }) => {
       dataIndex: "proformaId",
       title: "Proforma",
       align: "center",
-      render: (proformaId) => `N°${proformaId}`,
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
     {
       dataIndex: "proforma",
@@ -71,10 +80,10 @@ export default ({ setPageTitle }) => {
       render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
     },
     {
-      dataIndex: "due",
-      title: "Tot. Deuda",
+      dataIndex: "credit",
+      title: "Crédito",
       align: "center",
-      render: (due) => `S/ ${(due / 100).toFixed(2)}`,
+      render: (credit) => `S/ ${(credit / 100).toFixed(2)}`,
     },
     {
       dataIndex: "paymentMethod",
@@ -92,8 +101,19 @@ export default ({ setPageTitle }) => {
       },
     },
     {
+      dataIndex: "id",
       title: "",
       align: "center",
+      render: (id, data) => (
+        <Button
+          onClick={async () =>
+            router.push(`/cashHistory?proformaId=${data.proformaId}`)
+          }
+          type={"primary"}
+        >
+          {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
+        </Button>
+      ),
     },
   ];
 
@@ -104,11 +124,14 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
 
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
+
+  //para el filtro por tipo de comprobante
+  const [billingType, setBillingType] = useState(null);
 
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
@@ -151,7 +174,11 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const _sales = await getSales(queryParams);
+        const _sales = await getSales({
+          status: "PAID",
+          orderBy: "createdAt",
+          ...queryParams,
+        });
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
@@ -159,6 +186,7 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
+        console.log(_sales.rows);
         setsales(_sales.rows);
       } catch (error) {
         notification.error({
@@ -179,10 +207,11 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.paidAtFrom = from.format(serverDateFormat));
-    to && (params.paidAtTo = to.format(serverDateFormat));
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
+    billingType && (params.billingType = billingType);
     await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
@@ -193,6 +222,7 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
+    setBillingType(queryParams.billingType || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -200,6 +230,21 @@ export default ({ setPageTitle }) => {
     setState(value);
     !isPagination && setPage(undefined);
   };
+
+  const billingTypeOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "CONSIGNMENT",
+      label: "Consignación",
+    },
+    {
+      value: "SALE",
+      label: "Venta",
+    },
+  ];
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
@@ -267,7 +312,12 @@ export default ({ setPageTitle }) => {
             addonBefore="Proforma"
           />
           <Select label="Tipo Venta" />
-          <Select label="Comprobante" />
+          <Select
+            value={billingType}
+            onChange={(value) => setBillingType(value)}
+            label="Comprobante"
+            options={billingTypeOptions}
+          />
           <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
