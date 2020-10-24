@@ -6,9 +6,10 @@ import {
   DatePicker,
   Grid,
   Icon,
+  Select,
   ModalProforma,
 } from "../../components";
-import { getUsers, userProvider, getDispatches } from "../../providers";
+import { getSales, getUsers, userProvider } from "../../providers";
 import { Input, notification, Table, Modal } from "antd";
 
 import moment from "moment";
@@ -16,33 +17,26 @@ import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Despachos");
+  setPageTitle("Administración Ventas");
   const columns = [
     {
-      dataIndex: "id",
-      title: "Turno",
-      width: "fit-content",
+      dataIndex: "createdAt",
+      title: "Fecha y Hora",
       align: "center",
-      render: (id, data, index) => index + 1,
+      render: (createdAt) =>
+        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
-      dataIndex: "createdAt",
-      title: "Fecha",
-      width: "fit-content",
+      dataIndex: "typeDescription",
+      title: "Canal",
       align: "center",
-      render: (createdAt) => moment(createdAt).format("DD/MM"),
-    },
-    {
-      dataIndex: "createdAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      render: (createdAt) => moment(createdAt).format("hh:mm"),
+      render: (typeDescription) => typeDescription,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
-      width: "fit-content",
       align: "center",
       render: (proformaId) => (
         <a
@@ -58,77 +52,103 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "proforma",
       title: "Cliente",
-      width: "fit-content",
       align: "center",
       render: (proforma) => proforma.client.name,
     },
     {
-      dataIndex: "sale",
-      title: "Tip. Despacho",
-      width: "fit-content",
+      dataIndex: "paymentTypeDescription",
+      title: "Tipo Venta",
       align: "center",
-      render: (sale) => sale.dispatchmentType,
+      render: (paymentTypeDescription) => paymentTypeDescription,
     },
     {
-      dataIndex: "id",
-      title: "Agencia",
-      width: "fit-content",
+      dataIndex: "billingTypeDescription",
+      title: "Comprobant.",
       align: "center",
-      render: (id, data) =>
-        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
+      render: (billingTypeDescription) => billingTypeDescription,
     },
     {
-      dataIndex: "proforma",
-      title: "Unidades",
-      width: "fit-content",
+      dataIndex: "total",
+      title: "Total Final",
       align: "center",
-      render: (proforma) => proforma.totalUnits,
+      render: (total) => `S/ ${(total / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "initialPayment",
+      title: "Al contado",
+      align: "center",
+      render: (initialPayment) => `S/ ${(initialPayment / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "credit",
+      title: "Crédito",
+      align: "center",
+      render: (credit) => `S/ ${(credit / 100).toFixed(2)}`,
+    },
+    {
+      dataIndex: "paymentMethod",
+      title: "Medio Pag.",
+      align: "center",
+      render: (paymentMethod) => (paymentMethod ? paymentMethod : "-"),
+    },
+    {
+      dataIndex: "cashierId",
+      title: "Cajero",
+      align: "center",
+      render: (cashierId) => {
+        const _users = users.filter((user) => user.id === cashierId)[0];
+        return _users ? _users.name : "-";
+      },
     },
     {
       dataIndex: "id",
       title: "",
-      width: "fit-content",
       align: "center",
       render: (id, data) => (
         <Button
-          onClick={async () => router.push(`/dispatch/${id}`)}
+          onClick={async () =>
+            router.push(`/cashHistory?proformaId=${data.proformaId}`)
+          }
           type={"primary"}
         >
-          Atender
+          {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
         </Button>
       ),
     },
   ];
 
   const [windowHeight, setWindowHeight] = useState(0);
-  const [dispatches, setDispatches] = useState([]);
+  const [sales, setsales] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
 
-  //Datos del usuario
-  const [users, setUsers] = useState([]);
-  const [me, setMe] = useState({ name: null });
-
-  //Modal de proforma
-  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
-  const [idModal, setIdModal] = useState("");
-
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
 
-  //para el filtro por nro proforma
+  //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
 
-  //para el filtro por cliente
-  const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
+  //para el filtro por tipo de comprobante
+  const [paymentType, setPaymentType] = useState(null);
+
+  //para el filtro por tipo de comprobante
+  const [billingType, setBillingType] = useState(null);
+
+  //para el filtro por vendedor
+  const [users, setUsers] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [me, setMe] = useState({ name: null });
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
   const queryParams = router.query;
+
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -153,24 +173,24 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  //Trae todas los despachos segun queryParams
+  //Trae todas las ventas segun queryParams
   useEffect(() => {
-    const fetchDispatches = async () => {
+    const fetchSales = async () => {
       try {
-        const _dispatches = await getDispatches({
-          status: "OPEN",
+        const _sales = await getSales({
+          status: "PAID",
+          orderBy: "createdAt",
           ...queryParams,
         });
-        console.log("disp", _dispatches);
         setPagination({
           position: ["bottomCenter"],
-          total: _dispatches.pageSize * _dispatches.pages,
-          current: _dispatches.page,
-          pageSize: _dispatches.pageSize,
+          total: _sales.pageSize * _sales.pages,
+          current: _sales.page,
+          pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        setDispatches(_dispatches.rows);
-        console.log("despachos", _dispatches);
+        console.log(_sales.rows);
+        setsales(_sales.rows);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -178,7 +198,7 @@ export default ({ setPageTitle }) => {
         });
       }
     };
-    fetchDispatches();
+    fetchSales();
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
@@ -194,9 +214,9 @@ export default ({ setPageTitle }) => {
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    name && (params.name = name);
-    lastName && (params.lastname = lastName);
-    await router.push(`/dispatch${urlQueryParams(params)}`);
+    billingType && (params.billingType = billingType);
+    paymentType && (params.paymentType = paymentType);
+    await router.push(`/salesAdministration${urlQueryParams(params)}`);
   };
 
   const searchWithState = () => {
@@ -206,8 +226,8 @@ export default ({ setPageTitle }) => {
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.proformaId || null);
-    setName(queryParams.name || null);
-    setLastName(queryParams.lastname || null);
+    setBillingType(queryParams.billingType || null);
+    setPaymentType(queryParams.paymentType || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -215,6 +235,50 @@ export default ({ setPageTitle }) => {
     setState(value);
     !isPagination && setPage(undefined);
   };
+
+  const billingTypeOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "CONSIGNMENT",
+      label: "Consignación",
+    },
+    {
+      value: "SALE",
+      label: "Venta",
+    },
+  ];
+
+  const paymentTypeOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "CASH",
+      label: "Contado",
+    },
+    {
+      value: "CREDIT",
+      label: "Crédito",
+    },
+  ];
+
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
+    },
+    getCheckboxProps: (record) => ({
+      name: record.name,
+    }),
+  };
+  const [selectionType, setSelectionType] = useState("checkbox");
 
   return (
     <>
@@ -267,46 +331,50 @@ export default ({ setPageTitle }) => {
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-          <Input
-            value={name}
-            placeholder="Nombre/Razón Soc."
-            addonBefore="Cliente"
-            onChange={(e) => setName(e.target.value)}
+          <Select
+            value={paymentType}
+            onChange={(value) => setPaymentType(value)}
+            label="Tipo Venta"
+            options={paymentTypeOptions}
           />
-          <Input
-            value={lastName}
-            placeholder="Apellidos"
-            onChange={(e) => setLastName(e.target.value)}
+          <Select
+            value={billingType}
+            onChange={(value) => setBillingType(value)}
+            label="Comprobante"
+            options={billingTypeOptions}
           />
-          <Button
-            type="primary"
-            gridColumnStart="4"
-            onClick={async () => searchWithState()}
-          >
+          <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
       </Container>
       <Container height="fit-content">
         <Table
+          rowSelection={{
+            type: selectionType,
+            ...rowSelection,
+          }}
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
-          dataSource={dispatches}
+          dataSource={sales}
           onChange={(pagination) =>
             updateState(setPage, pagination.current, true)
           }
         />
       </Container>
       <Container height="15%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
+          <Button type="primary" gridColumnStart="2">
+            Crear Archivo SIGO
+          </Button>
           <Button
             type="primary"
-            gridColumnStart="2"
-            onClick={async () => router.push(`/dispatchHistory`)}
+            gridColumnStart="3"
+            onClick={async () => router.back()}
           >
-            Historial de Despachos
+            Regresar
           </Button>
         </Grid>
       </Container>

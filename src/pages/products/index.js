@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, Icon, Select } from "../../components";
+import {
+  Button,
+  Container,
+  Grid,
+  Icon,
+  Select,
+  AutoComplete,
+} from "../../components";
 import { Input, notification, Table } from "antd";
 import {
   getElements,
@@ -136,6 +143,7 @@ export default ({ setPageTitle }) => {
   const [subfamilyId, setSubfamilyId] = useState(null);
   const [elementId, setElementId] = useState(null);
   const [modelId, setModelId] = useState(null);
+  const [model, setModel] = useState(null);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -162,7 +170,7 @@ export default ({ setPageTitle }) => {
         const _products = await getProducts(queryParams);
         setPagination({
           position: ["bottomCenter"],
-          total: _products.pageSize*_products.pages,
+          total: _products.pageSize * _products.pages,
           current: _products.page,
           pageSize: _products.pageSize,
           showSizeChanger: false,
@@ -179,8 +187,6 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") urlToState();
     fetchProducts();
   }, [queryParams, toggleUpdateTable]);
-
-  /* console.log('pagination', pagination); */
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -210,10 +216,14 @@ export default ({ setPageTitle }) => {
           setSubfamilies([]);
           setSubfamilyId(null);
         }
-
         if (familyId) {
           const _subfamilies = await getSubfamilies(familyId);
           setSubfamilies(_subfamilies);
+          setSubfamilyId(
+            _subfamilies[0] && _subfamilies[0].name === "-"
+              ? _subfamilies[0].id
+              : null
+          );
         }
       } catch (error) {
         notification.error({
@@ -237,6 +247,9 @@ export default ({ setPageTitle }) => {
         if (subfamilyId) {
           const _elements = await getElements(subfamilyId);
           setElements(_elements);
+          setElementId(
+            _elements[0] && _elements[0].name === "-" ? _elements[0].id : null
+          );
         }
       } catch (error) {
         notification.error({
@@ -259,7 +272,9 @@ export default ({ setPageTitle }) => {
 
         if (elementId) {
           const _models = await getModels(elementId);
+          console.log(_models);
           setModels(_models);
+          setModel(null);
         }
       } catch (error) {
         notification.error({
@@ -284,7 +299,6 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-
     page && (params.page = page);
     stock && (params.stock = stock);
     code && (params.code = code);
@@ -292,7 +306,6 @@ export default ({ setPageTitle }) => {
     familyId && subfamilyId && (params.subfamilyId = subfamilyId);
     subfamilyId && elementId && (params.elementId = elementId);
     elementId && modelId && (params.modelId = modelId);
-
     await router.push(`/products${urlQueryParams(params)}`);
   };
 
@@ -382,11 +395,38 @@ export default ({ setPageTitle }) => {
             label="Elemento"
             options={selectOptions(elements)}
           />
-          <Select
+          {/* <Select
             value={modelId}
             onChange={(value) => updateState(setModelId, value)}
             label="Modelo"
             options={selectOptions(models)}
+          /> */}
+          <AutoComplete
+            label="Modelo"
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            value={model ? model.name : ""}
+            onSelect={(value) => {
+              const _model = models.find((model) => model.id === value);
+              updateState(setModelId, _model?.id);
+              _model ? setModel(_model) : setModel({ name: "Todos" });
+            }}
+            onSearch={(value) => {
+              setModel((prevValue) => ({
+                name: value,
+                code: prevValue?.id ? "" : prevValue?.code,
+              }));
+            }}
+            _options={selectOptions(models)}
+            filterOption={(input, option) => {
+              /* console.log("viendo que pasa", input, option); */
+              if (typeof input === "number") {
+                return;
+              }
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
           />
         </Grid>
       </Container>

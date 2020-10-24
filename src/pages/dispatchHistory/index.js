@@ -7,9 +7,10 @@ import {
   Grid,
   Icon,
   Select,
+  ModalProforma,
 } from "../../components";
-import { getUsers, userProvider } from "../../providers";
-import { Input, notification, Table } from "antd";
+import { getUsers, userProvider, getDispatches } from "../../providers";
+import { Input, notification, Table, Modal } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
@@ -21,81 +22,92 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "index",
       title: "Nro",
-      width: "fit-content",
+      width: "60px",
       align: "center",
+      render: (id, data, index) => index + 1,
     },
     {
-      dataIndex: "paidAt",
-      title: "Fecha",
-      width: "fit-content",
+      dataIndex: "createdAt",
+      title: "Fecha y hora",
       align: "center",
-      /* render: (paidAt) =>
-          `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-            "hh:mm"
-          )}`, */
-    },
-    {
-      dataIndex: "paidAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      /* render: (paidAt) =>
-            `${moment(paidAt).format("DD/MM/YY")} ${moment(paidAt).format(
-              "hh:mm"
-            )}`, */
+      render: (createdAt) =>
+        `${moment(createdAt).format("DD/MM")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
       dataIndex: "proformaId",
       title: "Proforma",
-      width: "fit-content",
       align: "center",
-      /* render: (proformaId) => (
-            <a>
-              N°{proformaId}
-            </a>
-          ), */
+      render: (proformaId) => (
+        <a
+          onClick={() => {
+            setIsVisibleModalProforma(true);
+            setIdModal(proformaId);
+          }}
+        >
+          N°{proformaId}
+        </a>
+      ),
     },
     {
       dataIndex: "proforma",
       title: "Cliente",
-      width: "fit-content",
       align: "center",
+      render: (proforma) => proforma.client.name,
+    },
+    {
+      dataIndex: "dispatcherId",
+      title: "Despachador",
+      align: "center",
+      render: (dispatcherId) => {
+        const _users = users.filter((user) => user.id === dispatcherId)[0];
+        return _users ? _users.name : "-";
+      },
+    },
+    {
+      dataIndex: "sale",
+      title: "Tip. Desp.",
+      align: "center",
+      render: (sale) =>
+        sale.dispatchmentType === "DELIVERY" ? "Envío" : "En Tienda",
+    },
+    {
+      dataIndex: "id",
+      title: "Agencia",
+      align: "center",
+      render: (id, data) =>
+        data.dispatchmentType === "DELIVERY" ? data.deliveryAgency.name : "-",
     },
     {
       dataIndex: "proforma",
-      title: "Despachador",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "total",
-      title: "Tip. Desp.",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "initialPayment",
-      title: "Agencia",
-      width: "fit-content",
-      align: "center",
-    },
-    {
-      dataIndex: "paymentMethod",
       title: "Unidades",
-      width: "fit-content",
       align: "center",
+      render: (proforma) => proforma.totalUnits,
     },
     {
-      title: "Estatus",
-      width: "fit-content",
+      dataIndex: "id",
+      title: "",
       align: "center",
-      /*  render: (id, dataSale) => <Button type={"primary"}>Atender</Button>, */
+      render: (id, data) => (
+        <Button
+          onClick={async () => router.push(`/dispatch/${id}`)}
+          type={"primary"}
+        >
+          Atendido
+        </Button>
+      ),
     },
     {
-      dataIndex: "paymentMethod",
+      dataIndex: "completedAt",
       title: "Fecha de atención",
-      width: "fit-content",
       align: "center",
+      render: (completedAt) =>
+        completedAt
+          ? `${moment(completedAt).format("DD/MM")}- ${moment(
+              completedAt
+            ).format("hh:mm")}`
+          : "-",
     },
   ];
 
@@ -107,12 +119,19 @@ export default ({ setPageTitle }) => {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
 
+  //Modal de proforma
+  const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
+  const [idModal, setIdModal] = useState("");
+
   //para el filtro por fecha
   const [from, setFrom] = useState(moment().subtract(7, "days"));
   const [to, setTo] = useState(moment());
 
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
+
+  //para el filtro por cajero
+  const [userId, setUserId] = useState(null);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -142,11 +161,30 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
+  // lista de despachadores
+  const usersList = () => {
+    const options = users.map((user) => ({
+      value: user.id,
+      label: user.name,
+    }));
+
+    const defaultOption = {
+      value: null,
+      label: "Todos",
+    };
+
+    return [defaultOption, ...options];
+  };
+
   //Trae todas los despachos segun queryParams
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchDispatches = async () => {
       try {
-        const _dispatches = await getDispatches({});
+        const _dispatches = await getDispatches({
+          status: "COMPLETED",
+          ...queryParams,
+        });
+        console.log("despachos", _dispatches);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,
@@ -166,7 +204,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]); */
+  }, [queryParams, toggleUpdateTable]);
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -174,11 +212,12 @@ export default ({ setPageTitle }) => {
 
   const stateToUrl = async () => {
     const params = {};
-    from && (params.paidAtFrom = from.format(serverDateFormat));
-    to && (params.paidAtTo = to.format(serverDateFormat));
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
     documentNumber && (params.proformaId = documentNumber);
-    await router.push(`/cashHistory${urlQueryParams(params)}`);
+    userId && (params.dispatcherId = userId);
+    await router.push(`/dispatchHistory${urlQueryParams(params)}`);
   };
 
   const searchWithState = () => {
@@ -187,7 +226,8 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setDocumentNumber(queryParams.id || null);
+    setDocumentNumber(queryParams.proformaId || null);
+    setUserId(queryParams.dispatcherId || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -198,6 +238,15 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalProforma}
+        width="90%"
+        title="Información de la proforma"
+        onCancel={() => setIsVisibleModalProforma(false)}
+        footer={null}
+      >
+        <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
@@ -238,8 +287,12 @@ export default ({ setPageTitle }) => {
             placeholder="Nº Proforma"
             addonBefore="Proforma"
           />
-          <Select label="Despachador" />
-          <Select label="Estado" />
+          <Select
+            value={userId}
+            label="Despachador"
+            onChange={(value) => setUserId(value)}
+            options={usersList()}
+          />
           <Button
             type="primary"
             gridColumnStart="4"
