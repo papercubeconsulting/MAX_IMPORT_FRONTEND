@@ -9,9 +9,9 @@ import {
   Select,
   ModalProforma,
 } from "../../components";
-import { getSales, getUsers, userProvider } from "../../providers";
+import { getSales, getUsers, userProvider, getSale } from "../../providers";
 import { Input, notification, Table, Modal } from "antd";
-
+import { get } from "lodash";
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
@@ -109,11 +109,15 @@ export default ({ setPageTitle }) => {
           "-"
         ) : (
           <Button
-            onClick={async () =>
-              data.typeDescription === "En tienda"
-                ? router.push(`/cashHistory?proformaId=${data.proformaId}`)
-                : ""
-            }
+            onClick={async () => {
+              if (data.typeDescription === "En tienda") {
+                router.push(`/cashHistory?proformaId=${data.proformaId}`);
+              } else {
+                setIdModalVoucher(id);
+                setIsVisibleModalVoucher(true);
+                setNameClient(data.proforma.client.name);
+              }
+            }}
             type={"primary"}
           >
             {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
@@ -154,6 +158,27 @@ export default ({ setPageTitle }) => {
   //Modal de proforma
   const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
   const [idModal, setIdModal] = useState("");
+
+  //Modal voucher
+  const [isVisibleModalVoucher, setIsVisibleModalVoucher] = useState(false);
+  const [idModalVoucher, setIdModalVoucher] = useState(null);
+  const [sale, setSale] = useState(null);
+  const [nameClient, setNameClient] = useState(null);
+
+  useEffect(() => {
+    const fetchSale = async () => {
+      try {
+        const _sale = await getSale(idModalVoucher);
+        setSale(_sale);
+        /* console.log("_sale", _sale); */
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (idModalVoucher) {
+      fetchSale();
+    }
+  }, [idModalVoucher]);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -302,6 +327,32 @@ export default ({ setPageTitle }) => {
         footer={null}
       >
         <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
+      <Modal
+        visible={isVisibleModalVoucher}
+        title="Información del voucher"
+        onCancel={() => setIsVisibleModalVoucher(false)}
+        footer={null}
+      >
+        <Container
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          padding="0px"
+        >
+          <Input value={nameClient} disabled addonBefore="Cliente" />
+          <img
+            src={get(sale, "voucherImage", null)}
+            style={{ margin: "10px 0px", maxWidth: "90%" }}
+            alt="voucher-image"
+          />
+          <Button
+            type="primary"
+            onClick={() => setIsVisibleModalVoucher(false)}
+          >
+            Regresar
+          </Button>
+        </Container>
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
