@@ -116,7 +116,6 @@ export default ({ setPageTitle }) => {
                 setIdModalVoucher(id);
                 setIsVisibleModalVoucher(true);
                 setNameClient(data.proforma.client.name);
-                console.log(data);
               }
             }}
             type={"primary"}
@@ -171,7 +170,7 @@ export default ({ setPageTitle }) => {
       try {
         const _sale = await getSale(idModalVoucher);
         setSale(_sale);
-        console.log("_sale", _sale);
+        /* console.log("_sale", _sale); */
       } catch (error) {
         console.log(error);
       }
@@ -331,17 +330,29 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Modal
         visible={isVisibleModalVoucher}
-        width="40%"
         title="Información del voucher"
         onCancel={() => setIsVisibleModalVoucher(false)}
         footer={null}
       >
-        <Input value={nameClient} disabled addonBefore="Cliente" />
-        <img
-          src={get(sale, "voucherImage", null)}
-          width="300px"
-          alt="voucher-image"
-        />
+        <Container
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          padding="0px"
+        >
+          <Input value={nameClient} disabled addonBefore="Cliente" />
+          <img
+            src={get(sale, "voucherImage", null)}
+            style={{ margin: "10px 0px", maxWidth: "90%" }}
+            alt="voucher-image"
+          />
+          <Button
+            type="primary"
+            onClick={() => setIsVisibleModalVoucher(false)}
+          >
+            Regresar
+          </Button>
+        </Container>
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
