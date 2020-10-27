@@ -208,13 +208,17 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (modelId, suppliedProduct) => {
-        const [model, setModel] = useState(modelId);
+        const [model, setModel] = useState({
+          name: suppliedProduct?.product?.modelName,
+        });
         const _models = models.filter(
           (model) => model.elementId === suppliedProduct.elementId
         );
+        /* console.log("check", suppliedProduct); */
         useEffect(() => {
-          console.log("cambio en familia, subfamilia");
-          setModel(null);
+          if (!modelId) {
+            setModel(null);
+          }
         }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
         return (
           <AutoComplete
