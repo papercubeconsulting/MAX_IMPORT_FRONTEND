@@ -395,12 +395,6 @@ export default ({ setPageTitle }) => {
             label="Elemento"
             options={selectOptions(elements)}
           />
-          {/* <Select
-            value={modelId}
-            onChange={(value) => updateState(setModelId, value)}
-            label="Modelo"
-            options={selectOptions(models)}
-          /> */}
           <AutoComplete
             label="Modelo"
             color={"white"}

@@ -104,16 +104,21 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       title: "",
       align: "center",
-      render: (id, data) => (
-        <Button
-          onClick={async () =>
-            router.push(`/cashHistory?proformaId=${data.proformaId}`)
-          }
-          type={"primary"}
-        >
-          {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
-        </Button>
-      ),
+      render: (id, data) =>
+        data.credit === data.total ? (
+          "-"
+        ) : (
+          <Button
+            onClick={async () =>
+              data.typeDescription === "En tienda"
+                ? router.push(`/cashHistory?proformaId=${data.proformaId}`)
+                : ""
+            }
+            type={"primary"}
+          >
+            {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
+          </Button>
+        ),
     },
   ];
 
@@ -189,8 +194,15 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
         });
-        console.log(_sales.rows);
-        setsales(_sales.rows);
+        /* setsales(_sales.rows); */
+        setsales(
+          _sales.rows.map((elem) => {
+            return {
+              ...elem,
+              key: elem.id,
+            };
+          })
+        );
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
