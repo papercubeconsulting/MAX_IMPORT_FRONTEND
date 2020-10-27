@@ -208,17 +208,21 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (modelId, suppliedProduct) => {
-        const [model, setModel] = useState(null);
+        const [model, setModel] = useState(modelId);
         const _models = models.filter(
           (model) => model.elementId === suppliedProduct.elementId
         );
-        /* console.log("modelId", modelId); */
+        useEffect(() => {
+          console.log("cambio en familia, subfamilia");
+          setModel(null);
+        }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
         return (
           <AutoComplete
             color={"white"}
             colorFont={"#5F5F7F"}
             disabled={disabled}
-            value={model && modelId? model.name : ""}
+            /* value={model && modelId ? model.name : ""} */
+            value={model && model.name}
             onSelect={async (value) => {
               /* console.log("value en onselect", value); */
               let selectedModel = models.find((model) => model.id === value);
