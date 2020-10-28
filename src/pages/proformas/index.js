@@ -165,6 +165,7 @@ export default ({ setPageTitle }) => {
       try {
         const _proformas = await getProformas(queryParams);
         /* console.log('proformas', _proformas); */
+        console.log(_proformas.page);
         setPagination({
           position: ["bottomCenter"],
           total: _proformas.count,
@@ -184,7 +185,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams, toggleUpdateTable]);
+  }, [queryParams/*, toggleUpdateTable*/]);
 
   const stateToUrl = async () => {
     const params = {};
@@ -201,6 +202,10 @@ export default ({ setPageTitle }) => {
     await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
+  useEffect(() => {
+    searchWithState();
+  }, [page]);
+
   const searchWithState = () => {
     stateToUrl();
   };
@@ -211,7 +216,8 @@ export default ({ setPageTitle }) => {
     // try{ from = moment(queryParams.from,serverDateFormat).toDate();}catch{}
     // setFrom(from|| moment().subtract(7, "days"));
     // setTo(moment(queryParams.to,serverDateFormat).toDate() || moment());
-    setPage(queryParams.page || null);
+    //setPage(queryParams.page || null); 
+    //! Set page entra en conflicto recarga la pagina infinitamente
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
@@ -376,7 +382,7 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Table
           columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
+          scroll={{ y: windowHeight - 550}}//* 0.4 - 48 }}
           bordered
           pagination={pagination}
           dataSource={proformas}
