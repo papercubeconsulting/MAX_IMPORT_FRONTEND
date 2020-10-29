@@ -170,13 +170,17 @@ export default ({ setPageTitle }) => {
             setDataProduct(_productBox);
             setProductBoxId(_productBox.id);
             /* console.log("_productBox", _productBox); */
+            setIsVisibleReadProductCode(false);
+            setIsVisibleConfirmDispatch(true);
           } catch (error) {
-            console.log(error);
+            /* console.log("error", error); */
+            notification.error({
+              message: "Error al escanear código",
+              description: error.userMessage,
+            });
           }
         };
         codeProduct && fetchProductBox();
-        setIsVisibleReadProductCode(false);
-        setIsVisibleConfirmDispatch(true);
         Quagga.stop();
       }
     });
@@ -246,7 +250,7 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
-        console.log(_dispatch);
+        /* console.log(_dispatch); */
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
