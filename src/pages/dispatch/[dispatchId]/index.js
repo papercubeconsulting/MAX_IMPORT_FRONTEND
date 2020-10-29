@@ -246,6 +246,7 @@ export default ({ setPageTitle }) => {
     const fetchProforma = async () => {
       try {
         const _dispatch = await getDispatch(dispatchId);
+        console.log(_dispatch);
         setDispatch(_dispatch);
       } catch (error) {
         console.log(error);
@@ -264,6 +265,8 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: "Despacho finalizado exitosamente",
       });
+      setIsVisibleFinishDispatch(false);
+      router.push("/dispatchHistory");
     } catch (error) {
       notification.error({
         message: "Error al finalizar despacho",
