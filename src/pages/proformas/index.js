@@ -112,7 +112,7 @@ export default ({ setPageTitle }) => {
   const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(null);
 
   //para el filtro por fecha
   const [from, setFrom] = useState();
@@ -168,7 +168,7 @@ export default ({ setPageTitle }) => {
         console.log(_proformas.page);
         setPagination({
           position: ["bottomCenter"],
-          total: _proformas.count,
+          total: _proformas.pageSize * _proformas.pages,
           current: _proformas.page,
           pageSize: _proformas.pageSize,
           showSizeChanger: false,
@@ -185,7 +185,11 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams /*, toggleUpdateTable*/]);
+  }, [queryParams, toggleUpdateTable]);
+
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
 
   const stateToUrl = async () => {
     const params = {};
@@ -220,6 +224,12 @@ export default ({ setPageTitle }) => {
     setDispatchStatus(queryParams.dispatchStatus || null);
     setClientName(queryParams.name || null);
     setClientLastName(queryParams.lastname || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
   };
 
   // estados de proforma para los select inputs
@@ -377,11 +387,13 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Table
           columns={columns}
-          scroll={{ y: windowHeight - 550 }} //* 0.4 - 48 }}
+          scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
           dataSource={proformas}
-          onChange={(pagination) => setPage(pagination.current)}
+          onChange={(pagination) =>
+            updateState(setPage, pagination.current, true)
+          }
         />
       </Container>
       <Container height="15%">
