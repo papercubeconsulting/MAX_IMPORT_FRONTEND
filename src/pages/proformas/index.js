@@ -115,8 +115,8 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
   //para el filtro con datos de cliente
@@ -185,7 +185,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams/*, toggleUpdateTable*/]);
+  }, [queryParams /*, toggleUpdateTable*/]);
 
   const stateToUrl = async () => {
     const params = {};
@@ -202,10 +202,6 @@ export default ({ setPageTitle }) => {
     await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
-  useEffect(() => {
-    searchWithState();
-  }, [page]);
-
   const searchWithState = () => {
     stateToUrl();
   };
@@ -216,8 +212,7 @@ export default ({ setPageTitle }) => {
     // try{ from = moment(queryParams.from,serverDateFormat).toDate();}catch{}
     // setFrom(from|| moment().subtract(7, "days"));
     // setTo(moment(queryParams.to,serverDateFormat).toDate() || moment());
-    //setPage(queryParams.page || null); 
-    //! Set page entra en conflicto recarga la pagina infinitamente
+    setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
@@ -382,7 +377,7 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Table
           columns={columns}
-          scroll={{ y: windowHeight - 550}}//* 0.4 - 48 }}
+          scroll={{ y: windowHeight - 550 }} //* 0.4 - 48 }}
           bordered
           pagination={pagination}
           dataSource={proformas}
