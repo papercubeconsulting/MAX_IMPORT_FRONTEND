@@ -141,29 +141,39 @@ export default ({ setPageTitle }) => {
         footer={null}
       >
         <Container flexDirection="column" height="fit-content">
-          <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+          <Grid
+            marginBottom="1rem"
+            gridTemplateColumns="repeat(4, 1fr)"
+            gridGap="1rem"
+          >
             <Input addonBefore="Fecha Reg." />
             <Select label="Tipo" />
             <Select label="Estado" />
             <Input addonBefore="DNI/RUC" />
           </Grid>
-        </Container>
-        <Container flexDirection="column" height="fit-content">
-          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+          <Grid
+            marginBottom="1rem"
+            gridTemplateColumns="repeat(2, 1fr)"
+            gridGap="1rem"
+          >
             <Input addonBefore="Nombre/Razón Soc." />
             <Input addonBefore="Apellidos" />
             <Input addonBefore="Correo" />
             <Input addonBefore="Tel. Contacto" />
           </Grid>
-        </Container>
-        <Container flexDirection="column" height="fit-content">
-          <Grid gridTemplateColumns="2fr 1fr" gridGap="1rem">
+          <Grid
+            marginBottom="1rem"
+            gridTemplateColumns="2fr 1fr"
+            gridGap="1rem"
+          >
             <Input addonBefore="Dirección" />
             <Select label="Agencia Su." />
           </Grid>
-        </Container>
-        <Container flexDirection="column" height="fit-content">
-          <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+          <Grid
+            marginBottom="1rem"
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="1rem"
+          >
             <Input addonBefore="Departamento" />
             <Input addonBefore="Provincia" />
             <Input addonBefore="Distrito" />
