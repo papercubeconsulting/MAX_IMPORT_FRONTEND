@@ -174,9 +174,9 @@ export default ({ setPageTitle }) => {
             gridTemplateColumns="repeat(3, 1fr)"
             gridGap="1rem"
           >
-            <Input addonBefore="Departamento" />
-            <Input addonBefore="Provincia" />
-            <Input addonBefore="Distrito" />
+            <Select label="Departamento" />
+            <Select label="Provincia" />
+            <Select label="Distrito" />
           </Grid>
         </Container>
         <Container>
