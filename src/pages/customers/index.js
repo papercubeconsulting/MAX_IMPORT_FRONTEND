@@ -36,7 +36,11 @@ export default ({ setPageTitle }) => {
       width: "60px",
       align: "center",
       render: () => (
-        <Button padding="0 0.5rem" type="primary">
+        <Button
+          padding="0 0.5rem"
+          type="primary"
+          onClick={() => setIsVisibleModalDelete(true)}
+        >
           <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
         </Button>
       ),
@@ -95,7 +99,8 @@ export default ({ setPageTitle }) => {
   const [me, setMe] = useState({ name: null });
 
   // Modales
-  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(true);
+  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
+  const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
 
   //Obtiene a los vendedores
   useEffect(() => {
@@ -133,6 +138,30 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalDelete}
+        width="40%"
+        onCancel={() => setIsVisibleModalDelete(false)}
+        footer={null}
+      >
+        <Container
+          height="fit-content"
+          flexDirection="column"
+          alignItems="center"
+        >
+          <p style={{ fontWeight: "bold" }}>
+            ¿Está seguro que desea pasar a Inactivo al cliente?
+          </p>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+            <Button margin="auto" type="primary">
+              Si, ejecutar
+            </Button>
+            <Button margin="auto" type="primary">
+              No, regresar
+            </Button>
+          </Grid>
+        </Container>
+      </Modal>
       <Modal
         visible={isVisibleModalEdit}
         width="70%"
