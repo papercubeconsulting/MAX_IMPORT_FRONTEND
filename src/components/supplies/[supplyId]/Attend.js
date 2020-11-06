@@ -47,7 +47,7 @@ export const Attend = props => {
             const response = await postSupplyAttend(props.supplyId, props.product.dbId, {boxes});
             const suppliedProduct = get(response, "suppliedProducts", []).find(obj=>obj.id === props.product.dbId);
             const {familyName, subfamilyName, elementName, modelName} = suppliedProduct.product;
-            await router.push({
+            const routePdf = router.push({
                 pathname: `/supplies/${props.supplyId}/tickets`,
                 query: {
                     familyName,
@@ -61,6 +61,8 @@ export const Attend = props => {
                         .map(productBox => productBox.trackingCode)
                 }
             });
+           
+            window.open(routePdf.href, '_blank'); 
 
             props.trigger && props.trigger(false);
         } catch (error) {
