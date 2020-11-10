@@ -8,7 +8,7 @@ const buildUrl = (url, params = {}) => {
     )
     .join("&");
 
-  if (!queries.length) return `${config.serverUrl}${url}`;
+  if (!queries.length) return `${config.serverUrl}${url}?`;
 
   return `${config.serverUrl}${url}?${queries}`;
 };
@@ -83,7 +83,18 @@ export const baseProvider = {
   },
   httpGetPrueba: async (url, params = {}) => {
     const token = await getToken();
-    const response = await fetch(buildUrl(url, params), {
+
+    /* console.log(params); */
+    const prueba1 = params.map((elem) => `id=${elem}`);
+
+    /* console.log(prueba1); */
+
+    const prueba2 = prueba1.join("&");
+
+    /* console.log(prueba2); */
+
+    let urlnuevo = `${config.serverUrl}${url}?${prueba2}`;
+    const response = await fetch(urlnuevo, {
       method: "GET",
       headers: {
         "Content-Type":
@@ -96,7 +107,7 @@ export const baseProvider = {
     /* const responseText = await response.text();
     console.log("response", responseText);
     return validate(responseText); */
-    console.log('response', response)
-        return validate(response);
+    console.log("response", response);
+    return validate(response);
   },
 };
