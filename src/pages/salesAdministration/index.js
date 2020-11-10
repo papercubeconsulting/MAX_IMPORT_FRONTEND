@@ -313,7 +313,7 @@ export default ({ setPageTitle }) => {
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
-      setId(selectedRowKeys);
+      setIds([...selectedRowKeys]);
       console.log(
         `selectedRowKeys: ${selectedRowKeys}`,
         "selectedRows: ",
@@ -328,10 +328,10 @@ export default ({ setPageTitle }) => {
 
   // archivo SIGO
 
-  const [id, setId] = useState("");
+  const [ids, setIds] = useState([]);
   const prueba = async () => {
     try {
-      const _response = await getSalesSigo({ id });
+      const _response = await getSalesSigo(ids);
       console.log("_response", _response);
       /* const myJsonString = JSON.stringify(_response); */
       const blob = new Blob([_response], {
