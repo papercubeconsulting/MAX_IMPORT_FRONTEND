@@ -9,12 +9,20 @@ import {
   Select,
   ModalProforma,
 } from "../../components";
-import { getSales, getUsers, userProvider, getSale } from "../../providers";
+import {
+  getSales,
+  getUsers,
+  userProvider,
+  getSale,
+  getSalesSigo,
+} from "../../providers";
 import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+
+import * as FileSaver from "file-saver";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Administración Ventas");
@@ -305,6 +313,7 @@ export default ({ setPageTitle }) => {
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
+      setId(selectedRowKeys);
       console.log(
         `selectedRowKeys: ${selectedRowKeys}`,
         "selectedRows: ",
@@ -316,6 +325,24 @@ export default ({ setPageTitle }) => {
     }),
   };
   const [selectionType, setSelectionType] = useState("checkbox");
+
+  // archivo SIGO
+
+  const [id, setId] = useState("");
+  const prueba = async () => {
+    try {
+      const _response = await getSalesSigo({ id });
+      console.log("_response", _response);
+      /* const myJsonString = JSON.stringify(_response); */
+      const blob = new Blob([_response], {
+        type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+      FileSaver.saveAs(blob, "Report.xls");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -429,7 +456,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-          <Button type="primary" gridColumnStart="2">
+          <Button onClick={prueba} type="primary" gridColumnStart="2">
             Crear Archivo SIGO
           </Button>
           <Button
