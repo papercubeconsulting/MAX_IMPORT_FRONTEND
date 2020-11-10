@@ -17,6 +17,7 @@
     "@fortawesome/react-fontawesome": "^0.1.8",
     "@zeit/next-css": "^1.0.1",
     "antd": "^4.0.3",
+    "file-saver": "^2.0.2",
     "html-pdf": "^2.2.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
