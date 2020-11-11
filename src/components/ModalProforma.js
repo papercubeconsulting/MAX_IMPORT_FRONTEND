@@ -1,89 +1,75 @@
-import React, { useMemo, useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getProforma } from "../../../providers";
+import React, { useEffect, useState } from "react";
+import { Button, Container, Grid, ModalProduct } from "../components";
+import { getProforma } from "../providers";
 import { get } from "lodash";
 import { Input, Table, Modal } from "antd";
 
-export default ({ setPageTitle }) => {
-  setPageTitle("Información de proforma");
-  //extraccion de params de url
-  const router = useRouter();
-  const { proformaId } = router.query;
-
+export const ModalProforma = (props) => {
   const columns = [
     {
       dataIndex: "id",
       title: "",
-      width: "fit-content",
+      width: "40px",
       align: "center",
       render: (id, record, index) => index + 1,
     },
     {
       title: "Cód. Inventario",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "code", null),
     },
     {
       title: "Familia",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "familyName", null),
     },
     {
       title: "Sub-Familia",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "subfamilyName", null),
     },
     {
       title: "Elemento",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "elementName", null),
     },
     {
       title: "Modelo",
       dataIndex: "product",
-      width: "fit-content",
       align: "center",
       render: (product) => get(product, "modelName", null),
     },
     {
       title: "Cantidad",
       dataIndex: "quantity",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Precio",
       dataIndex: "unitPrice",
-      width: "fit-content",
       align: "center",
       render: (unitPrice) => `S/.${(unitPrice / 100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
       dataIndex: "subtotal",
-      width: "fit-content",
       align: "center",
       render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
       dataIndex: "product",
-      width: "fit-content",
+      width: '130px',
       align: "center",
       render: (product) => get(product, "availableStock", 0),
     },
     {
       dataIndex: "id",
-      width: "fit-content",
+      width: "80px",
       align: "center",
       render: (id, product) => (
         <Button
@@ -100,7 +86,6 @@ export default ({ setPageTitle }) => {
     },
   ];
 
-  //costumizadas por JM
   const [proforma, setProforma] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
 
@@ -113,18 +98,19 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  //para setear la info de la proforma
-  useMemo(() => {
+  // trae información de la proforma seleccionada
+  useEffect(() => {
     const fetchProforma = async () => {
       try {
-        const _proforma = await getProforma(proformaId);
+        const _proforma = await getProforma(props.id);
         setProforma(_proforma);
       } catch (error) {
-        router.back();
+        console.log(error);
       }
     };
-    proformaId && fetchProforma();
-  }, [router]);
+
+    fetchProforma();
+  }, [props.id]);
 
   return (
     <>
@@ -139,7 +125,7 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value={proformaId} disabled addonBefore="Proforma" />
+          <Input value={proforma.id} disabled addonBefore="Proforma" />
           <Input
             value={proforma.statusDescription}
             disabled
@@ -203,7 +189,7 @@ export default ({ setPageTitle }) => {
           />
         </Grid>
       </Container>
-      <Container padding="0px" width="100vw" height="35%">
+      <Container padding="0px" width="100%" height="35%">
         <Table
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
@@ -240,13 +226,6 @@ export default ({ setPageTitle }) => {
               addonBefore="Deuda"
             />
             <br />
-            <Button
-              type="primary"
-              disabled={proforma.status === "CLOSED"}
-              onClick={async () => router.push(`/proforma?id=${proformaId}`)}
-            >
-              EDITAR
-            </Button>
           </Grid>
           <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
@@ -291,14 +270,6 @@ export default ({ setPageTitle }) => {
           </Grid>
         </Grid>
       </Container>
-      <Button
-        width="20%"
-        margin="2% 5% 2% 40%"
-        type="primary"
-        onClick={async () => router.push(`/proformas`)}
-      >
-        Retroceder
-      </Button>
     </>
   );
 };

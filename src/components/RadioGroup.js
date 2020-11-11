@@ -8,8 +8,11 @@ export const RadioGroup = styled(AntRadio.Group)`
   grid-template-rows: ${(props) => props.gridTemplateRows || "1fr"};
   grid-template-areas: ${(props) => props.gridTemplateAreas || "initial"};
   grid-gap: ${(props) => props.gridGap || 0};
-  margin-bottom: ${(props) => props.marginBottom || 0};
+  margin-bottom: ${(props) => props.marginBottom || 0} !important;
   justify-items: ${(props) => props.justifyItems || "initial"};
   grid-column-start: ${(props) => props.gridColumnStart || 0} !important;
   grid-column-end: ${(props) => props.gridColumnEnd || 0} !important;
+  span{
+    font-size: 16px !important;
+  }
 `;

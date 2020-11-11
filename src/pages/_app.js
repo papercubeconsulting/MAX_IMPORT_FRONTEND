@@ -3,8 +3,8 @@ import {useGlobal} from "reactn";
 import {BaseLayout} from "../components";
 import {createGlobalStyle} from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
-import {useRouter} from "next/router";
-import {getRouteStepper} from "./routes";
+//import {useRouter} from "next/router";
+//import {getRouteStepper} from "./routes";
 
 export default ({Component, pageProps}) => {
     const [title, setTitle] = useState(null);
@@ -16,14 +16,14 @@ export default ({Component, pageProps}) => {
         setGlobalAuthUser(JSON.parse(localAuthUser));
     }, []);
 
-    const router = useRouter();
+   // const router = useRouter();
 
-    const stepper = getRouteStepper(router.pathname);
+    // const stepper = getRouteStepper(router.pathname);
 
     return <>
         <style dangerouslySetInnerHTML={{__html: stylesheet}}/>
         <GlobalStyle/>
-        <BaseLayout title={stepper}>
+        <BaseLayout title={title}>
             <Component setPageTitle={setTitle}
                        {...pageProps}/>
         </BaseLayout>

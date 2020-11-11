@@ -61,7 +61,6 @@ export const Attend = props => {
                         .map(productBox => productBox.trackingCode)
                 }
             });
-
             props.trigger && props.trigger(false);
         } catch (error) {
             alert(error.message);

@@ -46,28 +46,36 @@ export const BaseLayout = (props) => {
               <MenuItem>Perfil</MenuItem>
             </Link>
             <Link href="/proforma">
-              <MenuItem>Nueva Proforma</MenuItem>
+              <MenuItem active={isActiveLink("proforma")}>
+                Nueva Proforma
+              </MenuItem>
             </Link>
             <Link href="/proformas">
-              <MenuItem>Historial Proformas</MenuItem>
+              <MenuItem active={isActiveLink("proformas")}>
+                Historial Proformas
+              </MenuItem>
             </Link>
-            <Link href="/">
-              <MenuItem>Pagos en Caja</MenuItem>
+            <Link href="/sales">
+              <MenuItem active={isActiveLink("sales")}>Pagos en Caja</MenuItem>
             </Link>
-            <Link href="/">
-              <MenuItem>Despachos</MenuItem>
+            <Link href="/dispatch">
+              <MenuItem active={isActiveLink("dispatch")}>Despachos</MenuItem>
             </Link>
-            <Link href="/">
-              <MenuItem>Admin Ventas</MenuItem>
+            <Link href="/salesAdministration">
+              <MenuItem active={isActiveLink("salesAdministration")}>
+                Admin Ventas
+              </MenuItem>
             </Link>
             <Link href="/products">
               <MenuItem active={isActiveLink("products")}>Inventario</MenuItem>
             </Link>
             <Link href="/supplies">
-              <MenuItem>Abastecimientos</MenuItem>
+              <MenuItem active={isActiveLink("supplies")}>
+                Abastecimientos
+              </MenuItem>
             </Link>
-            <Link href="/">
-              <MenuItem>BD Clientes</MenuItem>
+            <Link href="/customers">
+              <MenuItem active={isActiveLink("customers")}>BD Clientes</MenuItem>
             </Link>
             <Link href="/">
               <MenuItem>Admin Usuarios</MenuItem>

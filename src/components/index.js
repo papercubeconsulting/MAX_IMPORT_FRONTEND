@@ -6,3 +6,5 @@ export * from "./Select";
 export * from "./Button";
 export * from "./AutoComplete";
 export * from "./DatePicker";
+export * from "./ModalProduct";
+export * from "./ModalProforma";

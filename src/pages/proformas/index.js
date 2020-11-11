@@ -10,16 +10,10 @@ import {
   Select,
 } from "../../components";
 import { getProformas, getUsers, userProvider } from "../../providers";
-//import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
 
 import moment from "moment";
-import {
-  urlQueryParams,
-  clientDateFormat,
-  serverDateFormat,
-  clientHourFormat,
-} from "../../util";
+import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
@@ -42,19 +36,13 @@ export default ({ setPageTitle }) => {
     },
     {
       dataIndex: "createdAt",
-      title: "Fecha",
+      title: "Fecha de creación",
       width: "fit-content",
       align: "center",
       render: (createdAt) =>
-        moment(createdAt, serverDateFormat).format(clientDateFormat),
-    },
-
-    {
-      dataIndex: "createdAt",
-      title: "Hora",
-      width: "fit-content",
-      align: "center",
-      render: (createdAt) => moment(createdAt).format(clientHourFormat),
+        `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
+          "hh:mm"
+        )}`,
     },
     {
       dataIndex: "id",
@@ -95,27 +83,27 @@ export default ({ setPageTitle }) => {
       render: (user) => user.name,
     },
     {
-      dataIndex: "subtotal",
+      dataIndex: "total",
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => subtotal / 100,
+      render: (total) => `S/.${(total / 100).toFixed(2)}`,
     },
 
     {
-      dataIndex: "discount",
-      title: "A Cuenta",
+      dataIndex: "sale",
+      title: "Pagado",
       width: "fit-content",
       align: "center",
-      render: (discount) => discount / 100,
+      render: (sale) => (sale ? `S/.${(sale.due / 100).toFixed(2)}` : "-"),
     },
 
     {
-      dataIndex: "total",
-      title: "Tot. Deuda",
+      dataIndex: "sale",
+      title: "Crédito",
       width: "fit-content",
       align: "center",
-      render: (total) => total / 100,
+      render: (sale) => (sale ? `S/.${(sale.credit / 100).toFixed(2)}` : "-"),
     },
   ];
 
@@ -124,11 +112,11 @@ export default ({ setPageTitle }) => {
   const [proformas, setProformas] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(null);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
   //para el filtro con datos de cliente
@@ -176,9 +164,11 @@ export default ({ setPageTitle }) => {
     const fetchProformas = async () => {
       try {
         const _proformas = await getProformas(queryParams);
+        /* console.log('proformas', _proformas); */
+        console.log(_proformas.page);
         setPagination({
           position: ["bottomCenter"],
-          total: _proformas.count,
+          total: _proformas.pageSize * _proformas.pages,
           current: _proformas.page,
           pageSize: _proformas.pageSize,
           showSizeChanger: false,
@@ -196,6 +186,10 @@ export default ({ setPageTitle }) => {
       urlToState();
     }
   }, [queryParams, toggleUpdateTable]);
+
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
 
   const stateToUrl = async () => {
     const params = {};
@@ -222,7 +216,7 @@ export default ({ setPageTitle }) => {
     // try{ from = moment(queryParams.from,serverDateFormat).toDate();}catch{}
     // setFrom(from|| moment().subtract(7, "days"));
     // setTo(moment(queryParams.to,serverDateFormat).toDate() || moment());
-    setPage(queryParams.page || null);
+    setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.id || null);
     setUserId(queryParams.userId || null);
     setStatus(queryParams.status || null);
@@ -230,6 +224,12 @@ export default ({ setPageTitle }) => {
     setDispatchStatus(queryParams.dispatchStatus || null);
     setClientName(queryParams.name || null);
     setClientLastName(queryParams.lastname || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
   };
 
   // estados de proforma para los select inputs
@@ -287,12 +287,16 @@ export default ({ setPageTitle }) => {
       label: "Todos",
     },
     {
-      value: "PENDING",
-      label: "Pendiente",
+      value: "COMPLETED",
+      label: "Despachado",
     },
     {
-      value: "DISPATCHED",
-      label: "Despachado",
+      value: "OPEN",
+      label: "Habilitado",
+    },
+    {
+      value: "LOCKED",
+      label: "Pendiente",
     },
   ];
 
@@ -383,11 +387,13 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Table
           columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
+          scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           pagination={pagination}
           dataSource={proformas}
-          onChange={(pagination) => setPage(pagination.current)}
+          onChange={(pagination) =>
+            updateState(setPage, pagination.current, true)
+          }
         />
       </Container>
       <Container height="15%">

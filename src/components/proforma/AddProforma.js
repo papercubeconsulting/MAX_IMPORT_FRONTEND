@@ -50,7 +50,7 @@ export const AddProforma = (props) => {
           description: error.message,
         });
       }
-      if(props.totalDebt===0){
+      if(parseFloat(props.totalDebt)==0){
         setSaleType(1);
         setSummitActive(true);
       }
@@ -97,7 +97,7 @@ export const AddProforma = (props) => {
             proformaId: props.proforma.id,
             type: props.saleWay===1?"STORE":"REMOTE",
             paymentType: saleType===1?"CASH":"CREDIT",
-            credit: props.totalDebt,
+            initialPayment: Math.round(props.totalPaid*100),
             billingType: payWay===1?"SALE":"CONSIGNMENT",
             dispatchmentType: dispatchWay===1?"PICK_UP":"DELIVERY",
         };
@@ -158,13 +158,13 @@ export const AddProforma = (props) => {
 
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
-            value={props.totalPaid}
+            value={(parseFloat(props.totalPaid)).toFixed(2)}
             disabled
             type="number"
             addonBefore="A cuenta S/."
           />
           <Input
-            value={props.totalDebt}
+            value={parseFloat((props.totalDebt)).toFixed(2)}
             disabled
             type="number"
             addonBefore="Total deuda S/."
