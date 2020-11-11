@@ -21,7 +21,6 @@ import { get } from "lodash";
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
-
 import * as FileSaver from "file-saver";
 
 export default ({ setPageTitle }) => {
@@ -332,13 +331,11 @@ export default ({ setPageTitle }) => {
   const prueba = async () => {
     try {
       const _response = await getSalesSigo(ids);
-      console.log("_response", _response);
-      /* const myJsonString = JSON.stringify(_response); */
-      const blob = new Blob([_response], {
-        type:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-      });
-      FileSaver.saveAs(blob, "Report.xls");
+      _response.blob().then((res) => {
+        console.log("_response", res);
+        FileSaver.saveAs(res, "Report.xlsx");
+         });
+
     } catch (error) {
       console.log(error);
     }
