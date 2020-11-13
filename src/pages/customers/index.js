@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
+import { useRouter } from "next/router";
 import {
   Button,
   Container,
@@ -11,8 +12,8 @@ import {
 import { getUsers, userProvider, getClients } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal } from "antd";
-import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
-import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("BD de Clientes");
@@ -28,7 +29,7 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => setIsVisibleModalEdit(true)}
         >
-          <Icon marginRight="0px" fontSize="0.8rem" icon={faPen} />
+          <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
         </Button>
       ),
     },
@@ -38,13 +39,13 @@ export default ({ setPageTitle }) => {
       width: "60px",
       align: "center",
       render: () => (
-        <Button
-          padding="0 0.5rem"
-          type="primary"
+        <Icon
           onClick={() => setIsVisibleModalDelete(true)}
-        >
-          <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-        </Button>
+          marginRight="0px"
+          fontSize="1.3rem"
+          icon={faToggleOff}
+          style={{ cursor: "pointer", color: "#1890FF" }}
+        />
       ),
     },
     {
@@ -101,6 +102,8 @@ export default ({ setPageTitle }) => {
   }, []);
 
   const [clients, setClients] = useState([]);
+
+  const router = useRouter();
 
   //Datos del usuario
   const [users, setUsers] = useState([]);
@@ -181,7 +184,11 @@ export default ({ setPageTitle }) => {
             <Button margin="auto" type="primary">
               Si, ejecutar
             </Button>
-            <Button margin="auto" type="primary">
+            <Button
+              onClick={() => setIsVisibleModalDelete(false)}
+              margin="auto"
+              type="primary"
+            >
               No, regresar
             </Button>
           </Grid>
@@ -291,7 +298,11 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-          <Button type="primary" gridColumnStart="2">
+          <Button
+            onClick={() => router.back()}
+            type="primary"
+            gridColumnStart="2"
+          >
             Regresar
           </Button>
           <Button type="primary" gridColumnStart="3">
