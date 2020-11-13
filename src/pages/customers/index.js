@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import {
   Button,
   Container,
@@ -7,7 +8,8 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getUsers, userProvider } from "../../providers";
+import { getUsers, userProvider, getClients } from "../../providers";
+import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal } from "antd";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -46,43 +48,47 @@ export default ({ setPageTitle }) => {
       ),
     },
     {
-      dataIndex: "id",
+      dataIndex: "createdAt",
       title: "Fecha Reg.",
       align: "center",
+      render: (createdAt) => `${moment(createdAt).format(clientDateFormat)}`,
     },
     {
-      dataIndex: "createdAt",
+      dataIndex: "active",
       title: "Estado",
       align: "center",
+      render: (active) => (active ? "Activo" : "Inacti."),
     },
     {
-      dataIndex: "createdAt",
+      dataIndex: "type",
       title: "Tipo",
       align: "center",
+      render: (type) => (type === "PERSON" ? "Pers." : "Empr."),
     },
     {
-      dataIndex: "proformaId",
+      dataIndex: "idNumber",
       title: "DNI/RUC",
       align: "center",
     },
     {
-      dataIndex: "proforma",
+      dataIndex: "name",
       title: "Nombre/Razón Soc.",
       width: "160px",
       align: "center",
     },
     {
-      dataIndex: "sale",
+      dataIndex: "lastname",
       title: "Apellidos",
       align: "center",
+      render: (lastname) => (lastname ? lastname : "-"),
     },
     {
-      dataIndex: "id",
+      dataIndex: "email",
       title: "Correo",
       align: "center",
     },
     {
-      dataIndex: "proforma",
+      dataIndex: "phoneNumber",
       title: "Tel. Contacto",
       align: "center",
     },
@@ -93,6 +99,8 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
+
+  const [clients, setClients] = useState([]);
 
   //Datos del usuario
   const [users, setUsers] = useState([]);
@@ -119,6 +127,23 @@ export default ({ setPageTitle }) => {
     };
 
     initialize();
+  }, []);
+
+  //Obtiene a los clientes
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const _clients = await getClients();
+        setClients(_clients);
+      } catch (error) {
+        notification.error({
+          message: "Error en el servidor",
+          description: error.message,
+        });
+      }
+    };
+
+    fetchClients();
   }, []);
 
   const statusOptions = [
@@ -260,7 +285,8 @@ export default ({ setPageTitle }) => {
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
-          dataSource={[{ id: 1 }]}
+          dataSource={clients}
+          pagination={false}
         />
       </Container>
       <Container height="15%">
