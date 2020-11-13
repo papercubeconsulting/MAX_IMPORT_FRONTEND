@@ -9,7 +9,12 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getUsers, userProvider, getClients } from "../../providers";
+import {
+  getUsers,
+  userProvider,
+  getClients,
+  getClientById,
+} from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
@@ -23,11 +28,14 @@ export default ({ setPageTitle }) => {
       title: "",
       width: "60px",
       align: "center",
-      render: () => (
+      render: (id) => (
         <Button
           padding="0 0.5rem"
           type="primary"
-          onClick={() => setIsVisibleModalEdit(true)}
+          onClick={() => {
+            setId(id);
+            setIsVisibleModalEdit(true);
+          }}
         >
           <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
         </Button>
@@ -81,7 +89,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "lastname",
       title: "Apellidos",
       align: "center",
-      render: (lastname) => (lastname ? lastname : "-"),
+      render: (lastname) => lastname || "-",
     },
     {
       dataIndex: "email",
@@ -102,6 +110,8 @@ export default ({ setPageTitle }) => {
   }, []);
 
   const [clients, setClients] = useState([]);
+  const [id, setId] = useState("");
+  const [client, setClient] = useState("");
 
   const router = useRouter();
 
@@ -148,6 +158,19 @@ export default ({ setPageTitle }) => {
 
     fetchClients();
   }, []);
+
+  // obtiene cliente por id
+  useEffect(() => {
+    const fetchClientById = async () => {
+      try {
+        const _client = await getClientById(id);
+        setClient(_client);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchClientById();
+  }, [id]);
 
   const statusOptions = [
     {
@@ -196,7 +219,7 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Modal
         visible={isVisibleModalEdit}
-        width="70%"
+        width="75%"
         title="Editar datos del cliente"
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
@@ -207,27 +230,30 @@ export default ({ setPageTitle }) => {
             gridTemplateColumns="repeat(4, 1fr)"
             gridGap="1rem"
           >
-            <Input addonBefore="Fecha Reg." />
+            <Input
+              value={`${moment(client.createdAt).format(clientDateFormat)}`}
+              addonBefore="Fecha Reg."
+            />
             <Select label="Tipo" />
             <Select label="Estado" />
-            <Input addonBefore="DNI/RUC" />
+            <Input value={client.idNumber} addonBefore="DNI/RUC" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input addonBefore="Nombre/Razón Soc." />
-            <Input addonBefore="Apellidos" />
-            <Input addonBefore="Correo" />
-            <Input addonBefore="Tel. Contacto" />
+            <Input value={client.name} addonBefore="Nombre/Razón Soc." />
+            <Input value={client.lastname || "-"} addonBefore="Apellidos" />
+            <Input value={client.email} addonBefore="Correo" />
+            <Input value={client.phoneNumber} addonBefore="Tel. Contacto" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="2fr 1fr"
             gridGap="1rem"
           >
-            <Input addonBefore="Dirección" />
+            <Input value={client.address} addonBefore="Dirección" />
             <Select label="Agencia Su." />
           </Grid>
           <Grid
