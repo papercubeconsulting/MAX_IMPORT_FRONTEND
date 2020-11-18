@@ -172,6 +172,7 @@ export default ({ setPageTitle }) => {
           current: _proformas.page,
           pageSize: _proformas.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setProformas(_proformas.rows);
       } catch (error) {
