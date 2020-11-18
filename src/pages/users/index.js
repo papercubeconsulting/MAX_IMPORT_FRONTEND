@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../../components";
 import { getUsers, userProvider } from "../../providers";
 import { clientDateFormat } from "../../util";
-import { Input, notification, Table, Modal } from "antd";
+import { Input, notification, Table, Modal, Space } from "antd";
 import {
   faEye,
   faToggleOn,
@@ -15,37 +15,32 @@ export default ({ setPageTitle }) => {
   setPageTitle("Administración de Usuarios");
   const columns = [
     {
-      dataIndex: "id",
-      title: "",
-      width: "60px",
+      title: "Mto.",
+      key: "action",
       align: "center",
-      render: (id) => (
-        <Button
-          padding="0 0.5rem"
-          type="primary"
-          onClick={() => {
-            setId(id);
-            setTitle("Editar Datos del Usuario");
-            setIsVisibleModalEdit(true);
-          }}
-        >
-          <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
-        </Button>
-      ),
-    },
-    {
       dataIndex: "id",
-      title: "",
-      width: "60px",
-      align: "center",
-      render: () => (
-        <Icon
-          onClick={() => setIsVisibleModalDelete(true)}
-          marginRight="0px"
-          fontSize="1.3rem"
-          icon={faToggleOff}
-          style={{ cursor: "pointer", color: "#1890FF" }}
-        />
+      width: "100px",
+      render: (id, record) => (
+        <Space size="middle">
+          <Button
+            padding="0 0.5rem"
+            type="primary"
+            onClick={() => {
+              setId(id);
+              setEdit(true);
+              setIsVisibleModalEdit(true);
+            }}
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+          </Button>
+          <Icon
+            onClick={() => setIsVisibleModalDelete(true)}
+            marginRight="0px"
+            fontSize="1.3rem"
+            icon={faToggleOff}
+            style={{ cursor: "pointer", color: "#1890FF" }}
+          />
+        </Space>
       ),
     },
     {
@@ -78,6 +73,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "email",
       title: "Correo",
+      width: "190px",
       align: "center",
     },
     {
@@ -104,7 +100,7 @@ export default ({ setPageTitle }) => {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
   const [id, setId] = useState("");
-  const [title, setTitle] = useState("");
+  const [edit, setEdit] = useState(false);
 
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
@@ -167,7 +163,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleModalEdit}
         width="60%"
-        title={title}
+        title={edit ? "Editar Datos del Usuario" : "Crear Usuario"}
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
       >
@@ -197,12 +193,14 @@ export default ({ setPageTitle }) => {
             gridGap="1rem"
           >
             <Select label="Perfil" />
-            <Button
-              type="primary"
-              onClick={() => setIsModalResetPasswordVisible(true)}
-            >
-              Reset Password
-            </Button>
+            {edit && (
+              <Button
+                type="primary"
+                onClick={() => setIsModalResetPasswordVisible(true)}
+              >
+                Reset Password
+              </Button>
+            )}
           </Grid>
         </Container>
         <Container>
@@ -236,7 +234,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             onClick={() => {
-              setTitle("Crear Usuario");
+              setEdit(false);
               setIsVisibleModalEdit(true);
             }}
           >

@@ -174,6 +174,7 @@ export default ({ setPageTitle }) => {
           current: _products.page,
           pageSize: _products.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setProducts(_products.rows);
       } catch (error) {

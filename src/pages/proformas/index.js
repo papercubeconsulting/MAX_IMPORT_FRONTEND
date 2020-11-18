@@ -169,9 +169,11 @@ export default ({ setPageTitle }) => {
         setPagination({
           position: ["bottomCenter"],
           total: _proformas.pageSize * _proformas.pages,
+          /* total: 800, */
           current: _proformas.page,
           pageSize: _proformas.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setProformas(_proformas.rows);
       } catch (error) {

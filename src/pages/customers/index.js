@@ -16,7 +16,7 @@ import {
   getClientById,
 } from "../../providers";
 import { clientDateFormat } from "../../util";
-import { Input, notification, Table, Modal } from "antd";
+import { Input, notification, Table, Modal, Space } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
 
@@ -24,36 +24,31 @@ export default ({ setPageTitle }) => {
   setPageTitle("BD de Clientes");
   const columns = [
     {
-      dataIndex: "id",
-      title: "",
-      width: "60px",
+      title: "Mto.",
+      key: "action",
       align: "center",
-      render: (id) => (
-        <Button
-          padding="0 0.5rem"
-          type="primary"
-          onClick={() => {
-            setId(id);
-            setIsVisibleModalEdit(true);
-          }}
-        >
-          <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
-        </Button>
-      ),
-    },
-    {
       dataIndex: "id",
-      title: "",
-      width: "60px",
-      align: "center",
-      render: () => (
-        <Icon
-          onClick={() => setIsVisibleModalDelete(true)}
-          marginRight="0px"
-          fontSize="1.3rem"
-          icon={faToggleOff}
-          style={{ cursor: "pointer", color: "#1890FF" }}
-        />
+      width: "100px",
+      render: (id, record) => (
+        <Space size="middle">
+          <Button
+            padding="0 0.5rem"
+            type="primary"
+            onClick={() => {
+              setId(id);
+              setIsVisibleModalEdit(true);
+            }}
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+          </Button>
+          <Icon
+            onClick={() => setIsVisibleModalDelete(true)}
+            marginRight="0px"
+            fontSize="1.3rem"
+            icon={faToggleOff}
+            style={{ cursor: "pointer", color: "#1890FF" }}
+          />
+        </Space>
       ),
     },
     {
@@ -94,6 +89,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "email",
       title: "Correo",
+      width: "190px",
       align: "center",
     },
     {
@@ -304,10 +300,7 @@ export default ({ setPageTitle }) => {
           <Input placeholder="Nombre/Razón Soc." addonBefore="Cliente" />
           <Input placeholder="Apellidos" />
           <Input placeholder="DNI/RUC" />
-          <Button
-            type="primary"
-            gridColumnStart="4"
-          >
+          <Button type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
