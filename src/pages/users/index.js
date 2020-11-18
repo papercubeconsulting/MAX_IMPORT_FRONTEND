@@ -27,7 +27,7 @@ export default ({ setPageTitle }) => {
             type="primary"
             onClick={() => {
               setId(id);
-              setTitle("Editar Datos del Usuario");
+              setEdit(true);
               setIsVisibleModalEdit(true);
             }}
           >
@@ -100,7 +100,7 @@ export default ({ setPageTitle }) => {
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
   const [id, setId] = useState("");
-  const [title, setTitle] = useState("");
+  const [edit, setEdit] = useState(false);
 
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
@@ -163,7 +163,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleModalEdit}
         width="60%"
-        title={title}
+        title={edit ? "Editar Datos del Usuario" : "Crear Usuario"}
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
       >
@@ -193,12 +193,14 @@ export default ({ setPageTitle }) => {
             gridGap="1rem"
           >
             <Select label="Perfil" />
-            <Button
-              type="primary"
-              onClick={() => setIsModalResetPasswordVisible(true)}
-            >
-              Reset Password
-            </Button>
+            {edit && (
+              <Button
+                type="primary"
+                onClick={() => setIsModalResetPasswordVisible(true)}
+              >
+                Reset Password
+              </Button>
+            )}
           </Grid>
         </Container>
         <Container>
@@ -232,7 +234,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             onClick={() => {
-              setTitle("Crear Usuario");
+              setEdit(false);
               setIsVisibleModalEdit(true);
             }}
           >
