@@ -75,10 +75,12 @@ export const BaseLayout = (props) => {
               </MenuItem>
             </Link>
             <Link href="/customers">
-              <MenuItem active={isActiveLink("customers")}>BD Clientes</MenuItem>
+              <MenuItem active={isActiveLink("customers")}>
+                BD Clientes
+              </MenuItem>
             </Link>
-            <Link href="/">
-              <MenuItem>Admin Usuarios</MenuItem>
+            <Link href="/users">
+              <MenuItem active={isActiveLink("users")}>Admin Usuarios</MenuItem>
             </Link>
           </Menu>
         </Sidebar>

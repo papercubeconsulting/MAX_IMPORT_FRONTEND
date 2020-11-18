@@ -9,19 +9,14 @@ import {
   Icon,
   Select,
 } from "../../components";
-import {
-  getUsers,
-  userProvider,
-  getClients,
-  getClientById,
-} from "../../providers";
+import { getUsers, userProvider } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("BD de Clientes");
+  setPageTitle("Administración de Usuarios");
   const columns = [
     {
       dataIndex: "id",
@@ -70,26 +65,18 @@ export default ({ setPageTitle }) => {
     },
     {
       dataIndex: "type",
-      title: "Tipo",
+      title: "Nombres",
       align: "center",
-      render: (type) => (type === "PERSON" ? "Pers." : "Empr."),
     },
     {
       dataIndex: "idNumber",
-      title: "DNI/RUC",
+      title: "Apellidos",
       align: "center",
     },
     {
       dataIndex: "name",
-      title: "Nombre/Razón Soc.",
-      width: "160px",
+      title: "DNI",
       align: "center",
-    },
-    {
-      dataIndex: "lastname",
-      title: "Apellidos",
-      align: "center",
-      render: (lastname) => lastname || "-",
     },
     {
       dataIndex: "email",
@@ -101,6 +88,11 @@ export default ({ setPageTitle }) => {
       title: "Tel. Contacto",
       align: "center",
     },
+    {
+      dataIndex: "phoneNumber",
+      title: "Perfil",
+      align: "center",
+    },
   ];
 
   const [windowHeight, setWindowHeight] = useState(0);
@@ -109,10 +101,7 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  const [clients, setClients] = useState([]);
   const [id, setId] = useState("");
-  const [client, setClient] = useState("");
-
   const router = useRouter();
 
   //Datos del usuario
@@ -141,36 +130,6 @@ export default ({ setPageTitle }) => {
 
     initialize();
   }, []);
-
-  //Obtiene a los clientes
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const _clients = await getClients();
-        setClients(_clients.rows);
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
-
-    fetchClients();
-  }, []);
-
-  // obtiene cliente por id
-  useEffect(() => {
-    const fetchClientById = async () => {
-      try {
-        const _client = await getClientById(id);
-        setClient(_client);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchClientById();
-  }, [id]);
 
   const statusOptions = [
     {
@@ -230,30 +189,27 @@ export default ({ setPageTitle }) => {
             gridTemplateColumns="repeat(4, 1fr)"
             gridGap="1rem"
           >
-            <Input
-              value={`${moment(client.createdAt).format(clientDateFormat)}`}
-              addonBefore="Fecha Reg."
-            />
+            <Input addonBefore="Fecha Reg." />
             <Select label="Tipo" />
             <Select label="Estado" />
-            <Input value={client.idNumber} addonBefore="DNI/RUC" />
+            <Input addonBefore="DNI/RUC" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input value={client.name} addonBefore="Nombre/Razón Soc." />
-            <Input value={client.lastname || "-"} addonBefore="Apellidos" />
-            <Input value={client.email} addonBefore="Correo" />
-            <Input value={client.phoneNumber} addonBefore="Tel. Contacto" />
+            <Input addonBefore="Nombre/Razón Soc." />
+            <Input addonBefore="Apellidos" />
+            <Input addonBefore="Correo" />
+            <Input addonBefore="Tel. Contacto" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="2fr 1fr"
             gridGap="1rem"
           >
-            <Input value={client.address} addonBefore="Dirección" />
+            <Input addonBefore="Dirección" />
             <Select label="Agencia Su." />
           </Grid>
           <Grid
@@ -282,33 +238,13 @@ export default ({ setPageTitle }) => {
         </Container>
       </Modal>
       <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(6, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
-          <DatePicker
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Inicio
-              </>
-            }
-          />
-          <DatePicker
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Fin
-              </>
-            }
-          />
-          <Select label="Estado" options={statusOptions} />
-          <Input placeholder="Nombre/Razón Soc." addonBefore="Cliente" />
+          <Button type="primary">Nuevo Usuario</Button>
+          <Input placeholder="Nombres" addonBefore="Usuario" />
           <Input placeholder="Apellidos" />
-          <Input placeholder="DNI/RUC" />
-          <Button
-            type="primary"
-            gridColumnStart="4"
-            onClick={async () => searchWithState()}
-          >
+          <Input placeholder="DNI" />
+          <Button type="primary" onClick={async () => searchWithState()}>
             Buscar
           </Button>
         </Grid>
@@ -318,21 +254,18 @@ export default ({ setPageTitle }) => {
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
-          dataSource={clients}
+          dataSource={users}
           pagination={false}
         />
       </Container>
       <Container height="15%">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
+        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="8rem">
           <Button
             onClick={() => router.back()}
             type="primary"
             gridColumnStart="2"
           >
             Regresar
-          </Button>
-          <Button type="primary" gridColumnStart="3">
-            Exportar a SIGO
           </Button>
         </Grid>
       </Container>
