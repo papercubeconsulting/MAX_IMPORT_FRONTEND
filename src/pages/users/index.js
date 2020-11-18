@@ -105,7 +105,7 @@ export default ({ setPageTitle }) => {
   const [me, setMe] = useState({ name: null });
 
   // Modales
-  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
+  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(true);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
 
   //Obtiene a los usuarios y usuario actual
@@ -159,7 +159,7 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Modal
         visible={isVisibleModalEdit}
-        width="75%"
+        width="60%"
         title="Editar Datos del Usuario / Crear Usuario"
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
@@ -167,44 +167,34 @@ export default ({ setPageTitle }) => {
         <Container flexDirection="column" height="fit-content">
           <Grid
             marginBottom="1rem"
-            gridTemplateColumns="repeat(4, 1fr)"
+            gridTemplateColumns="repeat(3, 1fr)"
             gridGap="1rem"
           >
             <Input addonBefore="Fecha Reg." />
-            <Select label="Tipo" />
             <Select label="Estado" />
-            <Input addonBefore="DNI/RUC" />
+            <Input addonBefore="DNI" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input addonBefore="Nombre/Razón Soc." />
+            <Input addonBefore="Nombres" />
             <Input addonBefore="Apellidos" />
             <Input addonBefore="Correo" />
             <Input addonBefore="Tel. Contacto" />
           </Grid>
           <Grid
             marginBottom="1rem"
-            gridTemplateColumns="2fr 1fr"
+            gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input addonBefore="Dirección" />
-            <Select label="Agencia Su." />
-          </Grid>
-          <Grid
-            marginBottom="1rem"
-            gridTemplateColumns="repeat(3, 1fr)"
-            gridGap="1rem"
-          >
-            <Select label="Departamento" />
-            <Select label="Provincia" />
-            <Select label="Distrito" />
+            <Select label="Perfil" />
+            <Button type="primary">Reset Password</Button>
           </Grid>
         </Container>
         <Container>
-          <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
+          <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="4rem">
             <Button type="primary" gridColumnStart="2">
               Confirmar
             </Button>
