@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
-import {
-  Button,
-  Container,
-  DatePicker,
-  Grid,
-  Icon,
-  Select,
-} from "../../components";
+import { Button, Container, Grid, Icon, Select } from "../../components";
 import { getUsers, userProvider } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal } from "antd";
-import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
-import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faToggleOn,
+  faToggleOff,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Administración de Usuarios");
@@ -64,17 +60,17 @@ export default ({ setPageTitle }) => {
       render: (active) => (active ? "Activo" : "Inacti."),
     },
     {
-      dataIndex: "type",
+      dataIndex: "name",
       title: "Nombres",
       align: "center",
     },
     {
-      dataIndex: "idNumber",
+      dataIndex: "lastname",
       title: "Apellidos",
       align: "center",
     },
     {
-      dataIndex: "name",
+      dataIndex: "idNumber",
       title: "DNI",
       align: "center",
     },
@@ -89,7 +85,7 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      dataIndex: "phoneNumber",
+      dataIndex: "role",
       title: "Perfil",
       align: "center",
     },
@@ -112,7 +108,7 @@ export default ({ setPageTitle }) => {
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
 
-  //Obtiene a los vendedores
+  //Obtiene a los usuarios y usuario actual
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -131,21 +127,6 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
-  const statusOptions = [
-    {
-      value: null,
-      label: "Todos",
-    },
-    {
-      value: "",
-      label: "Activo",
-    },
-    {
-      value: "",
-      label: "Inactivo",
-    },
-  ];
-
   return (
     <>
       <Modal
@@ -160,7 +141,7 @@ export default ({ setPageTitle }) => {
           alignItems="center"
         >
           <p style={{ fontWeight: "bold" }}>
-            ¿Está seguro que desea pasar a Inactivo al cliente?
+            ¿Está seguro que desea pasar a Inactivo al usuario?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
             <Button margin="auto" type="primary">
@@ -179,7 +160,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleModalEdit}
         width="75%"
-        title="Editar datos del cliente"
+        title="Editar Datos del Usuario / Crear Usuario"
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
       >
@@ -240,13 +221,18 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(6, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
-          <Button type="primary">Nuevo Usuario</Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              setIsVisibleModalEdit(true);
+            }}
+          >
+            Nuevo Usuario
+          </Button>
           <Input placeholder="Nombres" addonBefore="Usuario" />
           <Input placeholder="Apellidos" />
           <Input placeholder="DNI" />
-          <Button type="primary" onClick={async () => searchWithState()}>
-            Buscar
-          </Button>
+          <Button type="primary">Buscar</Button>
         </Grid>
       </Container>
       <Container height="fit-content">
