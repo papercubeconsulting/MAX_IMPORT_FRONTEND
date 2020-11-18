@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../../components";
 import { getUsers, userProvider } from "../../providers";
 import { clientDateFormat } from "../../util";
-import { Input, notification, Table, Modal } from "antd";
+import { Input, notification, Table, Modal, Space } from "antd";
 import {
   faEye,
   faToggleOn,
@@ -15,37 +15,32 @@ export default ({ setPageTitle }) => {
   setPageTitle("Administración de Usuarios");
   const columns = [
     {
-      dataIndex: "id",
-      title: "",
-      width: "60px",
+      title: "Mto.",
+      key: "action",
       align: "center",
-      render: (id) => (
-        <Button
-          padding="0 0.5rem"
-          type="primary"
-          onClick={() => {
-            setId(id);
-            setTitle("Editar Datos del Usuario");
-            setIsVisibleModalEdit(true);
-          }}
-        >
-          <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
-        </Button>
-      ),
-    },
-    {
       dataIndex: "id",
-      title: "",
-      width: "60px",
-      align: "center",
-      render: () => (
-        <Icon
-          onClick={() => setIsVisibleModalDelete(true)}
-          marginRight="0px"
-          fontSize="1.3rem"
-          icon={faToggleOff}
-          style={{ cursor: "pointer", color: "#1890FF" }}
-        />
+      width: "100px",
+      render: (id, record) => (
+        <Space size="middle">
+          <Button
+            padding="0 0.5rem"
+            type="primary"
+            onClick={() => {
+              setId(id);
+              setTitle("Editar Datos del Usuario");
+              setIsVisibleModalEdit(true);
+            }}
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+          </Button>
+          <Icon
+            onClick={() => setIsVisibleModalDelete(true)}
+            marginRight="0px"
+            fontSize="1.3rem"
+            icon={faToggleOff}
+            style={{ cursor: "pointer", color: "#1890FF" }}
+          />
+        </Space>
       ),
     },
     {
@@ -78,6 +73,7 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "email",
       title: "Correo",
+      width: "190px",
       align: "center",
     },
     {
