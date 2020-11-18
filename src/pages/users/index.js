@@ -105,8 +105,13 @@ export default ({ setPageTitle }) => {
   const [me, setMe] = useState({ name: null });
 
   // Modales
-  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(true);
+  const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+  const [email, setEmail] = useState(null);
+  const [
+    isModalResetPasswordVisible,
+    setIsModalResetPasswordVisible,
+  ] = useState(false);
 
   //Obtiene a los usuarios y usuario actual
   useEffect(() => {
@@ -190,7 +195,12 @@ export default ({ setPageTitle }) => {
             gridGap="1rem"
           >
             <Select label="Perfil" />
-            <Button type="primary">Reset Password</Button>
+            <Button
+              type="primary"
+              onClick={() => setIsModalResetPasswordVisible(true)}
+            >
+              Reset Password
+            </Button>
           </Grid>
         </Container>
         <Container>
@@ -207,6 +217,16 @@ export default ({ setPageTitle }) => {
             </Button>
           </Grid>
         </Container>
+      </Modal>
+      <Modal
+        visible={isModalResetPasswordVisible}
+        /* onOk={} */
+        onCancel={() => setIsModalResetPasswordVisible(false)}
+        width="40%"
+        title="Recuperar contraseña"
+      >
+        Enviaremos un correo con un link para que pueda cambiar su contraseña al
+        email que ingresó en la casilla correo: {email}
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(6, 1fr)" gridGap="1rem">
