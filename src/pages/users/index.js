@@ -25,6 +25,7 @@ export default ({ setPageTitle }) => {
           type="primary"
           onClick={() => {
             setId(id);
+            setTitle("Editar Datos del Usuario");
             setIsVisibleModalEdit(true);
           }}
         >
@@ -97,12 +98,13 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  const [id, setId] = useState("");
   const router = useRouter();
 
-  //Datos del usuario
+  //Datos de los usuarios
   const [users, setUsers] = useState([]);
   const [me, setMe] = useState({ name: null });
+  const [id, setId] = useState("");
+  const [title, setTitle] = useState("");
 
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
@@ -165,7 +167,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleModalEdit}
         width="60%"
-        title="Editar Datos del Usuario / Crear Usuario"
+        title={title}
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
       >
@@ -234,6 +236,7 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             onClick={() => {
+              setTitle("Crear Usuario");
               setIsVisibleModalEdit(true);
             }}
           >
