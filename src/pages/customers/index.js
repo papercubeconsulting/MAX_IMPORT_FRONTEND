@@ -307,7 +307,6 @@ export default ({ setPageTitle }) => {
           <Button
             type="primary"
             gridColumnStart="4"
-            onClick={async () => searchWithState()}
           >
             Buscar
           </Button>
