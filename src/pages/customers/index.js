@@ -182,7 +182,7 @@ export default ({ setPageTitle }) => {
     from && (params.from = from.format(serverDateFormat));
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
-    idNumber && (params.id = idNumber);
+    idNumber && (params.idNumber = idNumber);
     active && (params.active = active);
     clientName && (params.name = clientName);
     clientLastName && (params.lastname = clientLastName);
@@ -357,9 +357,22 @@ export default ({ setPageTitle }) => {
             }
           />
           <Select label="Estado" options={statusOptions} />
-          <Input placeholder="Nombre/Razón Soc." addonBefore="Cliente" />
-          <Input placeholder="Apellidos" />
-          <Input placeholder="DNI/RUC" />
+          <Input
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Nombre/Razón Soc."
+            addonBefore="Cliente"
+          />
+          <Input
+            value={clientLastName}
+            onChange={(e) => setClientLastName(e.target.value)}
+            placeholder="Apellidos"
+          />
+          <Input
+            value={idNumber}
+            onChange={(e) => setIdNumber(e.target.value)}
+            placeholder="DNI/RUC"
+          />
           <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
