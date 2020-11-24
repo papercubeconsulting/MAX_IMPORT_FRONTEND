@@ -15,6 +15,9 @@ import {
   getClients,
   getClientById,
   putClient,
+  getRegions,
+  getProvinces,
+  getDistricts,
 } from "../../providers";
 import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
@@ -138,6 +141,13 @@ export default ({ setPageTitle }) => {
   const [status, setStatus] = useState("");
   const [client, setClient] = useState("");
 
+  const [regions, setRegions] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [regionId, setRegionId] = useState(null);
+  const [provinceId, setProvinceId] = useState(null);
+  const [districtId, setDistrictId] = useState(null);
+
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
   const router = useRouter();
@@ -248,6 +258,33 @@ export default ({ setPageTitle }) => {
     fetchClientById();
   }, [id]);
 
+  useEffect(() => {
+    const fetchRegions = async () => {
+      const _regions = await getRegions();
+
+      setRegions(_regions);
+    };
+    fetchRegions();
+  }, []);
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const _provinces = await getProvinces(regionId);
+
+      setProvinces(_provinces);
+    };
+    regionId && fetchProvinces();
+  }, [regionId]);
+
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      const _districts = await getDistricts(regionId, provinceId);
+
+      setDistricts(_districts);
+    };
+    regionId && provinceId && fetchDistricts();
+  }, [regionId, provinceId]);
+
   const statusOptions = [
     {
       value: null,
@@ -260,6 +297,27 @@ export default ({ setPageTitle }) => {
     {
       value: "false",
       label: "Inactivo",
+    },
+  ];
+  const statusModalOptions = [
+    {
+      value: "true",
+      label: "Activo",
+    },
+    {
+      value: "false",
+      label: "Inactivo",
+    },
+  ];
+
+  const typesOptions = [
+    {
+      value: "PERSON",
+      label: "Persona",
+    },
+    {
+      value: "COMPANY",
+      label: "Empresa",
     },
   ];
 
@@ -309,9 +367,14 @@ export default ({ setPageTitle }) => {
             <Input
               value={`${moment(client.createdAt).format(clientDateFormat)}`}
               addonBefore="Fecha Reg."
+              disabled
             />
-            <Select label="Tipo" />
-            <Select label="Estado" />
+            <Select value={client.type} label="Tipo" options={typesOptions} />
+            <Select
+              value={client.active ? "true" : "false"}
+              label="Estado"
+              options={statusModalOptions}
+            />
             <Input value={client.idNumber} addonBefore="DNI/RUC" />
           </Grid>
           <Grid
@@ -337,9 +400,30 @@ export default ({ setPageTitle }) => {
             gridTemplateColumns="repeat(3, 1fr)"
             gridGap="1rem"
           >
-            <Select label="Departamento" />
-            <Select label="Provincia" />
-            <Select label="Distrito" />
+            <Select
+              value={client.regionId}
+              label="Departamento"
+              options={regions.map((region) => ({
+                value: region.id,
+                label: region.name,
+              }))}
+            />
+            <Select
+              value={client.provinceId}
+              label="Provincia"
+              options={provinces.map((province) => ({
+                value: province.id,
+                label: province.name,
+              }))}
+            />
+            <Select
+              value={client.districtId}
+              label="Distrito"
+              options={districts.map((district) => ({
+                value: district.id,
+                label: district.name,
+              }))}
+            />
           </Grid>
         </Container>
         <Container>
