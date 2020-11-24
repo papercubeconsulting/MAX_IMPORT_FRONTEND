@@ -147,7 +147,7 @@ export default ({ setPageTitle }) => {
     const initialize = async () => {
       try {
         const _users = await getUsers();
-        setUsers(_users);
+        setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
