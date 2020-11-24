@@ -226,11 +226,11 @@ export default ({ setPageTitle }) => {
       label: "Todos",
     },
     {
-      value: "",
+      value: "true",
       label: "Activo",
     },
     {
-      value: "",
+      value: "false",
       label: "Inactivo",
     },
   ];
@@ -356,7 +356,12 @@ export default ({ setPageTitle }) => {
               </>
             }
           />
-          <Select label="Estado" options={statusOptions} />
+          <Select
+            value={active}
+            onChange={(value) => setActive(value)}
+            label="Estado"
+            options={statusOptions}
+          />
           <Input
             value={clientName}
             onChange={(e) => setClientName(e.target.value)}
