@@ -14,11 +14,12 @@ import {
   userProvider,
   getClients,
   getClientById,
+  putClient,
 } from "../../providers";
 import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
-import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("BD de Clientes");
@@ -42,10 +43,15 @@ export default ({ setPageTitle }) => {
             <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
           </Button>
           <Icon
-            onClick={() => setIsVisibleModalDelete(true)}
+            onClick={() => {
+              setId(id);
+              setStatus(record.active);
+              setTextModal(record.active ? "Inactivo" : "Activo");
+              setIsVisibleModalDelete(true);
+            }}
             marginRight="0px"
             fontSize="1.3rem"
-            icon={faToggleOff}
+            icon={record.active ? faUserSlash : faUser}
             style={{ cursor: "pointer", color: "#1890FF" }}
           />
         </Space>
@@ -106,8 +112,7 @@ export default ({ setPageTitle }) => {
   }, []);
 
   const [clients, setClients] = useState([]);
-  const [id, setId] = useState("");
-  const [client, setClient] = useState("");
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(null);
 
   //para el filtro por fecha
@@ -128,6 +133,10 @@ export default ({ setPageTitle }) => {
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+  const [textModal, setTextModal] = useState("");
+  const [id, setId] = useState("");
+  const [status, setStatus] = useState("");
+  const [client, setClient] = useState("");
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -171,7 +180,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams]);
+  }, [queryParams, toggleUpdateTable]);
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
@@ -205,6 +214,25 @@ export default ({ setPageTitle }) => {
     stateUpdateOrigin.current = "manual";
     setState(value);
     !isPagination && setPage(undefined);
+  };
+
+  // actualiza cliente
+  const updateClient = async () => {
+    try {
+      const response = await putClient(id, { active: !status });
+      console.log(response);
+      setIsVisibleModalDelete(false);
+      setToggleUpdateTable((prev) => !prev);
+      notification.success({
+        message: "Actualización exitosa ",
+      });
+    } catch (error) {
+      console.log(error);
+      notification.error({
+        message: "Error al cambiar estado del cliente",
+        description: error.userMessage,
+      });
+    }
   };
 
   // obtiene cliente por id
@@ -249,10 +277,10 @@ export default ({ setPageTitle }) => {
           alignItems="center"
         >
           <p style={{ fontWeight: "bold" }}>
-            ¿Está seguro que desea pasar a Inactivo al cliente?
+            ¿Está seguro que desea pasar a {textModal} al cliente?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-            <Button margin="auto" type="primary">
+            <Button onClick={updateClient} margin="auto" type="primary">
               Si, ejecutar
             </Button>
             <Button

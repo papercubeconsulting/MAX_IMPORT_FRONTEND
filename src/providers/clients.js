@@ -5,4 +5,7 @@ const getClientById = async (id) => baseProvider.httpGet(`clients/${id}`);
 const getClientPerCode = async (code) =>
   baseProvider.httpGet(`clients/${code}`);
 
-export { getClients, getClientById, getClientPerCode };
+const putClient = async (id, body) =>
+  baseProvider.httpPut(`clients/${id}`, body);
+
+export { getClients, getClientById, getClientPerCode, putClient };
