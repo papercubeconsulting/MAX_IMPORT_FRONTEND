@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import {
@@ -15,7 +15,7 @@ import {
   getClients,
   getClientById,
 } from "../../providers";
-import { clientDateFormat } from "../../util";
+import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
@@ -108,8 +108,18 @@ export default ({ setPageTitle }) => {
   const [clients, setClients] = useState([]);
   const [id, setId] = useState("");
   const [client, setClient] = useState("");
+  const [page, setPage] = useState(null);
 
-  const router = useRouter();
+  //para el filtro por fecha
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
+  //para el filtro por nro doc
+  const [idNumber, setIdNumber] = useState(null);
+  //para el filtro con datos de cliente
+  const [clientName, setClientName] = useState(null);
+  const [clientLastName, setClientLastName] = useState(null);
+  //para el filtro por status del clientes
+  const [active, setActive] = useState(null);
 
   //Datos del usuario
   const [users, setUsers] = useState([]);
@@ -118,6 +128,11 @@ export default ({ setPageTitle }) => {
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+
+  //extraccion de params de url
+  const stateUpdateOrigin = useRef("url");
+  const router = useRouter();
+  const queryParams = router.query;
 
   //Obtiene a los vendedores
   useEffect(() => {
@@ -142,7 +157,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const _clients = await getClients();
+        const _clients = await getClients(queryParams);
         setClients(_clients.rows);
       } catch (error) {
         notification.error({
@@ -153,7 +168,44 @@ export default ({ setPageTitle }) => {
     };
 
     fetchClients();
-  }, []);
+    if (stateUpdateOrigin.current === "url") {
+      urlToState();
+    }
+  }, [queryParams]);
+
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
+
+  const stateToUrl = async () => {
+    const params = {};
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
+    page && (params.page = page);
+    idNumber && (params.id = idNumber);
+    active && (params.active = active);
+    clientName && (params.name = clientName);
+    clientLastName && (params.lastname = clientLastName);
+    await router.push(`/customers${urlQueryParams(params)}`);
+  };
+
+  const searchWithState = () => {
+    stateToUrl();
+  };
+
+  const urlToState = () => {
+    setPage(Number.parseInt(queryParams.page) || null);
+    setIdNumber(queryParams.idNumber || null);
+    setActive(queryParams.active || null);
+    setClientName(queryParams.name || null);
+    setClientLastName(queryParams.lastname || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
+  };
 
   // obtiene cliente por id
   useEffect(() => {
@@ -281,6 +333,10 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <DatePicker
+            value={from}
+            onChange={(value) => setFrom(value)}
+            format={clientDateFormat}
+            disabledDate={(value) => value >= to}
             label={
               <>
                 <Icon icon={faCalendarAlt} />
@@ -289,6 +345,10 @@ export default ({ setPageTitle }) => {
             }
           />
           <DatePicker
+            value={to}
+            onChange={(value) => setTo(value)}
+            format={clientDateFormat}
+            disabledDate={(value) => value <= from}
             label={
               <>
                 <Icon icon={faCalendarAlt} />
@@ -300,7 +360,7 @@ export default ({ setPageTitle }) => {
           <Input placeholder="Nombre/Razón Soc." addonBefore="Cliente" />
           <Input placeholder="Apellidos" />
           <Input placeholder="DNI/RUC" />
-          <Button type="primary" gridColumnStart="4">
+          <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
