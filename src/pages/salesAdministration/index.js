@@ -334,8 +334,7 @@ export default ({ setPageTitle }) => {
       _response.blob().then((res) => {
         console.log("_response", res);
         FileSaver.saveAs(res, "Report.xlsx");
-         });
-
+      });
     } catch (error) {
       console.log(error);
     }

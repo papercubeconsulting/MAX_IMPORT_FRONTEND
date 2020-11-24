@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import {
@@ -14,11 +14,12 @@ import {
   userProvider,
   getClients,
   getClientById,
+  putClient,
 } from "../../providers";
-import { clientDateFormat } from "../../util";
+import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
-import { faToggleOn, faToggleOff } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("BD de Clientes");
@@ -42,10 +43,15 @@ export default ({ setPageTitle }) => {
             <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
           </Button>
           <Icon
-            onClick={() => setIsVisibleModalDelete(true)}
+            onClick={() => {
+              setId(id);
+              setStatus(record.active);
+              setTextModal(record.active ? "Inactivo" : "Activo");
+              setIsVisibleModalDelete(true);
+            }}
             marginRight="0px"
             fontSize="1.3rem"
-            icon={faToggleOff}
+            icon={record.active ? faUserSlash : faUser}
             style={{ cursor: "pointer", color: "#1890FF" }}
           />
         </Space>
@@ -106,10 +112,19 @@ export default ({ setPageTitle }) => {
   }, []);
 
   const [clients, setClients] = useState([]);
-  const [id, setId] = useState("");
-  const [client, setClient] = useState("");
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [page, setPage] = useState(null);
 
-  const router = useRouter();
+  //para el filtro por fecha
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
+  //para el filtro por nro doc
+  const [idNumber, setIdNumber] = useState(null);
+  //para el filtro con datos de cliente
+  const [clientName, setClientName] = useState(null);
+  const [clientLastName, setClientLastName] = useState(null);
+  //para el filtro por status del clientes
+  const [active, setActive] = useState(null);
 
   //Datos del usuario
   const [users, setUsers] = useState([]);
@@ -118,6 +133,15 @@ export default ({ setPageTitle }) => {
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+  const [textModal, setTextModal] = useState("");
+  const [id, setId] = useState("");
+  const [status, setStatus] = useState("");
+  const [client, setClient] = useState("");
+
+  //extraccion de params de url
+  const stateUpdateOrigin = useRef("url");
+  const router = useRouter();
+  const queryParams = router.query;
 
   //Obtiene a los vendedores
   useEffect(() => {
@@ -142,7 +166,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const _clients = await getClients();
+        const _clients = await getClients(queryParams);
         setClients(_clients.rows);
       } catch (error) {
         notification.error({
@@ -153,7 +177,63 @@ export default ({ setPageTitle }) => {
     };
 
     fetchClients();
-  }, []);
+    if (stateUpdateOrigin.current === "url") {
+      urlToState();
+    }
+  }, [queryParams, toggleUpdateTable]);
+
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
+
+  const stateToUrl = async () => {
+    const params = {};
+    from && (params.from = from.format(serverDateFormat));
+    to && (params.to = to.format(serverDateFormat));
+    page && (params.page = page);
+    idNumber && (params.idNumber = idNumber);
+    active && (params.active = active);
+    clientName && (params.name = clientName);
+    clientLastName && (params.lastname = clientLastName);
+    await router.push(`/customers${urlQueryParams(params)}`);
+  };
+
+  const searchWithState = () => {
+    stateToUrl();
+  };
+
+  const urlToState = () => {
+    setPage(Number.parseInt(queryParams.page) || null);
+    setIdNumber(queryParams.idNumber || null);
+    setActive(queryParams.active || null);
+    setClientName(queryParams.name || null);
+    setClientLastName(queryParams.lastname || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
+  };
+
+  // actualiza cliente
+  const updateClient = async () => {
+    try {
+      const response = await putClient(id, { active: !status });
+      console.log(response);
+      setIsVisibleModalDelete(false);
+      setToggleUpdateTable((prev) => !prev);
+      notification.success({
+        message: "Actualización exitosa ",
+      });
+    } catch (error) {
+      console.log(error);
+      notification.error({
+        message: "Error al cambiar estado del cliente",
+        description: error.userMessage,
+      });
+    }
+  };
 
   // obtiene cliente por id
   useEffect(() => {
@@ -174,11 +254,11 @@ export default ({ setPageTitle }) => {
       label: "Todos",
     },
     {
-      value: "",
+      value: "true",
       label: "Activo",
     },
     {
-      value: "",
+      value: "false",
       label: "Inactivo",
     },
   ];
@@ -197,10 +277,10 @@ export default ({ setPageTitle }) => {
           alignItems="center"
         >
           <p style={{ fontWeight: "bold" }}>
-            ¿Está seguro que desea pasar a Inactivo al cliente?
+            ¿Está seguro que desea pasar a {textModal} al cliente?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-            <Button margin="auto" type="primary">
+            <Button onClick={updateClient} margin="auto" type="primary">
               Si, ejecutar
             </Button>
             <Button
@@ -281,6 +361,10 @@ export default ({ setPageTitle }) => {
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <DatePicker
+            value={from}
+            onChange={(value) => setFrom(value)}
+            format={clientDateFormat}
+            disabledDate={(value) => value >= to}
             label={
               <>
                 <Icon icon={faCalendarAlt} />
@@ -289,6 +373,10 @@ export default ({ setPageTitle }) => {
             }
           />
           <DatePicker
+            value={to}
+            onChange={(value) => setTo(value)}
+            format={clientDateFormat}
+            disabledDate={(value) => value <= from}
             label={
               <>
                 <Icon icon={faCalendarAlt} />
@@ -296,11 +384,29 @@ export default ({ setPageTitle }) => {
               </>
             }
           />
-          <Select label="Estado" options={statusOptions} />
-          <Input placeholder="Nombre/Razón Soc." addonBefore="Cliente" />
-          <Input placeholder="Apellidos" />
-          <Input placeholder="DNI/RUC" />
-          <Button type="primary" gridColumnStart="4">
+          <Select
+            value={active}
+            onChange={(value) => setActive(value)}
+            label="Estado"
+            options={statusOptions}
+          />
+          <Input
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Nombre/Razón Soc."
+            addonBefore="Cliente"
+          />
+          <Input
+            value={clientLastName}
+            onChange={(e) => setClientLastName(e.target.value)}
+            placeholder="Apellidos"
+          />
+          <Input
+            value={idNumber}
+            onChange={(e) => setIdNumber(e.target.value)}
+            placeholder="DNI/RUC"
+          />
+          <Button onClick={searchWithState} type="primary" gridColumnStart="4">
             Buscar
           </Button>
         </Grid>
