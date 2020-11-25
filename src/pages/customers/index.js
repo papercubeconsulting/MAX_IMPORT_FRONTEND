@@ -41,7 +41,7 @@ export default ({ setPageTitle }) => {
             onClick={() => {
               setId(id);
               setName(record.name);
-              setLastname(record.lastname);
+              setLastname(record.lastname || "-");
               setEmail(record.email);
               setPhoneNumber(record.phoneNumber);
               setAddress(record.address);
@@ -152,7 +152,6 @@ export default ({ setPageTitle }) => {
   const [textModal, setTextModal] = useState("");
   const [id, setId] = useState("");
   const [active, setActive] = useState("");
-  const [client, setClient] = useState("");
 
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
@@ -269,23 +268,6 @@ export default ({ setPageTitle }) => {
       });
     }
   };
-
-  /* const prueba = () => {
-    console.log({
-      name,
-      lastName,
-      email,
-      phoneNumber,
-      address,
-      type,
-      active,
-      idNumber,
-      defaultDeliveryAgencyId,
-      regionId,
-      provinceId,
-      districtId,
-    });
-  }; */
 
   useEffect(() => {
     const fetchRegions = async () => {
@@ -438,7 +420,7 @@ export default ({ setPageTitle }) => {
               addonBefore="Nombre/Razón Soc."
             />
             <Input
-              value={lastname || "-"}
+              value={lastname}
               onChange={(e) => setLastname(e.target.value)}
               addonBefore="Apellidos"
             />
