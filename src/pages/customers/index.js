@@ -337,6 +337,8 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  console.log(idNumber, "idNumber");
+
   return (
     <>
       <Modal
@@ -405,6 +407,7 @@ export default ({ setPageTitle }) => {
             />
             <Input
               onChange={(e) => setIdNumber(e.target.value)}
+              maxLength={type === "PERSON" ? 8 : 11}
               value={idNumber}
               addonBefore="DNI/RUC"
             />
