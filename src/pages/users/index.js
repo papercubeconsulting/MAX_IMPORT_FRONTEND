@@ -5,11 +5,7 @@ import { Button, Container, Grid, Icon, Select } from "../../components";
 import { getUsers, userProvider } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
-import {
-  faEye,
-  faToggleOn,
-  faToggleOff,
-} from "@fortawesome/free-solid-svg-icons";
+import { faEye, faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Administración de Usuarios");
@@ -37,7 +33,7 @@ export default ({ setPageTitle }) => {
             onClick={() => setIsVisibleModalDelete(true)}
             marginRight="0px"
             fontSize="1.3rem"
-            icon={faToggleOff}
+            icon={faUserSlash}
             style={{ cursor: "pointer", color: "#1890FF" }}
           />
         </Space>
@@ -116,7 +112,7 @@ export default ({ setPageTitle }) => {
     const initialize = async () => {
       try {
         const _users = await getUsers();
-        setUsers(_users);
+        setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
