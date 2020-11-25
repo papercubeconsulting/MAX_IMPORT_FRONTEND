@@ -13,11 +13,11 @@ import {
   getUsers,
   userProvider,
   getClients,
-  getClientById,
   putClient,
   getRegions,
   getProvinces,
   getDistricts,
+  getDeliveryAgencies,
 } from "../../providers";
 import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
@@ -40,6 +40,20 @@ export default ({ setPageTitle }) => {
             type="primary"
             onClick={() => {
               setId(id);
+              console.log(record);
+              setName(record.name);
+              setLastName(record.lastname);
+              setEmail(record.email);
+              setPhoneNumber(record.phoneNumber);
+              setAddresss(record.address);
+              setCreatedAt(record.createdAt);
+              setType(record.type);
+              setIdNumber(record.idNumber);
+              setActive(record.active);
+              setDefaultDeliveryAgencyId(record.defaultDeliveryAgencyId);
+              setRegionId(record.regionId);
+              setProvinceId(record.provinceId);
+              setDistrictId(record.districtId);
               setIsVisibleModalEdit(true);
             }}
           >
@@ -48,7 +62,7 @@ export default ({ setPageTitle }) => {
           <Icon
             onClick={() => {
               setId(id);
-              setStatus(record.active);
+              setActive(record.active);
               setTextModal(record.active ? "Inactivo" : "Activo");
               setIsVisibleModalDelete(true);
             }}
@@ -122,12 +136,12 @@ export default ({ setPageTitle }) => {
   const [from, setFrom] = useState();
   const [to, setTo] = useState();
   //para el filtro por nro doc
-  const [idNumber, setIdNumber] = useState(null);
+  const [documentNumber, setDocumentNumber] = useState(null);
   //para el filtro con datos de cliente
   const [clientName, setClientName] = useState(null);
   const [clientLastName, setClientLastName] = useState(null);
   //para el filtro por status del clientes
-  const [active, setActive] = useState(null);
+  const [status, setStatus] = useState(null);
 
   //Datos del usuario
   const [users, setUsers] = useState([]);
@@ -138,12 +152,24 @@ export default ({ setPageTitle }) => {
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
   const [textModal, setTextModal] = useState("");
   const [id, setId] = useState("");
-  const [status, setStatus] = useState("");
+  const [active, setActive] = useState("");
   const [client, setClient] = useState("");
 
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [deliveryAgencies, setDeliveryAgencies] = useState([]);
+
+  const [name, setName] = useState(null);
+  const [lastname, setLastName] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(null);
+  const [address, setAddresss] = useState(null);
+  const [createdAt, setCreatedAt] = useState(null);
+  const [type, setType] = useState(null);
+  const [idNumber, setIdNumber] = useState(null);
+  const [defaultDeliveryAgencyId, setDefaultDeliveryAgencyId] = useState(null);
+
   const [regionId, setRegionId] = useState(null);
   const [provinceId, setProvinceId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
@@ -201,8 +227,8 @@ export default ({ setPageTitle }) => {
     from && (params.from = from.format(serverDateFormat));
     to && (params.to = to.format(serverDateFormat));
     page && (params.page = page);
-    idNumber && (params.idNumber = idNumber);
-    active && (params.active = active);
+    documentNumber && (params.idNumber = documentNumber);
+    status && (params.active = status);
     clientName && (params.name = clientName);
     clientLastName && (params.lastname = clientLastName);
     await router.push(`/customers${urlQueryParams(params)}`);
@@ -214,8 +240,8 @@ export default ({ setPageTitle }) => {
 
   const urlToState = () => {
     setPage(Number.parseInt(queryParams.page) || null);
-    setIdNumber(queryParams.idNumber || null);
-    setActive(queryParams.active || null);
+    setDocumentNumber(queryParams.idNumber || null);
+    setStatus(queryParams.active || null);
     setClientName(queryParams.name || null);
     setClientLastName(queryParams.lastname || null);
   };
@@ -229,7 +255,7 @@ export default ({ setPageTitle }) => {
   // actualiza cliente
   const updateClient = async () => {
     try {
-      const response = await putClient(id, { active: !status });
+      const response = await putClient(id, { active: !active });
       console.log(response);
       setIsVisibleModalDelete(false);
       setToggleUpdateTable((prev) => !prev);
@@ -245,23 +271,9 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  // obtiene cliente por id
-  useEffect(() => {
-    const fetchClientById = async () => {
-      try {
-        const _client = await getClientById(id);
-        setClient(_client);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchClientById();
-  }, [id]);
-
   useEffect(() => {
     const fetchRegions = async () => {
       const _regions = await getRegions();
-
       setRegions(_regions);
     };
     fetchRegions();
@@ -270,7 +282,6 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchProvinces = async () => {
       const _provinces = await getProvinces(regionId);
-
       setProvinces(_provinces);
     };
     regionId && fetchProvinces();
@@ -279,11 +290,19 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchDistricts = async () => {
       const _districts = await getDistricts(regionId, provinceId);
-
       setDistricts(_districts);
     };
     regionId && provinceId && fetchDistricts();
   }, [regionId, provinceId]);
+
+  useEffect(() => {
+    const fetchDeliveryAgencies = async () => {
+      const _deliveryAgencies = await getDeliveryAgencies();
+      console.log(_deliveryAgencies);
+      setDeliveryAgencies(_deliveryAgencies);
+    };
+    fetchDeliveryAgencies();
+  }, []);
 
   const statusOptions = [
     {
@@ -365,35 +384,42 @@ export default ({ setPageTitle }) => {
             gridGap="1rem"
           >
             <Input
-              value={`${moment(client.createdAt).format(clientDateFormat)}`}
+              value={`${moment(createdAt).format(clientDateFormat)}`}
               addonBefore="Fecha Reg."
               disabled
             />
-            <Select value={client.type} label="Tipo" options={typesOptions} />
+            <Select value={type} label="Tipo" options={typesOptions} />
             <Select
-              value={client.active ? "true" : "false"}
+              value={active ? "true" : "false"}
               label="Estado"
               options={statusModalOptions}
             />
-            <Input value={client.idNumber} addonBefore="DNI/RUC" />
+            <Input value={idNumber} addonBefore="DNI/RUC" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input value={client.name} addonBefore="Nombre/Razón Soc." />
-            <Input value={client.lastname || "-"} addonBefore="Apellidos" />
-            <Input value={client.email} addonBefore="Correo" />
-            <Input value={client.phoneNumber} addonBefore="Tel. Contacto" />
+            <Input value={name} addonBefore="Nombre/Razón Soc." />
+            <Input value={lastname || "-"} addonBefore="Apellidos" />
+            <Input value={email} addonBefore="Correo" />
+            <Input value={phoneNumber} addonBefore="Tel. Contacto" />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="2fr 1fr"
             gridGap="1rem"
           >
-            <Input value={client.address} addonBefore="Dirección" />
-            <Select label="Agencia Su." />
+            <Input value={address} addonBefore="Dirección" />
+            <Select
+              value={defaultDeliveryAgencyId}
+              label="Agencia Su."
+              options={deliveryAgencies.map((agency) => ({
+                value: agency.id,
+                label: agency.name,
+              }))}
+            />
           </Grid>
           <Grid
             marginBottom="1rem"
@@ -401,24 +427,36 @@ export default ({ setPageTitle }) => {
             gridGap="1rem"
           >
             <Select
-              value={client.regionId}
+              value={regionId}
               label="Departamento"
+              filterOption={(input, option) =>
+                option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onChange={(value) => setRegionId(value)}
               options={regions.map((region) => ({
                 value: region.id,
                 label: region.name,
               }))}
             />
             <Select
-              value={client.provinceId}
+              value={provinceId}
               label="Provincia"
+              filterOption={(input, option) =>
+                option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onChange={(value) => setProvinceId(value)}
               options={provinces.map((province) => ({
                 value: province.id,
                 label: province.name,
               }))}
             />
             <Select
-              value={client.districtId}
+              value={districtId}
               label="Distrito"
+              filterOption={(input, option) =>
+                option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onChange={(value) => setDistrictId(value)}
               options={districts.map((district) => ({
                 value: district.id,
                 label: district.name,
@@ -469,8 +507,8 @@ export default ({ setPageTitle }) => {
             }
           />
           <Select
-            value={active}
-            onChange={(value) => setActive(value)}
+            value={status}
+            onChange={(value) => setStatus(value)}
             label="Estado"
             options={statusOptions}
           />
@@ -486,8 +524,8 @@ export default ({ setPageTitle }) => {
             placeholder="Apellidos"
           />
           <Input
-            value={idNumber}
-            onChange={(e) => setIdNumber(e.target.value)}
+            value={documentNumber}
+            onChange={(e) => setDocumentNumber(e.target.value)}
             placeholder="DNI/RUC"
           />
           <Button onClick={searchWithState} type="primary" gridColumnStart="4">
