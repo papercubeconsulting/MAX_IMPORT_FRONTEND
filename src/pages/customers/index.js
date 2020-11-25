@@ -336,8 +336,15 @@ export default ({ setPageTitle }) => {
       label: "Empresa",
     },
   ];
-
-  console.log(idNumber, "idNumber");
+  /* console.log(idNumber, "idNumber"); */
+  // valida input de numeros
+  const onChange = (e) => {
+    const { value } = e.target;
+    const reg = /^-?\d*(\.\d*)?$/;
+    if ((!isNaN(value) && reg.test(value)) || value === "" || value === "-") {
+      setIdNumber(e.target.value);
+    }
+  };
 
   return (
     <>
@@ -406,8 +413,9 @@ export default ({ setPageTitle }) => {
               options={statusModalOptions}
             />
             <Input
-              onChange={(e) => setIdNumber(e.target.value)}
+              /* onChange={(e) => setIdNumber(e.target.value)} */
               maxLength={type === "PERSON" ? 8 : 11}
+              onChange={onChange}
               value={idNumber}
               addonBefore="DNI/RUC"
             />
