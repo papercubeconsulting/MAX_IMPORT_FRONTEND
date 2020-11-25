@@ -520,7 +520,7 @@ export default ({ setPageTitle }) => {
           <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
             <Button
               onClick={() => {
-                updateClient({
+                let body = {
                   name,
                   lastname,
                   email,
@@ -529,11 +529,14 @@ export default ({ setPageTitle }) => {
                   type,
                   active,
                   idNumber,
-                  defaultDeliveryAgencyId,
                   regionId,
                   provinceId,
                   districtId,
-                });
+                };
+                if (defaultDeliveryAgencyId) {
+                  body = { ...body, defaultDeliveryAgencyId };
+                }
+                updateClient(body);
               }}
               type="primary"
               gridColumnStart="2"
