@@ -41,7 +41,7 @@ export default ({ setPageTitle }) => {
             onClick={() => {
               setId(id);
               setName(record.name);
-              setLastName(record.lastname);
+              setLastname(record.lastname);
               setEmail(record.email);
               setPhoneNumber(record.phoneNumber);
               setAddress(record.address);
@@ -160,7 +160,7 @@ export default ({ setPageTitle }) => {
   const [deliveryAgencies, setDeliveryAgencies] = useState([]);
 
   const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
+  const [lastname, setLastname] = useState(null);
   const [email, setEmail] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [address, setAddress] = useState(null);
@@ -253,9 +253,10 @@ export default ({ setPageTitle }) => {
   // actualiza cliente
   const updateClient = async (body) => {
     try {
-      const response = await putClient(id, { active: !active });
+      const response = await putClient(id, body);
       console.log(response);
       setIsVisibleModalDelete(false);
+      setIsVisibleModalEdit(false);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
         message: "Cliente actualizado exitosamente ",
@@ -269,7 +270,7 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  const prueba = () => {
+  /* const prueba = () => {
     console.log({
       name,
       lastName,
@@ -284,7 +285,7 @@ export default ({ setPageTitle }) => {
       provinceId,
       districtId,
     });
-  };
+  }; */
 
   useEffect(() => {
     const fetchRegions = async () => {
@@ -371,7 +372,13 @@ export default ({ setPageTitle }) => {
             ¿Está seguro que desea pasar a {textModal} al cliente?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-            <Button onClick={updateClient} margin="auto" type="primary">
+            <Button
+              onClick={() => {
+                updateClient({ active: !active });
+              }}
+              margin="auto"
+              type="primary"
+            >
               Si, ejecutar
             </Button>
             <Button
@@ -431,8 +438,8 @@ export default ({ setPageTitle }) => {
               addonBefore="Nombre/Razón Soc."
             />
             <Input
-              value={lastName || "-"}
-              onChange={(e) => setLastName(e.target.value)}
+              value={lastname || "-"}
+              onChange={(e) => setLastname(e.target.value)}
               addonBefore="Apellidos"
             />
             <Input
@@ -511,7 +518,26 @@ export default ({ setPageTitle }) => {
         </Container>
         <Container>
           <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-            <Button type="primary" gridColumnStart="2" onClick={prueba}>
+            <Button
+              onClick={() => {
+                updateClient({
+                  name,
+                  lastname,
+                  email,
+                  phoneNumber,
+                  address,
+                  type,
+                  active,
+                  idNumber,
+                  defaultDeliveryAgencyId,
+                  regionId,
+                  provinceId,
+                  districtId,
+                });
+              }}
+              type="primary"
+              gridColumnStart="2"
+            >
               Confirmar
             </Button>
             <Button
