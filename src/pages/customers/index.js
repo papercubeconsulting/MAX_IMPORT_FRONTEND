@@ -40,12 +40,11 @@ export default ({ setPageTitle }) => {
             type="primary"
             onClick={() => {
               setId(id);
-              console.log(record);
               setName(record.name);
               setLastName(record.lastname);
               setEmail(record.email);
               setPhoneNumber(record.phoneNumber);
-              setAddresss(record.address);
+              setAddress(record.address);
               setCreatedAt(record.createdAt);
               setType(record.type);
               setIdNumber(record.idNumber);
@@ -161,15 +160,14 @@ export default ({ setPageTitle }) => {
   const [deliveryAgencies, setDeliveryAgencies] = useState([]);
 
   const [name, setName] = useState(null);
-  const [lastname, setLastName] = useState(null);
+  const [lastName, setLastName] = useState(null);
   const [email, setEmail] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
-  const [address, setAddresss] = useState(null);
+  const [address, setAddress] = useState(null);
   const [createdAt, setCreatedAt] = useState(null);
   const [type, setType] = useState(null);
   const [idNumber, setIdNumber] = useState(null);
   const [defaultDeliveryAgencyId, setDefaultDeliveryAgencyId] = useState(null);
-
   const [regionId, setRegionId] = useState(null);
   const [provinceId, setProvinceId] = useState(null);
   const [districtId, setDistrictId] = useState(null);
@@ -253,22 +251,39 @@ export default ({ setPageTitle }) => {
   };
 
   // actualiza cliente
-  const updateClient = async () => {
+  const updateClient = async (body) => {
     try {
       const response = await putClient(id, { active: !active });
       console.log(response);
       setIsVisibleModalDelete(false);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
-        message: "Actualización exitosa ",
+        message: "Cliente actualizado exitosamente ",
       });
     } catch (error) {
       console.log(error);
       notification.error({
-        message: "Error al cambiar estado del cliente",
+        message: "Error al actualizar datos del cliente",
         description: error.userMessage,
       });
     }
+  };
+
+  const prueba = () => {
+    console.log({
+      name,
+      lastName,
+      email,
+      phoneNumber,
+      address,
+      type,
+      active,
+      idNumber,
+      defaultDeliveryAgencyId,
+      regionId,
+      provinceId,
+      districtId,
+    });
   };
 
   useEffect(() => {
@@ -298,7 +313,6 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchDeliveryAgencies = async () => {
       const _deliveryAgencies = await getDeliveryAgencies();
-      console.log(_deliveryAgencies);
       setDeliveryAgencies(_deliveryAgencies);
     };
     fetchDeliveryAgencies();
@@ -320,11 +334,11 @@ export default ({ setPageTitle }) => {
   ];
   const statusModalOptions = [
     {
-      value: "true",
+      value: true,
       label: "Activo",
     },
     {
-      value: "false",
+      value: false,
       label: "Inactivo",
     },
   ];
@@ -388,33 +402,64 @@ export default ({ setPageTitle }) => {
               addonBefore="Fecha Reg."
               disabled
             />
-            <Select value={type} label="Tipo" options={typesOptions} />
             <Select
-              value={active ? "true" : "false"}
+              value={type}
+              onChange={(value) => setType(value)}
+              label="Tipo"
+              options={typesOptions}
+            />
+            <Select
+              value={active}
+              onChange={(value) => setActive(value)}
               label="Estado"
               options={statusModalOptions}
             />
-            <Input value={idNumber} addonBefore="DNI/RUC" />
+            <Input
+              onChange={(e) => setIdNumber(e.target.value)}
+              value={idNumber}
+              addonBefore="DNI/RUC"
+            />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
           >
-            <Input value={name} addonBefore="Nombre/Razón Soc." />
-            <Input value={lastname || "-"} addonBefore="Apellidos" />
-            <Input value={email} addonBefore="Correo" />
-            <Input value={phoneNumber} addonBefore="Tel. Contacto" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              addonBefore="Nombre/Razón Soc."
+            />
+            <Input
+              value={lastName || "-"}
+              onChange={(e) => setLastName(e.target.value)}
+              addonBefore="Apellidos"
+            />
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              addonBefore="Correo"
+            />
+            <Input
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              addonBefore="Tel. Contacto"
+            />
           </Grid>
           <Grid
             marginBottom="1rem"
             gridTemplateColumns="2fr 1fr"
             gridGap="1rem"
           >
-            <Input value={address} addonBefore="Dirección" />
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              addonBefore="Dirección"
+            />
             <Select
               value={defaultDeliveryAgencyId}
               label="Agencia Su."
+              onChange={(value) => setDefaultDeliveryAgencyId(value)}
               options={deliveryAgencies.map((agency) => ({
                 value: agency.id,
                 label: agency.name,
@@ -466,7 +511,7 @@ export default ({ setPageTitle }) => {
         </Container>
         <Container>
           <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-            <Button type="primary" gridColumnStart="2">
+            <Button type="primary" gridColumnStart="2" onClick={prueba}>
               Confirmar
             </Button>
             <Button
