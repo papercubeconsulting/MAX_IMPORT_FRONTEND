@@ -129,6 +129,7 @@ export default ({ setPageTitle }) => {
 
   const [clients, setClients] = useState([]);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(null);
 
   //para el filtro por fecha
@@ -201,6 +202,14 @@ export default ({ setPageTitle }) => {
       try {
         const _clients = await getClients(queryParams);
         setClients(_clients.rows);
+        setPagination({
+          position: ["bottomCenter"],
+          total: _clients.pageSize * _clients.pages,
+          current: _clients.page,
+          pageSize: _clients.pageSize,
+          showSizeChanger: false,
+          showQuickJumper: true,
+        });
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -606,7 +615,10 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           dataSource={clients}
-          pagination={false}
+          pagination={pagination}
+          onChange={(pagination) =>
+            updateState(setPage, pagination.current, true)
+          }
         />
       </Container>
       <Container height="15%">
