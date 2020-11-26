@@ -33,7 +33,7 @@ export default ({ setPageTitle }) => {
             onClick={() => setIsVisibleModalDelete(true)}
             marginRight="0px"
             fontSize="1.3rem"
-            icon={faUserSlash}
+            icon={record.active ? faUser : faUserSlash}
             style={{ cursor: "pointer", color: "#1890FF" }}
           />
         </Space>

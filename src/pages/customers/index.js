@@ -67,7 +67,7 @@ export default ({ setPageTitle }) => {
             }}
             marginRight="0px"
             fontSize="1.3rem"
-            icon={record.active ? faUserSlash : faUser}
+            icon={record.active ? faUser : faUserSlash}
             style={{ cursor: "pointer", color: "#1890FF" }}
           />
         </Space>
