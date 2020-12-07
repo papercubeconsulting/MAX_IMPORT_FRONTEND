@@ -6,6 +6,7 @@ import {Button} from "../../Button";
 import {useRouter} from "next/router";
 import {postSupplyAttend} from "../../../providers";
 import Barcode from "react-barcode";
+import Link from "next/link";
 
 export const Attend = props => {
     const [boxesText, setBoxesText] = useState("");
@@ -41,13 +42,54 @@ export const Attend = props => {
         return true;
     }, [boxesText])
 
+    const [pruebaUrl, setPruebaUrl] = useState('')
+
     const onSubmit = async () => {
         try {
-            setLoadingAttend(true);
+            /* setLoadingAttend(true); */
             const response = await postSupplyAttend(props.supplyId, props.product.dbId, {boxes});
             const suppliedProduct = get(response, "suppliedProducts", []).find(obj=>obj.id === props.product.dbId);
             const {familyName, subfamilyName, elementName, modelName} = suppliedProduct.product;
-            await router.push({
+
+            const query = {
+                familyName,
+                subfamilyName,
+                elementName,
+                modelName,
+                /* boxes, */
+                boxSize: suppliedProduct.boxSize,
+                /* productBoxesCodes: boxes.map(box=> get(suppliedProduct, "productBoxes", [])
+                    .find( obj=>obj.indexFromSupliedProduct===box ) )
+                    .map(productBox => productBox.trackingCode) */
+            }
+
+            const pruebabox1 = boxes.map((elem) => `boxes=${elem}`);
+
+            const pruebabox2 = pruebabox1.join("&");
+
+            const productBoxesCodes = boxes.map(box=> get(suppliedProduct, "productBoxes", [])
+                    .find( obj=>obj.indexFromSupliedProduct===box ) )
+                    .map(productBox => productBox.trackingCode)
+
+            const prueba1 = productBoxesCodes.map((elem) => `productBoxesCodes=${elem}`);
+        
+            const prueba2 = prueba1.join("&");
+
+            /* console.log(prueba2);
+
+            console.log(query) */
+
+            const queries = Object.keys(query)
+                .map(
+                (key) => encodeURIComponent(key) + "=" + encodeURIComponent(query[key])
+                )
+                .join("&");
+
+            setPruebaUrl(`/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`)
+
+            console.log( `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`)
+
+            /* await router.push({
                 pathname: `/supplies/${props.supplyId}/tickets`,
                 query: {
                     familyName,
@@ -61,7 +103,7 @@ export const Attend = props => {
                         .map(productBox => productBox.trackingCode)
                 }
             });
-            props.trigger && props.trigger(false);
+            props.trigger && props.trigger(false); */
         } catch (error) {
             alert(error.message);
             Modal.error({
@@ -107,6 +149,12 @@ export const Attend = props => {
                     onClick={onSubmit}
                     width="100%">
                 Generar Tickets
+            </Button>
+            <Button disabled={!pruebaUrl} 
+            onClick={() => props.trigger && props.trigger(false)}>
+                <Link href={pruebaUrl}>
+                <a target="_blank">Descargar Tickets</a>
+                </Link>
             </Button>
         </Modal>
     </>
