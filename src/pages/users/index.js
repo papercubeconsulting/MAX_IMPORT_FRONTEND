@@ -126,6 +126,44 @@ export default ({ setPageTitle }) => {
     initialize();
   }, []);
 
+  const statusOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "true",
+      label: "Activo",
+    },
+    {
+      value: "false",
+      label: "Inactivo",
+    },
+  ];
+
+  const profilesOptions = [
+    {
+      value: null,
+      label: "Todos",
+    },
+    {
+      value: "manager",
+      label: "Administrador",
+    },
+    {
+      value: "logistic",
+      label: "Logístico",
+    },
+    {
+      value: "superuser",
+      label: "Super usuario",
+    },
+    {
+      value: "seller",
+      label: "Vendedor",
+    },
+  ];
+
   return (
     <>
       <Modal
@@ -225,8 +263,14 @@ export default ({ setPageTitle }) => {
         email que ingresó en la casilla correo: {email}
       </Modal>
       <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(6, 1fr)" gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
+          <Input placeholder="Nombres" addonBefore="Usuario" />
+          <Input placeholder="Apellidos" />
+          <Input placeholder="DNI" />
+          <Select label="Estado" options={statusOptions} />
+          <Select label="Perfil" options={profilesOptions} />
+          <Button type="primary">Buscar</Button>
           <Button
             type="primary"
             onClick={() => {
@@ -236,10 +280,6 @@ export default ({ setPageTitle }) => {
           >
             Nuevo Usuario
           </Button>
-          <Input placeholder="Nombres" addonBefore="Usuario" />
-          <Input placeholder="Apellidos" />
-          <Input placeholder="DNI" />
-          <Button type="primary">Buscar</Button>
         </Grid>
       </Container>
       <Container height="fit-content">
