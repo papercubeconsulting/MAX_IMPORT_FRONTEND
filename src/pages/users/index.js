@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../../components";
 import { getUsers, userProvider } from "../../providers";
-import { clientDateFormat } from "../../util";
+import { urlQueryParams, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faEye, faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -90,7 +90,20 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
+  //extraccion de params de url
+  const stateUpdateOrigin = useRef("url");
   const router = useRouter();
+  const queryParams = router.query;
+
+  //para el filtro por nro doc
+  const [documentNumber, setDocumentNumber] = useState(null);
+  //para el filtro con datos del usuario
+  const [userName, setUserName] = useState(null);
+  const [userLastName, setUserLastName] = useState(null);
+  //para el filtro por status del usuario
+  const [status, setStatus] = useState(null);
+  //para el filtro por perfil del usuario
+  const [profile, setProfile] = useState(null);
 
   //Datos de los usuarios
   const [users, setUsers] = useState([]);
@@ -111,7 +124,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const _users = await getUsers();
+        const _users = await getUsers(queryParams);
         setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
@@ -122,9 +135,29 @@ export default ({ setPageTitle }) => {
         });
       }
     };
-
     initialize();
-  }, []);
+    if (stateUpdateOrigin.current === "url") {
+      urlToState();
+    }
+  }, [queryParams]);
+
+  const stateToUrl = async () => {
+    const params = {};
+    documentNumber && (params.idNumber = documentNumber);
+    userName && (params.name = userName);
+    userLastName && (params.lastname = userLastName);
+    await router.push(`/users${urlQueryParams(params)}`);
+  };
+
+  const searchWithState = () => {
+    stateToUrl();
+  };
+
+  const urlToState = () => {
+    setDocumentNumber(queryParams.idNumber || null);
+    setUserName(queryParams.name || null);
+    setUserLastName(queryParams.lastname || null);
+  };
 
   const statusOptions = [
     {
@@ -265,12 +298,27 @@ export default ({ setPageTitle }) => {
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
-          <Input placeholder="Nombres" addonBefore="Usuario" />
-          <Input placeholder="Apellidos" />
-          <Input placeholder="DNI" />
+          <Input
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="Nombres"
+            addonBefore="Usuario"
+          />
+          <Input
+            value={userLastName}
+            onChange={(e) => setUserLastName(e.target.value)}
+            placeholder="Apellidos"
+          />
+          <Input
+            value={documentNumber}
+            onChange={(e) => setDocumentNumber(e.target.value)}
+            placeholder="DNI"
+          />
           <Select label="Estado" options={statusOptions} />
           <Select label="Perfil" options={profilesOptions} />
-          <Button type="primary">Buscar</Button>
+          <Button onClick={searchWithState} type="primary">
+            Buscar
+          </Button>
           <Button
             type="primary"
             onClick={() => {
