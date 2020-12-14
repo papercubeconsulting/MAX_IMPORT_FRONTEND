@@ -146,6 +146,8 @@ export default ({ setPageTitle }) => {
     documentNumber && (params.idNumber = documentNumber);
     userName && (params.name = userName);
     userLastName && (params.lastname = userLastName);
+    status && (params.active = status);
+    profile && (params.role = profile);
     await router.push(`/users${urlQueryParams(params)}`);
   };
 
@@ -157,6 +159,8 @@ export default ({ setPageTitle }) => {
     setDocumentNumber(queryParams.idNumber || null);
     setUserName(queryParams.name || null);
     setUserLastName(queryParams.lastname || null);
+    setStatus(queryParams.active || null);
+    setProfile(queryParams.role || null);
   };
 
   const statusOptions = [
@@ -314,8 +318,18 @@ export default ({ setPageTitle }) => {
             onChange={(e) => setDocumentNumber(e.target.value)}
             placeholder="DNI"
           />
-          <Select label="Estado" options={statusOptions} />
-          <Select label="Perfil" options={profilesOptions} />
+          <Select
+            value={status}
+            onChange={(value) => setStatus(value)}
+            label="Estado"
+            options={statusOptions}
+          />
+          <Select
+            value={profile}
+            onChange={(value) => setProfile(value)}
+            label="Perfil"
+            options={profilesOptions}
+          />
           <Button onClick={searchWithState} type="primary">
             Buscar
           </Button>
