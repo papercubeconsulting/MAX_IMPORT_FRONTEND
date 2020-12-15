@@ -115,6 +115,9 @@ export default ({ setPageTitle }) => {
   //Datos de los usuarios
   const [users, setUsers] = useState([]);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(null);
+
   const [me, setMe] = useState({ name: null });
   const [id, setId] = useState("");
   const [edit, setEdit] = useState(false);
@@ -132,6 +135,14 @@ export default ({ setPageTitle }) => {
       try {
         const _users = await getUsers(queryParams);
         setUsers(_users.rows);
+        setPagination({
+          position: ["bottomCenter"],
+          total: _users.pageSize * _users.pages,
+          current: _users.page,
+          pageSize: _users.pageSize,
+          showSizeChanger: false,
+          showQuickJumper: true,
+        });
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
@@ -147,8 +158,13 @@ export default ({ setPageTitle }) => {
     }
   }, [queryParams, toggleUpdateTable]);
 
+  useEffect(() => {
+    if (stateUpdateOrigin.current === "manual") stateToUrl();
+  }, [page]);
+
   const stateToUrl = async () => {
     const params = {};
+    page && (params.page = page);
     documentNumber && (params.idNumber = documentNumber);
     userName && (params.name = userName);
     userLastName && (params.lastname = userLastName);
@@ -162,11 +178,18 @@ export default ({ setPageTitle }) => {
   };
 
   const urlToState = () => {
+    setPage(Number.parseInt(queryParams.page) || null);
     setDocumentNumber(queryParams.idNumber || null);
     setUserName(queryParams.name || null);
     setUserLastName(queryParams.lastname || null);
     setStatus(queryParams.active || null);
     setProfile(queryParams.role || null);
+  };
+
+  const updateState = (setState, value, isPagination) => {
+    stateUpdateOrigin.current = "manual";
+    setState(value);
+    !isPagination && setPage(undefined);
   };
 
   const statusOptions = [
@@ -330,7 +353,10 @@ export default ({ setPageTitle }) => {
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
           dataSource={users}
-          pagination={false}
+          pagination={pagination}
+          onChange={(pagination) =>
+            updateState(setPage, pagination.current, true)
+          }
         />
       </Container>
       <Container height="15%">
