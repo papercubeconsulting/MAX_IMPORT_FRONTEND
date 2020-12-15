@@ -30,7 +30,12 @@ export default ({ setPageTitle }) => {
             <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
           </Button>
           <Icon
-            onClick={() => setIsVisibleModalDelete(true)}
+            onClick={() => {
+              setId(id);
+              setActive(record.active);
+              setTextModal(record.active ? "Inactivo" : "Activo");
+              setIsVisibleModalDelete(true);
+            }}
             marginRight="0px"
             fontSize="1.3rem"
             icon={record.active ? faUser : faUserSlash}
@@ -113,6 +118,8 @@ export default ({ setPageTitle }) => {
 
   // Modales
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
+  const [active, setActive] = useState("");
+  const [textModal, setTextModal] = useState("");
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
   const [email, setEmail] = useState(null);
   const [
@@ -215,7 +222,7 @@ export default ({ setPageTitle }) => {
           alignItems="center"
         >
           <p style={{ fontWeight: "bold" }}>
-            ¿Está seguro que desea pasar a Inactivo al usuario?
+            ¿Está seguro que desea pasar a {textModal} al cliente?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
             <Button margin="auto" type="primary">
