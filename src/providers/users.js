@@ -8,4 +8,7 @@ import { baseProvider } from "./baseProvider";
 
 const getUsers = async (params) => baseProvider.httpGet("users", params);
 
-export { getUsers };
+const putUser = async (id, body) =>
+  baseProvider.httpPut(`users/${id}`, body);
+
+export { getUsers, putUser };

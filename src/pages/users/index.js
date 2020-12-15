@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../../components";
-import { getUsers, userProvider } from "../../providers";
+import { getUsers, userProvider, putUser } from "../../providers";
 import { urlQueryParams, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faEye, faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
@@ -112,6 +112,7 @@ export default ({ setPageTitle }) => {
 
   //Datos de los usuarios
   const [users, setUsers] = useState([]);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [me, setMe] = useState({ name: null });
   const [id, setId] = useState("");
   const [edit, setEdit] = useState(false);
@@ -146,7 +147,7 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "url") {
       urlToState();
     }
-  }, [queryParams]);
+  }, [queryParams, toggleUpdateTable]);
 
   const stateToUrl = async () => {
     const params = {};
@@ -208,6 +209,24 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  // actualiza usuario
+  const updateUser = async (body) => {
+    try {
+      const response = await putUser(id, body);
+      console.log(response);
+      setIsVisibleModalDelete(false);
+      setToggleUpdateTable((prev) => !prev);
+      notification.success({
+        message: "Usuario actualizado exitosamente ",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error al actualizar datos del usuario",
+        description: error.userMessage,
+      });
+    }
+  };
+
   return (
     <>
       <Modal
@@ -225,7 +244,13 @@ export default ({ setPageTitle }) => {
             ¿Está seguro que desea pasar a {textModal} al cliente?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-            <Button margin="auto" type="primary">
+            <Button
+              onClick={() => {
+                updateUser({ active: !active });
+              }}
+              margin="auto"
+              type="primary"
+            >
               Si, ejecutar
             </Button>
             <Button
