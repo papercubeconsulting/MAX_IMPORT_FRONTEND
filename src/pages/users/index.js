@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../../components";
+import { CreateOrEditUser } from "../../components/users";
 import { getUsers, userProvider, putUser } from "../../providers";
 import { urlQueryParams, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
@@ -24,6 +25,7 @@ export default ({ setPageTitle }) => {
             onClick={() => {
               setId(id);
               setEdit(true);
+              setDataUser(record);
               setIsVisibleModalEdit(true);
             }}
           >
@@ -118,6 +120,7 @@ export default ({ setPageTitle }) => {
   const [edit, setEdit] = useState(false);
 
   // Modales
+  const [dataUser, setDataUser] = useState();
   const [isVisibleModalEdit, setIsVisibleModalEdit] = useState(false);
   const [active, setActive] = useState("");
   const [textModal, setTextModal] = useState("");
@@ -270,56 +273,12 @@ export default ({ setPageTitle }) => {
         onCancel={() => setIsVisibleModalEdit(false)}
         footer={null}
       >
-        <Container flexDirection="column" height="fit-content">
-          <Grid
-            marginBottom="1rem"
-            gridTemplateColumns="repeat(3, 1fr)"
-            gridGap="1rem"
-          >
-            <Input addonBefore="Fecha Reg." />
-            <Select label="Estado" />
-            <Input addonBefore="DNI" />
-          </Grid>
-          <Grid
-            marginBottom="1rem"
-            gridTemplateColumns="repeat(2, 1fr)"
-            gridGap="1rem"
-          >
-            <Input addonBefore="Nombres" />
-            <Input addonBefore="Apellidos" />
-            <Input addonBefore="Correo" />
-            <Input addonBefore="Tel. Contacto" />
-          </Grid>
-          <Grid
-            marginBottom="1rem"
-            gridTemplateColumns="repeat(2, 1fr)"
-            gridGap="1rem"
-          >
-            <Select label="Perfil" />
-            {edit && (
-              <Button
-                type="primary"
-                onClick={() => setIsModalResetPasswordVisible(true)}
-              >
-                Reset Password
-              </Button>
-            )}
-          </Grid>
-        </Container>
-        <Container>
-          <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="4rem">
-            <Button type="primary" gridColumnStart="2">
-              Confirmar
-            </Button>
-            <Button
-              type="primary"
-              gridColumnStart="3"
-              onClick={() => setIsVisibleModalEdit(false)}
-            >
-              Cancelar
-            </Button>
-          </Grid>
-        </Container>
+        <CreateOrEditUser
+          edit={edit}
+          dataUser={dataUser}
+          setIsVisibleModalEdit={setIsVisibleModalEdit}
+          setIsModalResetPasswordVisible={setIsModalResetPasswordVisible}
+        />
       </Modal>
       <Modal
         visible={isModalResetPasswordVisible}
