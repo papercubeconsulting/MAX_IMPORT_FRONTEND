@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
+import { postUser } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Button, Container, Grid, Select } from "../../components";
 import { Input, notification } from "antd";
@@ -11,6 +12,7 @@ export const CreateOrEditUser = ({
   setIsVisibleModalEdit,
   setIsModalResetPasswordVisible,
   updateUser,
+  setToggleUpdateTable,
 }) => {
   /* console.log(dataUser); */
 
@@ -22,6 +24,7 @@ export const CreateOrEditUser = ({
   const [phoneNumber, setPhoneNumber] = useState();
   const [role, setRole] = useState();
   const [active, setActive] = useState();
+  const [password, setPassword] = useState();
 
   useEffect(() => {
     setIdNumber(dataUser.idNumber);
@@ -43,6 +46,33 @@ export const CreateOrEditUser = ({
       label: "Inactivo",
     },
   ];
+
+  // crear usuario
+  const createUser = async () => {
+    try {
+      const response = await postUser({
+        idNumber,
+        email,
+        name,
+        lastname,
+        phoneNumber,
+        role,
+        password,
+      });
+      console.log(response);
+      setIsVisibleModalEdit(false);
+      setToggleUpdateTable((prev) => !prev);
+      notification.success({
+        message: "Usuario creado exitosamente ",
+      });
+    } catch (error) {
+      console.log(error);
+      notification.error({
+        message: "Error al crear usuario",
+        description: error.userMessage,
+      });
+    }
+  };
 
   return (
     <>
@@ -108,13 +138,20 @@ export const CreateOrEditUser = ({
             )}
             label="Perfil"
           />
-          {edit && (
+          {edit ? (
             <Button
               type="primary"
               onClick={() => setIsModalResetPasswordVisible(true)}
             >
               Reset Password
             </Button>
+          ) : (
+            <Input
+              value={password}
+              type='password'
+              onChange={(e) => setPassword(e.target.value)}
+              addonBefore="Contraseña"
+            />
           )}
         </Grid>
       </Container>
@@ -134,6 +171,7 @@ export const CreateOrEditUser = ({
                 });
               } else {
                 console.log("agregar nuevo user");
+                createUser();
               }
             }}
             type="primary"

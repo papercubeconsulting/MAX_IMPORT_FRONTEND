@@ -281,6 +281,7 @@ export default ({ setPageTitle }) => {
           setIsVisibleModalEdit={setIsVisibleModalEdit}
           setIsModalResetPasswordVisible={setIsModalResetPasswordVisible}
           updateUser={updateUser}
+          setToggleUpdateTable={setToggleUpdateTable}
         />
       </Modal>
       <Modal
