@@ -218,6 +218,7 @@ export default ({ setPageTitle }) => {
       const response = await putUser(id, body);
       console.log(response);
       setIsVisibleModalDelete(false);
+      setIsVisibleModalEdit(false);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
         message: "Usuario actualizado exitosamente ",
@@ -279,6 +280,7 @@ export default ({ setPageTitle }) => {
           profilesOptions={profilesOptions}
           setIsVisibleModalEdit={setIsVisibleModalEdit}
           setIsModalResetPasswordVisible={setIsModalResetPasswordVisible}
+          updateUser={updateUser}
         />
       </Modal>
       <Modal

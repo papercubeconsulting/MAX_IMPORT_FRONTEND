@@ -10,14 +10,15 @@ export const CreateOrEditUser = ({
   profilesOptions,
   setIsVisibleModalEdit,
   setIsModalResetPasswordVisible,
+  updateUser,
 }) => {
-  console.log(dataUser);
+  /* console.log(dataUser); */
 
   // campos de modal
   const [idNumber, setIdNumber] = useState();
   const [email, setEmail] = useState();
   const [name, setName] = useState();
-  const [lastName, setLastName] = useState();
+  const [lastname, setLastname] = useState();
   const [phoneNumber, setPhoneNumber] = useState();
   const [role, setRole] = useState();
   const [active, setActive] = useState();
@@ -26,7 +27,7 @@ export const CreateOrEditUser = ({
     setIdNumber(dataUser.idNumber);
     setEmail(dataUser.email);
     setName(dataUser.name);
-    setLastName(dataUser.lastname);
+    setLastname(dataUser.lastname);
     setPhoneNumber(dataUser.phoneNumber);
     setRole(dataUser.role);
     setActive(dataUser.active);
@@ -73,10 +74,26 @@ export const CreateOrEditUser = ({
           gridTemplateColumns="repeat(2, 1fr)"
           gridGap="1rem"
         >
-          <Input value={name} addonBefore="Nombres" />
-          <Input value={lastName} addonBefore="Apellidos" />
-          <Input value={email} addonBefore="Correo" />
-          <Input value={phoneNumber} addonBefore="Tel. Contacto" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            addonBefore="Nombres"
+          />
+          <Input
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
+            addonBefore="Apellidos"
+          />
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            addonBefore="Correo"
+          />
+          <Input
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            addonBefore="Tel. Contacto"
+          />
         </Grid>
         <Grid
           marginBottom="1rem"
@@ -103,7 +120,25 @@ export const CreateOrEditUser = ({
       </Container>
       <Container>
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="4rem">
-          <Button type="primary" gridColumnStart="2">
+          <Button
+            onClick={() => {
+              if (edit) {
+                updateUser({
+                  idNumber,
+                  email,
+                  name,
+                  lastname,
+                  phoneNumber,
+                  role,
+                  active,
+                });
+              } else {
+                console.log("agregar nuevo user");
+              }
+            }}
+            type="primary"
+            gridColumnStart="2"
+          >
             Confirmar
           </Button>
           <Button
