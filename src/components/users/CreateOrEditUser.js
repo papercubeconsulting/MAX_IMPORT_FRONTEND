@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import moment from "moment";
 import { clientDateFormat } from "../../util";
 import { Button, Container, Grid, Select } from "../../components";
@@ -6,20 +6,42 @@ import { Input, notification } from "antd";
 
 export const CreateOrEditUser = ({
   edit,
-  dataUser = {},
+  dataUser,
+  profilesOptions,
   setIsVisibleModalEdit,
   setIsModalResetPasswordVisible,
 }) => {
   console.log(dataUser);
 
   // campos de modal
-  const [idNumber, setIdNumber] = useState(dataUser.idNumber);
-  const [email, setEmail] = useState(dataUser.email);
-  const [name, setName] = useState(dataUser.name);
-  const [lastName, setLastName] = useState(dataUser.lastname);
-  const [phoneNumber, setPhoneNumber] = useState(dataUser.phoneNumber);
-  const [role, setRole] = useState(dataUser.role);
-  const [active, setActive] = useState(dataUser.active);
+  const [idNumber, setIdNumber] = useState();
+  const [email, setEmail] = useState();
+  const [name, setName] = useState();
+  const [lastName, setLastName] = useState();
+  const [phoneNumber, setPhoneNumber] = useState();
+  const [role, setRole] = useState();
+  const [active, setActive] = useState();
+
+  useEffect(() => {
+    setIdNumber(dataUser.idNumber);
+    setEmail(dataUser.email);
+    setName(dataUser.name);
+    setLastName(dataUser.lastname);
+    setPhoneNumber(dataUser.phoneNumber);
+    setRole(dataUser.role);
+    setActive(dataUser.active);
+  }, [dataUser]);
+
+  const statusOptions = [
+    {
+      value: true,
+      label: "Activo",
+    },
+    {
+      value: false,
+      label: "Inactivo",
+    },
+  ];
 
   return (
     <>
@@ -32,8 +54,14 @@ export const CreateOrEditUser = ({
           <Input
             value={`${moment(dataUser.createdAt).format(clientDateFormat)}`}
             addonBefore="Fecha Reg."
+            disabled
           />
-          <Select label="Estado" />
+          <Select
+            value={active}
+            onChange={(value) => setActive(value)}
+            options={statusOptions}
+            label="Estado"
+          />
           <Input
             value={idNumber}
             onChange={(e) => setIdNumber(e.target.value)}
@@ -55,7 +83,14 @@ export const CreateOrEditUser = ({
           gridTemplateColumns="repeat(2, 1fr)"
           gridGap="1rem"
         >
-          <Select label="Perfil" />
+          <Select
+            value={role}
+            onChange={(value) => setRole(value)}
+            options={profilesOptions.filter(
+              (status) => status.label !== "Todos"
+            )}
+            label="Perfil"
+          />
           {edit && (
             <Button
               type="primary"

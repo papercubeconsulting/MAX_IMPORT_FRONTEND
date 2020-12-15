@@ -276,6 +276,7 @@ export default ({ setPageTitle }) => {
         <CreateOrEditUser
           edit={edit}
           dataUser={dataUser}
+          profilesOptions={profilesOptions}
           setIsVisibleModalEdit={setIsVisibleModalEdit}
           setIsModalResetPasswordVisible={setIsModalResetPasswordVisible}
         />
@@ -328,6 +329,7 @@ export default ({ setPageTitle }) => {
             type="primary"
             onClick={() => {
               setEdit(false);
+              setDataUser("");
               setIsVisibleModalEdit(true);
             }}
           >
