@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
-import { postUser } from "../../providers";
+import { postUser, forgotPassword } from "../../providers";
 import { clientDateFormat } from "../../util";
 import { Button, Container, Grid, Select } from "../../components";
-import { Input, notification } from "antd";
+import { Input, notification, Modal } from "antd";
 
 export const CreateOrEditUser = ({
   edit,
   dataUser,
   profilesOptions,
   setIsVisibleModalEdit,
-  setIsModalResetPasswordVisible,
   updateUser,
   setToggleUpdateTable,
 }) => {
@@ -25,6 +24,11 @@ export const CreateOrEditUser = ({
   const [role, setRole] = useState();
   const [active, setActive] = useState();
   const [password, setPassword] = useState();
+
+  const [
+    isModalResetPasswordVisible,
+    setIsModalResetPasswordVisible,
+  ] = useState(false);
 
   useEffect(() => {
     setIdNumber(dataUser.idNumber);
@@ -74,8 +78,36 @@ export const CreateOrEditUser = ({
     }
   };
 
+  // enviar correo para nueva contraseña
+  const submitResetPassword = async () => {
+    try {
+      const response = await forgotPassword({ email });
+      notification.success({
+        message: `Revise su bandeja de entrada`,
+        description: `Se ha enviado un correo a ${email}`,
+      });
+      setIsModalResetPasswordVisible(false);
+      setIsVisibleModalEdit(false);
+    } catch (error) {
+      notification.error({
+        message: "Error al identificarse",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <>
+      <Modal
+        visible={isModalResetPasswordVisible}
+        onOk={() => submitResetPassword()}
+        onCancel={() => setIsModalResetPasswordVisible(false)}
+        width="40%"
+        title="Recuperar contraseña"
+      >
+        Enviaremos un correo con un link para que pueda cambiar su contraseña al
+        email que ingresó en la casilla correo: {email}
+      </Modal>
       <Container flexDirection="column" height="fit-content">
         <Grid
           marginBottom="1rem"
@@ -148,7 +180,7 @@ export const CreateOrEditUser = ({
           ) : (
             <Input
               value={password}
-              type='password'
+              type="password"
               onChange={(e) => setPassword(e.target.value)}
               addonBefore="Contraseña"
             />

@@ -125,11 +125,6 @@ export default ({ setPageTitle }) => {
   const [active, setActive] = useState("");
   const [textModal, setTextModal] = useState("");
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
-  const [email, setEmail] = useState(null);
-  const [
-    isModalResetPasswordVisible,
-    setIsModalResetPasswordVisible,
-  ] = useState(false);
 
   //Obtiene a los usuarios y usuario actual
   useEffect(() => {
@@ -279,20 +274,9 @@ export default ({ setPageTitle }) => {
           dataUser={dataUser}
           profilesOptions={profilesOptions}
           setIsVisibleModalEdit={setIsVisibleModalEdit}
-          setIsModalResetPasswordVisible={setIsModalResetPasswordVisible}
           updateUser={updateUser}
           setToggleUpdateTable={setToggleUpdateTable}
         />
-      </Modal>
-      <Modal
-        visible={isModalResetPasswordVisible}
-        /* onOk={} */
-        onCancel={() => setIsModalResetPasswordVisible(false)}
-        width="40%"
-        title="Recuperar contraseña"
-      >
-        Enviaremos un correo con un link para que pueda cambiar su contraseña al
-        email que ingresó en la casilla correo: {email}
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
