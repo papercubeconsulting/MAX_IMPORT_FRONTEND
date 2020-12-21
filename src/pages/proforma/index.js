@@ -16,6 +16,7 @@ import {
   getProducts,
   getSubfamilies,
   getClientPerCode,
+  postClient,
   getRegions,
   getProvinces,
   getDistricts,
@@ -584,17 +585,39 @@ export default ({ setPageTitle }) => {
   };
 
   const onCreateClient = async () => {
-    console.log({
-      documentNumber,
-      name,
-      lastName,
-      email,
-      phoneNumber,
-      address,
-      regionId,
-      provinceId,
-      districtId,
-    });
+    try {
+      let type;
+      if (lastName) {
+        type = "PERSON";
+      } else {
+        type = "COMPANY";
+      }
+      const response = await postClient({
+        type,
+        idNumber: documentNumber,
+        name,
+        lastname: lastName,
+        email,
+        phoneNumber,
+        address,
+        regionId,
+        provinceId,
+        districtId,
+        defaultDeliveryAgencyId: 1,
+      });
+      console.log(response);
+      notification.success({
+        message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
+      });
+      setDisabled(true);
+      setClient(response);
+      setClientId(response.id);
+    } catch (error) {
+      console.log(error);
+      notification.error({
+        message: error.message,
+      });
+    }
   };
 
   return (
@@ -740,7 +763,11 @@ export default ({ setPageTitle }) => {
             >
               Buscar
             </Button>
-            <Button type="primary" onClick={onCreateClient}>
+            <Button
+              type="primary"
+              disabled={queryParams.id}
+              onClick={onCreateClient}
+            >
               Crear cliente
             </Button>
             <Button type="primary">Check RUC</Button>
