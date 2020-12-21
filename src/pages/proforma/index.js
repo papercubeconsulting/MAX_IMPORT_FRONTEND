@@ -211,6 +211,8 @@ export default ({ setPageTitle }) => {
   const [districtId, setDistrictId] = useState(null);
   const [address, setAddress] = useState(null);
   const [proformaProducts, setproformaProducts] = useState([]);
+  const [disabled, setDisabled] = useState(false);
+  const [client, setClient] = useState();
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -469,7 +471,7 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-
+      console.log(client);
       const {
         id,
         active,
@@ -488,6 +490,8 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`,
       });
+      setDisabled(true);
+      setClient(client);
 
       setName(name);
       setLastName(lastname);
@@ -564,7 +568,6 @@ export default ({ setPageTitle }) => {
   };
 
   // Modal de confirmación de creación de proforma
-
   const success = (id) => {
     Modal.success({
       title: `La proforma N°${id} ha sido guardada correctamente`,
@@ -572,13 +575,26 @@ export default ({ setPageTitle }) => {
   };
 
   // resetea data del modal addNewProduct
-
   const resetDataModal = () => {
     setFamilyId("");
     setSubFamilyId("");
     setElementId("");
     setModelId("");
     setProduct("");
+  };
+
+  const onCreateClient = async () => {
+    console.log({
+      documentNumber,
+      name,
+      lastName,
+      email,
+      phoneNumber,
+      address,
+      regionId,
+      provinceId,
+      districtId,
+    });
   };
 
   return (
@@ -700,39 +716,61 @@ export default ({ setPageTitle }) => {
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
-            onChange={(event) => setDocumentNumber(event.target.value)}
+            onChange={(event) => {
+              setDocumentNumber(event.target.value);
+              if (client?.idNumber && client.idNumber !== event.target.value) {
+                setDisabled(false);
+              }
+              if (client?.idNumber && client.idNumber === event.target.value) {
+                setDisabled(true);
+              }
+            }}
             addonBefore="DNI/RUC"
           />
-          <Button
-            loading={loadingSearchClient}
-            type="primary"
-            onClick={onSearchClient}
+          <Grid
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="1rem"
+            gridColumnStart="3"
+            gridColumnEnd="5"
           >
-            Buscar
-          </Button>
-          <Button type="primary">Check RUC</Button>
+            <Button
+              loading={loadingSearchClient}
+              type="primary"
+              onClick={onSearchClient}
+            >
+              Buscar
+            </Button>
+            <Button type="primary" onClick={onCreateClient}>
+              Crear cliente
+            </Button>
+            <Button type="primary">Check RUC</Button>
+          </Grid>
           <Input
             placeholder="Nombres"
             value={name}
             onChange={(event) => setName(event.target.value)}
             addonBefore="Cliente"
+            disabled={disabled}
           />
           <Input
             placeholder="Apellidos"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
+            disabled={disabled}
           />
           <Input
             placeholder="Correo electrónico"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             addonBefore="Correo"
+            disabled={disabled}
           />
           <Input
             placeholder="Número de teléfono"
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
             addonBefore="Teléfono"
+            disabled={disabled}
           />
           <Select
             value={regionId}
@@ -747,6 +785,7 @@ export default ({ setPageTitle }) => {
               value: region.id,
               label: region.name,
             }))}
+            disabled={disabled}
           />
           <Select
             value={provinceId}
@@ -761,6 +800,7 @@ export default ({ setPageTitle }) => {
               value: province.id,
               label: province.name,
             }))}
+            disabled={disabled}
           />
           <Select
             value={districtId}
@@ -775,12 +815,14 @@ export default ({ setPageTitle }) => {
               value: district.id,
               label: district.name,
             }))}
+            disabled={disabled}
           />
           <Input
             placeholder="Domicilio"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             addonBefore="Dirección"
+            disabled={disabled}
           />
         </Grid>
       </Container>
