@@ -203,7 +203,7 @@ export default ({ setPageTitle }) => {
 
   const [clientId, setClientId] = useState(null);
   const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
+  const [lastName, setLastName] = useState("");
   const [documentNumber, setDocumentNumber] = useState(null);
   const [email, setEmail] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
@@ -472,7 +472,7 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-      console.log(client);
+      /* console.log(client); */
       const {
         id,
         active,
@@ -505,11 +505,13 @@ export default ({ setPageTitle }) => {
       setClientId(id);
 
       setLoadingSearchClient(false);
+      return true;
     } catch (error) {
       notification.error({
         message: error.message,
       });
       setLoadingSearchClient(false);
+      return false;
     }
   };
 
@@ -617,6 +619,56 @@ export default ({ setPageTitle }) => {
       notification.error({
         message: error.message,
       });
+    }
+  };
+
+  const probandoMigo = async () => {
+    const verify = await onSearchClient();
+    if (!verify) {
+      var formData = new FormData();
+
+      formData.append(
+        "token",
+        "Qw04dLlNDNBKI0vZ6p12fhHJUjce3kDatq3rirg2WmzZQG2N3fnRiNgJ9l54"
+      );
+      formData.append("ruc", documentNumber);
+
+      var request = new XMLHttpRequest();
+
+      request.open("POST", "https://api.migo.pe/api/v1/ruc");
+      request.setRequestHeader("Accept", "application/json");
+
+      request.send(formData);
+      request.onload = async function () {
+        var data = JSON.parse(this.response);
+        if (data.success) {
+          setName(data.nombre_o_razon_social);
+          setAddress(data.direccion);
+          const _region = regions.find(
+            (region) => region.name.toUpperCase() === data.departamento
+          );
+          setRegionId(_region.id);
+          const _provinces = await getProvinces(_region.id);
+          const _province = _provinces.find(
+            (province) => province.name.toUpperCase() === data.provincia
+          );
+          setProvinceId(_province.id);
+          const _districts = await getDistricts(_region.id, _province.id);
+          const _district = _districts.find(
+            (district) => district.name.toUpperCase() === data.distrito
+          );
+          setDistrictId(_district.id);
+          notification.info({
+            message:
+              "Por favor llenar los campos faltantes para crear nuevo cliente",
+          });
+        } else {
+          notification.warning({
+            message:
+              "Por favor verificar el ruc ingresado o llenar los campos para crear nuevo cliente",
+          });
+        }
+      };
     }
   };
 
@@ -770,7 +822,9 @@ export default ({ setPageTitle }) => {
             >
               Crear cliente
             </Button>
-            <Button type="primary">Check RUC</Button>
+            <Button onClick={probandoMigo} type="primary">
+              Check RUC
+            </Button>
           </Grid>
           <Input
             placeholder="Nombres"
