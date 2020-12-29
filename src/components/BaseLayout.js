@@ -42,8 +42,8 @@ export const BaseLayout = (props) => {
       <Layout>
         <Sidebar collapsed={!globalAuthUser || !isVisibleMenu}>
           <Menu>
-            <Link href="/">
-              <MenuItem>Perfil</MenuItem>
+            <Link href="/profile">
+              <MenuItem active={isActiveLink("profile")}>Perfil</MenuItem>
             </Link>
             <Link href="/proforma">
               <MenuItem active={isActiveLink("proforma")}>
