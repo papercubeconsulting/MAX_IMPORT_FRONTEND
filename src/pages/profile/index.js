@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { resetPassword } from "../../providers";
 
 import { Button, Container, Grid } from "../../components";
 import { Input, notification, Form } from "antd";
@@ -7,10 +8,11 @@ export default ({ setPageTitle }) => {
   setPageTitle("Perfil");
 
   const [me, setMe] = useState({});
+  const [token, setToken] = useState();
 
   useEffect(() => {
     const { token, user } = JSON.parse(localStorage.getItem("authUser"));
-    /* console.log(token); */
+    setToken(token);
     setMe(user);
   }, []);
 
@@ -32,6 +34,26 @@ export default ({ setPageTitle }) => {
       label: "Vendedor",
     },
   ];
+
+  const onResetPassword = async (values) => {
+    try {
+      const response = await resetPassword({
+        token,
+        email: me.email,
+        password: values.password,
+      });
+      console.log(response);
+      notification.success({
+        message: `Éxito`,
+        description: "Inicie sesión con su nueva contraseña",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error al intentar cambiar contraseña contraseña",
+        description: error.message,
+      });
+    }
+  };
 
   return (
     <>
@@ -59,7 +81,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="20%" width="70%" style={{ margin: "0 auto" }}>
         <Grid gridTemplateColumns="3fr 2fr" gridGap="0rem 5rem">
-          <Form name="login">
+          <Form name="login" /* onFinish={onResetPassword} */>
             <Form.Item
               name="old-password"
               rules={[
@@ -73,22 +95,35 @@ export default ({ setPageTitle }) => {
             </Form.Item>
             <Form.Item
               name="password"
+              hasFeedback
               rules={[
                 {
+                  min: 8,
                   required: true,
-                  message: "Por favor ingrese su nueva contraseña",
+                  message:
+                    "Por favor ingrese una contraseña de al menos 8 caracteres",
                 },
               ]}
             >
               <Input.Password addonBefore="Nueva Contraseña" />
             </Form.Item>
             <Form.Item
-              name="new-password"
+              name="confirm"
+              dependencies={["password"]}
+              hasFeedback
               rules={[
                 {
                   required: true,
-                  message: "Por favor ingrese nuevamente su nueva contraseña",
+                  message: "Confirme su contraseña",
                 },
+                ({ getFieldValue }) => ({
+                  validator(rule, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject("Las contraseñas no coinciden");
+                  },
+                }),
               ]}
             >
               <Input.Password addonBefore="Confirmar Contraseña" />
