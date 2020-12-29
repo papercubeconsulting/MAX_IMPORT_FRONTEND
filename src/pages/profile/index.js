@@ -1,42 +1,53 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 
 import { Button, Container, Grid } from "../../components";
-import { userProvider } from "../../providers";
 import { Input, notification, Form } from "antd";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Perfil");
-  const [me, setMe] = useState({ name: null });
 
-  const router = useRouter();
+  const [me, setMe] = useState({});
 
-  //Obtiene a los vendedores
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        const _me = await userProvider.getUser();
-        setMe(_me);
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
-
-    initialize();
+    const { token, user } = JSON.parse(localStorage.getItem("authUser"));
+    /* console.log(token); */
+    setMe(user);
   }, []);
+
+  const profilesOptions = [
+    {
+      value: "manager",
+      label: "Administrador",
+    },
+    {
+      value: "logistic",
+      label: "Logístico",
+    },
+    {
+      value: "superuser",
+      label: "Super usuario",
+    },
+    {
+      value: "seller",
+      label: "Vendedor",
+    },
+  ];
 
   return (
     <>
       <Container height="20%" width="70%" style={{ margin: "2rem auto" }}>
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="2rem 5rem">
           <Input value={me.name} disabled addonBefore="Nombre" />
-          <Input value={me.name} disabled addonBefore="DNI" />
-          <Input value={me.name} disabled addonBefore="Apellido" />
-          <Input value={me.name} disabled addonBefore="Perfil" />
+          <Input value={me.idNumber} disabled addonBefore="DNI" />
+          <Input value={me.lastname} disabled addonBefore="Apellido" />
+          <Input
+            value={
+              profilesOptions.find((profile) => profile.value === me.role)
+                ?.label
+            }
+            disabled
+            addonBefore="Perfil"
+          />
         </Grid>
       </Container>
       <Container
@@ -90,13 +101,6 @@ export default ({ setPageTitle }) => {
           </Form>
         </Grid>
       </Container>
-      {/*  <Container height="15%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
-          <Button type="primary" gridColumnStart="2">
-            Salir
-          </Button>
-        </Grid>
-      </Container> */}
     </>
   );
 };
