@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { resetPassword } from "../../providers";
+import { updatePassword } from "../../providers";
 
 import { Button, Container, Grid } from "../../components";
 import { Input, notification, Form } from "antd";
@@ -37,20 +37,20 @@ export default ({ setPageTitle }) => {
 
   const onResetPassword = async (values) => {
     try {
-      const response = await resetPassword({
-        token,
-        email: me.email,
+      const response = await updatePassword({
+        oldPassword: values.oldPassword,
         password: values.password,
       });
       console.log(response);
       notification.success({
-        message: `Éxito`,
+        message: "Actualización exitosa",
         description: "Inicie sesión con su nueva contraseña",
       });
     } catch (error) {
+      console.log(error);
       notification.error({
-        message: "Error al intentar cambiar contraseña contraseña",
-        description: error.message,
+        message: "Error al intentar cambiar contraseña",
+        description: error.userMessage,
       });
     }
   };
@@ -81,9 +81,9 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="20%" width="70%" style={{ margin: "0 auto" }}>
         <Grid gridTemplateColumns="3fr 2fr" gridGap="0rem 5rem">
-          <Form name="login" /* onFinish={onResetPassword} */>
+          <Form name="login" onFinish={onResetPassword}>
             <Form.Item
-              name="old-password"
+              name="oldPassword"
               rules={[
                 {
                   required: true,
