@@ -295,9 +295,9 @@ export default ({ setPageTitle }) => {
         width="20%"
         margin="2% 5% 2% 40%"
         type="primary"
-        onClick={async () => router.push(`/proformas`)}
+        onClick={async () => router.back()}
       >
-        Retroceder
+        Regresar
       </Button>
     </>
   );
