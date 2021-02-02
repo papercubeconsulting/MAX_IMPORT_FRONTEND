@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import moment from "moment";
 import {
   Button,
   Container,
@@ -6,6 +7,7 @@ import {
   Icon,
   Select,
   AutoComplete,
+  DatePicker,
 } from "../../../components";
 import { useRouter } from "next/router";
 import {
@@ -24,7 +26,13 @@ import {
 } from "../../../providers";
 import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
-import { faPlus, faPrint, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { clientDateFormat } from "../../../util";
+import {
+  faCalendarAlt,
+  faPlus,
+  faPrint,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { Attend } from "../../../components/supplies/[supplyId]";
 
 export default ({ setPageTitle }) => {
@@ -568,7 +576,7 @@ export default ({ setPageTitle }) => {
   return (
     <>
       <Container height="10%">
-        <Grid gridTemplateColumns="1fr 1fr 2fr" gridGap="2rem">
+        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
             value={providerId}
             disabled={disabled || suppliedProducts.length}
@@ -588,6 +596,28 @@ export default ({ setPageTitle }) => {
             disabled={disabled}
             onChange={(event) => setCode(event.target.value)}
             addonBefore="Código de Carga"
+          />
+        </Grid>
+      </Container>
+
+      <Container height="10%">
+        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            disabled={disabled}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha de llegada
+              </>
+            }
+          />
+          <Input
+            /* value={code} */
+            disabled
+            /* onChange={(event) => setCode(event.target.value)} */
+            addonBefore="Usuario"
           />
         </Grid>
       </Container>
