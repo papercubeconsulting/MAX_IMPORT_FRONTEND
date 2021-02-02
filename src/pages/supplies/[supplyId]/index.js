@@ -23,6 +23,7 @@ import {
   postSupply,
   putSupply,
   putSupplyStatus,
+  userProvider,
 } from "../../../providers";
 import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
@@ -360,6 +361,7 @@ export default ({ setPageTitle }) => {
   const [warehouseId, setWarehouseId] = useState(null);
   const [code, setCode] = useState(null);
   const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [me, setMe] = useState({ name: null });
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -428,7 +430,11 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     const fetchSupply = async (supplyId) => {
-      if (isNew) return;
+      if (isNew) {
+        const _me = await userProvider.getUser();
+        setMe(_me);
+        return;
+      }
 
       const _supply = await getSupply(supplyId);
 
@@ -613,12 +619,7 @@ export default ({ setPageTitle }) => {
               </>
             }
           />
-          <Input
-            /* value={code} */
-            disabled
-            /* onChange={(event) => setCode(event.target.value)} */
-            addonBefore="Usuario"
-          />
+          <Input value={me.name} disabled addonBefore="Usuario" />
         </Grid>
       </Container>
       <Table
