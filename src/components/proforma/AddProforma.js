@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import { Input, Modal, notification, Tag, Upload, Radio } from "antd";
+import { DatePicker } from "../DatePicker";
 import { RadioGroup } from "../RadioGroup";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../index";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import {
   getBank,
   getBanks,
   getDeliveryAgencies,
   postSale,
 } from "../../providers";
-import { toBase64 } from "../../util";
+import { toBase64, clientDateFormat } from "../../util";
 
 export const AddProforma = (props) => {
   // * List of sources from database
@@ -89,6 +91,7 @@ export const AddProforma = (props) => {
     }));
 
   // funcion para consignar la venta
+  //TODO: agregar campo fecha de deposito (datepicker) al body en postSale
   const summitSale = async () => {
     try {
       const body = {
@@ -207,7 +210,16 @@ export const AddProforma = (props) => {
             }}
             options={selectOptions(bankAccounts)}
           />
-
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha de depósito
+              </>
+            }
+          />
           <Upload
             className="ant-upload-wrapper"
             beforeUpload={async (file) => {
@@ -222,7 +234,6 @@ export const AddProforma = (props) => {
             </Button>
           </Upload>
         </Grid>
-
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <h3>Forma de despacho:</h3>
           <RadioGroup
