@@ -176,7 +176,7 @@ export const AddProforma = (props) => {
         <Grid
           gridTemplateColumns="repeat(2, 1fr)"
           gridGap="1rem"
-          hidden={props.saleWay === 1 ? true : false}
+          hidden={props.saleWay === 1 || props.totalPaid == 0 ? true : false}
         >
           <h3>Datos del depósito:</h3>
           <div></div>
