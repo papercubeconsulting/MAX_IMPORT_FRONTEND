@@ -226,7 +226,7 @@ export default ({ setPageTitle }) => {
                   : `-`
               }
               disabled
-              addonBefore="A Cuenta"
+              addonBefore="Efectivo"
             />
             <br />
 
@@ -237,7 +237,7 @@ export default ({ setPageTitle }) => {
                   : `-`
               }
               disabled
-              addonBefore="Deuda"
+              addonBefore="Crédito"
             />
             <br />
             <Button

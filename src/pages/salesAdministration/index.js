@@ -177,7 +177,7 @@ export default ({ setPageTitle }) => {
       try {
         const _sale = await getSale(idModalVoucher);
         setSale(_sale);
-        /* console.log("_sale", _sale); */
+        console.log("_sale", _sale);
       } catch (error) {
         console.log(error);
       }
