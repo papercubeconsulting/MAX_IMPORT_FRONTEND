@@ -10,6 +10,7 @@ import {
   ModalProforma,
 } from "../../components";
 import {
+  getBank,
   getSales,
   getUsers,
   userProvider,
@@ -171,13 +172,15 @@ export default ({ setPageTitle }) => {
   const [idModalVoucher, setIdModalVoucher] = useState(null);
   const [sale, setSale] = useState(null);
   const [nameClient, setNameClient] = useState(null);
+  const [bank, setBank] = useState(null);
 
   useEffect(() => {
     const fetchSale = async () => {
       try {
         const _sale = await getSale(idModalVoucher);
+        const _bank = await getBank(_sale.bankAccount.bankId);
+        setBank(_bank);
         setSale(_sale);
-        /* console.log("_sale", _sale); */
       } catch (error) {
         console.log(error);
       }
@@ -364,6 +367,22 @@ export default ({ setPageTitle }) => {
           padding="0px"
         >
           <Input value={nameClient} disabled addonBefore="Cliente" />
+          <br />
+          <Input value={get(bank, "name", null)} disabled addonBefore="Banco" />
+          <br />
+          <Input value={sale?.bankAccount.name} disabled addonBefore="Cuenta" />
+          <br />
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha del depósito
+              </>
+            }
+          />
+          <br />
           <img
             src={get(sale, "voucherImage", null)}
             style={{ margin: "10px 0px", maxWidth: "90%" }}

@@ -224,12 +224,14 @@ export default ({ setPageTitle }) => {
           referenceNumber: dataModal.referenceNumber,
         });
       }
+      /* console.log("_response", _response); */
       notification.success({
         message: "Pago a Cuenta registrado exitosamente",
       });
       setIsVisible(false);
       setToggleUpdateTable(true);
     } catch (error) {
+      /* console.log("error", error); */
       notification.error({
         message: error.userMessage,
       });

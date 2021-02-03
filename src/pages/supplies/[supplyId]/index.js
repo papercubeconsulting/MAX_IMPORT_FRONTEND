@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import moment from "moment";
 import {
   Button,
   Container,
@@ -6,6 +7,7 @@ import {
   Icon,
   Select,
   AutoComplete,
+  DatePicker,
 } from "../../../components";
 import { useRouter } from "next/router";
 import {
@@ -21,10 +23,17 @@ import {
   postSupply,
   putSupply,
   putSupplyStatus,
+  userProvider,
 } from "../../../providers";
 import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
-import { faPlus, faPrint, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { clientDateFormat } from "../../../util";
+import {
+  faCalendarAlt,
+  faPlus,
+  faPrint,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { Attend } from "../../../components/supplies/[supplyId]";
 
 export default ({ setPageTitle }) => {
@@ -352,6 +361,7 @@ export default ({ setPageTitle }) => {
   const [warehouseId, setWarehouseId] = useState(null);
   const [code, setCode] = useState(null);
   const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [me, setMe] = useState({ name: null });
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -420,7 +430,11 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     const fetchSupply = async (supplyId) => {
-      if (isNew) return;
+      if (isNew) {
+        const _me = await userProvider.getUser();
+        setMe(_me);
+        return;
+      }
 
       const _supply = await getSupply(supplyId);
 
@@ -568,7 +582,7 @@ export default ({ setPageTitle }) => {
   return (
     <>
       <Container height="10%">
-        <Grid gridTemplateColumns="1fr 1fr 2fr" gridGap="2rem">
+        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
             value={providerId}
             disabled={disabled || suppliedProducts.length}
@@ -589,6 +603,23 @@ export default ({ setPageTitle }) => {
             onChange={(event) => setCode(event.target.value)}
             addonBefore="Código de Carga"
           />
+        </Grid>
+      </Container>
+
+      <Container height="10%">
+        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            disabled={disabled}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha de llegada
+              </>
+            }
+          />
+          <Input value={me.name} disabled addonBefore="Usuario" />
         </Grid>
       </Container>
       <Table

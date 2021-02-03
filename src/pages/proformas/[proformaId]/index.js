@@ -226,7 +226,7 @@ export default ({ setPageTitle }) => {
                   : `-`
               }
               disabled
-              addonBefore="A Cuenta"
+              addonBefore="Efectivo"
             />
             <br />
 
@@ -237,7 +237,7 @@ export default ({ setPageTitle }) => {
                   : `-`
               }
               disabled
-              addonBefore="Deuda"
+              addonBefore="Crédito"
             />
             <br />
             <Button
@@ -295,9 +295,9 @@ export default ({ setPageTitle }) => {
         width="20%"
         margin="2% 5% 2% 40%"
         type="primary"
-        onClick={async () => router.push(`/proformas`)}
+        onClick={async () => router.back()}
       >
-        Retroceder
+        Regresar
       </Button>
     </>
   );

@@ -955,7 +955,7 @@ export default ({ setPageTitle }) => {
                     ).toFixed(2)
                   );
                 }}
-                addonBefore="A Cuenta S/"
+                addonBefore="Efectivo S/"
               />
               <Input
                 value={due}
@@ -981,7 +981,7 @@ export default ({ setPageTitle }) => {
                     ).toFixed(2)
                   );
                 }}
-                addonBefore="Deuda S/"
+                addonBefore="Crédito S/"
               />
             </Grid>
             <br />
