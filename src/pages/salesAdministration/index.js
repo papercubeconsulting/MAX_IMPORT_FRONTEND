@@ -140,6 +140,8 @@ export default ({ setPageTitle }) => {
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
 
+  const [total, setTotal] = useState(0);
+
   //para el filtro por fecha
   const [from, setFrom] = useState();
   const [to, setTo] = useState();
@@ -229,6 +231,7 @@ export default ({ setPageTitle }) => {
           pageSize: _sales.pageSize,
           showSizeChanger: false,
           showQuickJumper: true,
+          showTotal: () => `Total: ${_sales.count} ítems`,
         });
         /* setsales(_sales.rows); */
         setsales(

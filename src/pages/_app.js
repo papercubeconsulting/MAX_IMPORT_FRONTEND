@@ -95,5 +95,9 @@ const GlobalStyle = createGlobalStyle`
     float:left;
     margin-right: -40px;
     font-size: 16px;
-}
+  }
+  .ant-pagination-total-text {
+    font-size: 16px;
+    margin-right: 30px !important;
+  }
 `;
