@@ -155,6 +155,7 @@ export default ({ setPageTitle }) => {
           current: _supplies.page,
           pageSize: _supplies.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setSupplies(
           _supplies.rows.filter((supply) => supply.status !== "Cancelado")

@@ -228,6 +228,7 @@ export default ({ setPageTitle }) => {
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         /* setsales(_sales.rows); */
         setsales(
