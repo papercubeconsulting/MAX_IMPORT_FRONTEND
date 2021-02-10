@@ -410,7 +410,7 @@ export default ({ setPageTitle }) => {
               value={from}
               onChange={(value) => setFrom(value)}
               format={clientDateFormat}
-              disabledDate={(value) => value >= to}
+              disabledDate={(value) => to && value >= to}
               label={
                 <>
                   <Icon icon={faCalendarAlt} />
