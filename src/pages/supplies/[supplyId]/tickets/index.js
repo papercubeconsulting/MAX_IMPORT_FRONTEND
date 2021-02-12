@@ -24,6 +24,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
       elementName,
       modelName,
       boxSize,
+      tradename,
     } = query;
     let { boxes, productBoxesCodes } = query;
 
@@ -35,73 +36,90 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
       }
 
       const buffer = await componentToPDFBuffer(
-        <PDFLayout>
-          <div>
-            {boxes.map((box, index) => {
-              const productBoxCode = productBoxesCodes[index];
+        <div>
+          {boxes.map((box, index) => {
+            const productBoxCode = productBoxesCodes[index];
 
-              const data8 = codes.create("code128", productBoxCode);
+            const data8 = codes.create("code128", productBoxCode);
 
-              return (
-                <>
-                  <div
-                    style={{
-                      paddingTop: "20px",
-                      borderTop: "2px dashed black",
-                    }}
-                  >
-                    <img
+            return (
+              <>
+                <div>
+                  {/* <img
                       src={"data:image/png;base64," + data8.toString("base64")}
                       style={{ marginBottom: "1rem" }}
                       alt={productBoxCode}
+                    /> */}
+                  <div style={{ textAlign: "center" }}>
+                    <img
+                      style={{
+                        width: "270px",
+                        height: "190px",
+                      }}
+                      src="https://i.postimg.cc/hvk7K3W0/max-import.jpg"
                     />
-                    <div style={{ textAlign: "center" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        Familia:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{familyName}</span>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <strong
-                        style={{
-                          fontSize: "25px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Sub-Familia:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{subfamilyName}</span>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        Elemento:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{elementName}</span>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        Modelo:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{modelName}</span>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        Unid/Caja:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{boxSize}</span>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        #Caja:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{box}</span>
-                    </div>
                   </div>
-                </>
-              );
-            })}
-          </div>
-        </PDFLayout>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Familia:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{familyName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong
+                      style={{
+                        fontSize: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Sub-Familia:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{subfamilyName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Elemento:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{elementName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Modelo:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{modelName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Nombre Comercial:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{tradename}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Unid/Caja:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{boxSize}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem" }}>
+                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      #Caja:{" "}
+                    </strong>
+                    <span style={{ fontSize: "25px" }}>{box}</span>
+                  </div>
+                  <img
+                    src={"data:image/png;base64," + data8.toString("base64")}
+                    style={{
+                      marginTop: "2rem",
+                      height: "250px",
+                      width: "100%",
+                    }}
+                    alt={productBoxCode}
+                  />
+                </div>
+              </>
+            );
+          })}
+        </div>
       );
 
       res.setHeader(
