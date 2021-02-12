@@ -8,7 +8,13 @@ export const componentToPDFBuffer = (component) => {
       .create(html, {
         format: "A4",
         orientation: "portrait",
-        border: "15mm",
+        /* border: "5mm 10mm", */
+        border: {
+          top: "5mm",
+          right: "10mm",
+          bottom: "5mm",
+          left: "10mm",
+        },
         type: "pdf",
         timeout: 30000,
       })

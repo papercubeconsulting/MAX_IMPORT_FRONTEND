@@ -53,54 +53,48 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                   <div style={{ textAlign: "center" }}>
                     <img
                       style={{
-                        width: "270px",
+                        width: "310px",
                         height: "190px",
                       }}
                       src="https://i.postimg.cc/hvk7K3W0/max-import.jpg"
                     />
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      Familia:{" "}
-                    </strong>
-                    <span style={{ fontSize: "25px" }}>{familyName}</span>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "30px" }}>Familia: </strong>
+                    <span style={{ fontSize: "30px" }}>{familyName}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
                     <strong
                       style={{
-                        fontSize: "25px",
+                        fontSize: "28px",
                         fontWeight: "bold",
                       }}
                     >
                       Sub-Familia:{" "}
                     </strong>
-                    <span style={{ fontSize: "25px" }}>{subfamilyName}</span>
+                    <span style={{ fontSize: "28px" }}>{subfamilyName}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      Elemento:{" "}
-                    </strong>
-                    <span style={{ fontSize: "25px" }}>{elementName}</span>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "28px" }}>Elemento: </strong>
+                    <span style={{ fontSize: "28px" }}>{elementName}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      Modelo:{" "}
-                    </strong>
-                    <span style={{ fontSize: "25px" }}>{modelName}</span>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "28px" }}>Modelo: </strong>
+                    <span style={{ fontSize: "28px" }}>{modelName}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "30px" }}>
                       Nombre Comercial:{" "}
                     </strong>
-                    <span style={{ fontSize: "25px" }}>{tradename}</span>
+                    <span style={{ fontSize: "30px" }}>{tradename}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
                     <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
                       Unid/Caja:{" "}
                     </strong>
                     <span style={{ fontSize: "25px" }}>{boxSize}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
                     <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
                       #Caja:{" "}
                     </strong>
@@ -110,7 +104,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                     src={"data:image/png;base64," + data8.toString("base64")}
                     style={{
                       marginTop: "2rem",
-                      height: "250px",
+                      height: "200px",
                       width: "100%",
                     }}
                     alt={productBoxCode}
