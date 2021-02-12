@@ -94,7 +94,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                     </strong>
                     <span style={{ fontSize: "25px" }}>{boxSize}</span>
                   </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                  <div style={{ marginLeft: "1rem" }}>
                     <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
                       #Caja:{" "}
                     </strong>
@@ -103,7 +103,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                   <img
                     src={"data:image/png;base64," + data8.toString("base64")}
                     style={{
-                      marginTop: "2rem",
+                      marginTop: "1.5rem",
                       height: "200px",
                       width: "100%",
                     }}

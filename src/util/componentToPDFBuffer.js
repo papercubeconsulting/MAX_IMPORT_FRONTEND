@@ -10,9 +10,9 @@ export const componentToPDFBuffer = (component) => {
         orientation: "portrait",
         /* border: "5mm 10mm", */
         border: {
-          top: "5mm",
+          top: "2mm",
           right: "10mm",
-          bottom: "5mm",
+          bottom: "2mm",
           left: "10mm",
         },
         type: "pdf",
