@@ -1,34 +1,35 @@
-import React, {useEffect, useState} from "react";
-import {useGlobal} from "reactn";
-import {BaseLayout} from "../components";
-import {createGlobalStyle} from "styled-components";
+import React, { useEffect, useState } from "react";
+import { useGlobal } from "reactn";
+import { BaseLayout } from "../components";
+import { createGlobalStyle } from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
 //import {useRouter} from "next/router";
 //import {getRouteStepper} from "./routes";
 
-export default ({Component, pageProps}) => {
-    const [title, setTitle] = useState(null);
+export default ({ Component, pageProps }) => {
+  const [title, setTitle] = useState(null);
 
-    const [, setGlobalAuthUser] = useGlobal("authUser");
+  const [, setGlobalAuthUser] = useGlobal("authUser");
 
-    useEffect(() => {
-        const localAuthUser = localStorage.getItem("authUser") || null;
-        setGlobalAuthUser(JSON.parse(localAuthUser));
-    }, []);
+  useEffect(() => {
+    const localAuthUser = localStorage.getItem("authUser") || null;
+    setGlobalAuthUser(JSON.parse(localAuthUser));
+  }, []);
 
-   // const router = useRouter();
+  // const router = useRouter();
 
-    // const stepper = getRouteStepper(router.pathname);
+  // const stepper = getRouteStepper(router.pathname);
 
-    return <>
-        <style dangerouslySetInnerHTML={{__html: stylesheet}}/>
-        <GlobalStyle/>
-        <BaseLayout title={title}>
-            <Component setPageTitle={setTitle}
-                       {...pageProps}/>
-        </BaseLayout>
-    </>;
-}
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
+      <GlobalStyle />
+      <BaseLayout title={title}>
+        <Component setPageTitle={setTitle} {...pageProps} />
+      </BaseLayout>
+    </>
+  );
+};
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -78,5 +79,25 @@ const GlobalStyle = createGlobalStyle`
       background-color: #1890ff;
       color: white;
     }
+  }
+  .ant-pagination-options-quick-jumper{
+    visibility: hidden;
+  }
+  .ant-pagination-options-quick-jumper{
+    input{
+      visibility: visible;
+      margin-left: 0;
+    }
+  }
+  .ant-pagination-options-quick-jumper:after {
+    content:"Ir a";
+    visibility: visible;
+    float:left;
+    margin-right: -40px;
+    font-size: 16px;
+  }
+  .ant-pagination-total-text {
+    font-size: 16px;
+    margin-right: 30px !important;
   }
 `;

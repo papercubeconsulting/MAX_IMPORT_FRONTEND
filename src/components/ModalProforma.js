@@ -212,7 +212,7 @@ export const ModalProforma = (props) => {
                   : `-`
               }
               disabled
-              addonBefore="A Cuenta"
+              addonBefore="Efectivo"
             />
             <br />
 
@@ -223,7 +223,7 @@ export const ModalProforma = (props) => {
                   : `-`
               }
               disabled
-              addonBefore="Deuda"
+              addonBefore="Crédito"
             />
             <br />
           </Grid>

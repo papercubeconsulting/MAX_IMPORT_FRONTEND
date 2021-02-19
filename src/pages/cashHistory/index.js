@@ -122,8 +122,8 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(1);
 
   //para el filtro por fecha
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState();
+  const [to, setTo] = useState();
 
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
@@ -151,7 +151,7 @@ export default ({ setPageTitle }) => {
     const initialize = async () => {
       try {
         const _users = await getUsers();
-        setUsers(_users);
+        setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
@@ -187,17 +187,16 @@ export default ({ setPageTitle }) => {
         const _sales = await getSales({
           status: "PAID",
           type: "STORE",
-          paidAtFrom: from.format(serverDateFormat),
-          paidAtTo: to.format(serverDateFormat),
           ...queryParams,
         });
-        console.log("query", queryParams);
+        /* console.log("ventas", _sales.rows); */
         setPagination({
           position: ["bottomCenter"],
           total: _sales.pageSize * _sales.pages,
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setsales(_sales.rows);
       } catch (error) {

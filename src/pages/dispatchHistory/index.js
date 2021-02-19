@@ -147,7 +147,7 @@ export default ({ setPageTitle }) => {
     const initialize = async () => {
       try {
         const _users = await getUsers();
-        setUsers(_users);
+        setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
@@ -191,6 +191,7 @@ export default ({ setPageTitle }) => {
           current: _dispatches.page,
           pageSize: _dispatches.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setDispatches(_dispatches.rows);
       } catch (error) {

@@ -168,6 +168,7 @@ export default ({ setPageTitle }) => {
           current: _dispatches.page,
           pageSize: _dispatches.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setDispatches(_dispatches.rows);
         console.log("despachos", _dispatches);

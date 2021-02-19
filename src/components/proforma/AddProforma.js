@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import { Input, Modal, notification, Tag, Upload, Radio } from "antd";
+import { DatePicker } from "../DatePicker";
 import { RadioGroup } from "../RadioGroup";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, Icon, Select } from "../index";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import {
   getBank,
   getBanks,
   getDeliveryAgencies,
-  postSale
+  postSale,
 } from "../../providers";
-import { toBase64 } from "../../util";
+import { toBase64, clientDateFormat } from "../../util";
 
 export const AddProforma = (props) => {
   // * List of sources from database
@@ -28,10 +30,10 @@ export const AddProforma = (props) => {
   const [bankAccount, setBankAccount] = useState({});
   const [imageBase64, setImageBase64] = useState(null);
   // Sobre el despacho
-  const [dispatchWay, setDispatchWay] = useState(1); 
+  const [dispatchWay, setDispatchWay] = useState(1);
   const [deliveryAgency, setDeliveryAgency] = useState({});
- // Summit Active
- const [summitActive, setSummitActive] = useState(false);
+  // Summit Active
+  const [summitActive, setSummitActive] = useState(false);
 
   const router = useRouter();
 
@@ -43,18 +45,16 @@ export const AddProforma = (props) => {
 
         const _deliveryAgencies = await getDeliveryAgencies();
         setDeliveryAgencies(_deliveryAgencies);
-
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
           description: error.message,
         });
       }
-      if(parseFloat(props.totalDebt)==0){
+      if (parseFloat(props.totalDebt) == 0) {
         setSaleType(1);
         setSummitActive(true);
-      }
-      else{
+      } else {
         setSaleType(2);
         setSummitActive(true);
       }
@@ -90,43 +90,44 @@ export const AddProforma = (props) => {
       value: document.id,
     }));
 
-  // funcion para consignar la venta 
+  // funcion para consignar la venta
+  //TODO: agregar campo fecha de deposito (datepicker) al body en postSale
   const summitSale = async () => {
     try {
-        const body = {
-            proformaId: props.proforma.id,
-            type: props.saleWay===1?"STORE":"REMOTE",
-            paymentType: saleType===1?"CASH":"CREDIT",
-            initialPayment: Math.round(props.totalPaid*100),
-            billingType: payWay===1?"SALE":"CONSIGNMENT",
-            dispatchmentType: dispatchWay===1?"PICK_UP":"DELIVERY",
-        };
+      const body = {
+        proformaId: props.proforma.id,
+        type: props.saleWay === 1 ? "STORE" : "REMOTE",
+        paymentType: saleType === 1 ? "CASH" : "CREDIT",
+        initialPayment: Math.round(props.totalPaid * 100),
+        billingType: payWay === 1 ? "SALE" : "CONSIGNMENT",
+        dispatchmentType: dispatchWay === 1 ? "PICK_UP" : "DELIVERY",
+      };
 
-        (dispatchWay===2)&&(body.deliveryAgencyId=deliveryAgency.id);
-        (props.saleWay===2)&&(body.voucherCode=voucherNum+"");
-        (props.saleWay===2)&&(body.voucherImage=imageBase64);
-        (props.saleWay===2)&&(body.paymentMethod="Depósito");
-        (props.saleWay===2)&&(body.bankAccountId=bankAccount.id);
-      const response = await postSale( body);
+      dispatchWay === 2 && (body.deliveryAgencyId = deliveryAgency.id);
+      props.saleWay === 2 && (body.voucherCode = voucherNum + "");
+      props.saleWay === 2 && (body.voucherImage = imageBase64);
+      props.saleWay === 2 && (body.paymentMethod = "Depósito");
+      props.saleWay === 2 && (body.bankAccountId = bankAccount.id);
+      const response = await postSale(body);
       Modal.success({
-            title: "Se ha consignado la venta correctamente",
-            content: `Venta: ${response.id}`,
-            onOk: () => router.push(`/proformas`)
-        });
+        title: "Se ha consignado la venta correctamente",
+        content: `Venta: ${response.id}`,
+        onOk: () => router.push(`/proformas`),
+      });
     } catch (error) {
-        Modal.error({
-            title: "Error al intentar consignar venta",
-            content: error.message,
-            // onOk: () => props.toggleUpdateTable(prevState => !prevState)
-        });
+      Modal.error({
+        title: "Error al intentar consignar venta",
+        content: error.message,
+        // onOk: () => props.toggleUpdateTable(prevState => !prevState)
+      });
     }
-};
+  };
 
   return (
     <Modal
       visible={props.visible}
-      onOk={summitActive&&summitSale}
-        //() => props.trigger && props.trigger(false)}
+      onOk={summitActive && summitSale}
+      //() => props.trigger && props.trigger(false)}
       onCancel={() => props.trigger && props.trigger(false)}
       width="60%"
       title="¿Está seguro de realizar la venta?"
@@ -138,7 +139,7 @@ export const AddProforma = (props) => {
             gridColumnStart="2"
             gridColumnEnd="4"
             gridTemplateColumns="repeat(2, 1fr)"
-            onChange={event => setPayWay(event.target.value)}
+            onChange={(event) => setPayWay(event.target.value)}
             value={payWay}
           >
             <Radio value={1}>Venta</Radio>
@@ -151,36 +152,40 @@ export const AddProforma = (props) => {
             gridTemplateColumns="repeat(2, 1fr)"
             value={saleType}
           >
-            <Radio value={1} disabled>Contado</Radio>
-            <Radio value={2} disabled>Crédito</Radio>
+            <Radio value={1} disabled>
+              Contado
+            </Radio>
+            <Radio value={2} disabled>
+              Crédito
+            </Radio>
           </RadioGroup>{" "}
         </Grid>
 
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
-            value={(parseFloat(props.totalPaid)).toFixed(2)}
+            value={parseFloat(props.totalPaid).toFixed(2)}
             disabled
             type="number"
-            addonBefore="A cuenta S/."
+            addonBefore="Efectivo S/."
           />
           <Input
-            value={parseFloat((props.totalDebt)).toFixed(2)}
+            value={parseFloat(props.totalDebt).toFixed(2)}
             disabled
             type="number"
-            addonBefore="Total deuda S/."
+            addonBefore="Total crédito S/."
           />
         </Grid>
 
         <Grid
           gridTemplateColumns="repeat(2, 1fr)"
           gridGap="1rem"
-          hidden={props.saleWay === 1 ? true : false}
+          hidden={props.saleWay === 1 || props.totalPaid == 0 ? true : false}
         >
           <h3>Datos del depósito:</h3>
           <div></div>
-          <Input 
+          <Input
             value={voucherNum}
-            onChange={event => setVoucherNum(event.target.value)}
+            onChange={(event) => setVoucherNum(event.target.value)}
             type="number"
             placeholder="Nº Operación"
             addonBefore="Voucher"
@@ -205,7 +210,16 @@ export const AddProforma = (props) => {
             }}
             options={selectOptions(bankAccounts)}
           />
-
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha de depósito
+              </>
+            }
+          />
           <Upload
             className="ant-upload-wrapper"
             beforeUpload={async (file) => {
@@ -220,21 +234,20 @@ export const AddProforma = (props) => {
             </Button>
           </Upload>
         </Grid>
-
         <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <h3>Forma de despacho:</h3>
           <RadioGroup
             gridColumnStart="2"
             gridColumnEnd="2"
             gridTemplateColumns="repeat(2, 1fr)"
-            onChange={event => setDispatchWay(event.target.value)}
+            onChange={(event) => setDispatchWay(event.target.value)}
             value={dispatchWay}
           >
             <Radio value={1}>Tienda</Radio>
             <Radio value={2}>Envío</Radio>
           </RadioGroup>
           <Select
-          disabled={dispatchWay===1?true:false}
+            disabled={dispatchWay === 1 ? true : false}
             value={deliveryAgency.name}
             label="Agencia"
             onChange={(value) => {

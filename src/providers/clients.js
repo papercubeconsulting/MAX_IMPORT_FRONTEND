@@ -1,5 +1,15 @@
 import { baseProvider } from "./baseProvider";
 
-const getClientPerCode = async (code) => baseProvider.httpGet(`clients/${code}`);
+const getClients = async (params) => baseProvider.httpGet(`clients`, params);
 
-export { getClientPerCode };
+const getClientById = async (id) => baseProvider.httpGet(`clients/${id}`);
+
+const getClientPerCode = async (code) =>
+  baseProvider.httpGet(`clients/${code}`);
+
+const postClient = async (body) => baseProvider.httpPost(`clients`, body);
+
+const putClient = async (id, body) =>
+  baseProvider.httpPut(`clients/${id}`, body);
+
+export { getClients, getClientById, getClientPerCode, postClient, putClient };

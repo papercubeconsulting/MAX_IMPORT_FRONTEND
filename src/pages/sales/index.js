@@ -178,6 +178,7 @@ export default ({ setPageTitle }) => {
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
         });
         setsales(
           _sales.rows.map((elem) => {
@@ -224,12 +225,14 @@ export default ({ setPageTitle }) => {
           referenceNumber: dataModal.referenceNumber,
         });
       }
+      /* console.log("_response", _response); */
       notification.success({
         message: "Pago a Cuenta registrado exitosamente",
       });
       setIsVisible(false);
       setToggleUpdateTable(true);
     } catch (error) {
+      /* console.log("error", error); */
       notification.error({
         message: error.userMessage,
       });

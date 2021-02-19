@@ -16,6 +16,7 @@ import {
   getProducts,
   getSubfamilies,
   getClientPerCode,
+  postClient,
   getRegions,
   getProvinces,
   getDistricts,
@@ -202,7 +203,7 @@ export default ({ setPageTitle }) => {
 
   const [clientId, setClientId] = useState(null);
   const [name, setName] = useState(null);
-  const [lastName, setLastName] = useState(null);
+  const [lastName, setLastName] = useState("");
   const [documentNumber, setDocumentNumber] = useState(null);
   const [email, setEmail] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
@@ -211,6 +212,8 @@ export default ({ setPageTitle }) => {
   const [districtId, setDistrictId] = useState(null);
   const [address, setAddress] = useState(null);
   const [proformaProducts, setproformaProducts] = useState([]);
+  const [disabled, setDisabled] = useState(false);
+  const [client, setClient] = useState();
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -469,7 +472,7 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-
+      /* console.log(client); */
       const {
         id,
         active,
@@ -488,6 +491,8 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`,
       });
+      setDisabled(true);
+      setClient(client);
 
       setName(name);
       setLastName(lastname);
@@ -500,11 +505,13 @@ export default ({ setPageTitle }) => {
       setClientId(id);
 
       setLoadingSearchClient(false);
+      return true;
     } catch (error) {
       notification.error({
         message: error.message,
       });
       setLoadingSearchClient(false);
+      return false;
     }
   };
 
@@ -564,7 +571,6 @@ export default ({ setPageTitle }) => {
   };
 
   // Modal de confirmación de creación de proforma
-
   const success = (id) => {
     Modal.success({
       title: `La proforma N°${id} ha sido guardada correctamente`,
@@ -572,13 +578,98 @@ export default ({ setPageTitle }) => {
   };
 
   // resetea data del modal addNewProduct
-
   const resetDataModal = () => {
     setFamilyId("");
     setSubFamilyId("");
     setElementId("");
     setModelId("");
     setProduct("");
+  };
+
+  const onCreateClient = async () => {
+    try {
+      let type;
+      if (lastName) {
+        type = "PERSON";
+      } else {
+        type = "COMPANY";
+      }
+      const response = await postClient({
+        type,
+        idNumber: documentNumber,
+        name,
+        lastname: lastName,
+        email,
+        phoneNumber,
+        address,
+        regionId,
+        provinceId,
+        districtId,
+        defaultDeliveryAgencyId: 1,
+      });
+      console.log(response);
+      notification.success({
+        message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
+      });
+      setDisabled(true);
+      setClient(response);
+      setClientId(response.id);
+    } catch (error) {
+      console.log(error);
+      notification.error({
+        message: error.message,
+      });
+    }
+  };
+
+  const probandoMigo = async () => {
+    const verify = await onSearchClient();
+    if (!verify) {
+      var formData = new FormData();
+
+      formData.append(
+        "token",
+        "Qw04dLlNDNBKI0vZ6p12fhHJUjce3kDatq3rirg2WmzZQG2N3fnRiNgJ9l54"
+      );
+      formData.append("ruc", documentNumber);
+
+      var request = new XMLHttpRequest();
+
+      request.open("POST", "https://api.migo.pe/api/v1/ruc");
+      request.setRequestHeader("Accept", "application/json");
+
+      request.send(formData);
+      request.onload = async function () {
+        var data = JSON.parse(this.response);
+        if (data.success) {
+          setName(data.nombre_o_razon_social);
+          setAddress(data.direccion);
+          const _region = regions.find(
+            (region) => region.name.toUpperCase() === data.departamento
+          );
+          setRegionId(_region.id);
+          const _provinces = await getProvinces(_region.id);
+          const _province = _provinces.find(
+            (province) => province.name.toUpperCase() === data.provincia
+          );
+          setProvinceId(_province.id);
+          const _districts = await getDistricts(_region.id, _province.id);
+          const _district = _districts.find(
+            (district) => district.name.toUpperCase() === data.distrito
+          );
+          setDistrictId(_district.id);
+          notification.info({
+            message:
+              "Por favor llenar los campos faltantes para crear nuevo cliente",
+          });
+        } else {
+          notification.warning({
+            message:
+              "Por favor verificar el ruc ingresado o llenar los campos para crear nuevo cliente",
+          });
+        }
+      };
+    }
   };
 
   return (
@@ -700,39 +791,67 @@ export default ({ setPageTitle }) => {
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
-            onChange={(event) => setDocumentNumber(event.target.value)}
+            onChange={(event) => {
+              setDocumentNumber(event.target.value);
+              if (client?.idNumber && client.idNumber !== event.target.value) {
+                setDisabled(false);
+              }
+              if (client?.idNumber && client.idNumber === event.target.value) {
+                setDisabled(true);
+              }
+            }}
             addonBefore="DNI/RUC"
           />
-          <Button
-            loading={loadingSearchClient}
-            type="primary"
-            onClick={onSearchClient}
+          <Grid
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="1rem"
+            gridColumnStart="3"
+            gridColumnEnd="5"
           >
-            Buscar
-          </Button>
-          <Button type="primary">Check RUC</Button>
+            <Button
+              loading={loadingSearchClient}
+              type="primary"
+              onClick={onSearchClient}
+            >
+              Buscar
+            </Button>
+            <Button
+              type="primary"
+              disabled={queryParams.id}
+              onClick={onCreateClient}
+            >
+              Crear cliente
+            </Button>
+            <Button onClick={probandoMigo} type="primary">
+              Check RUC
+            </Button>
+          </Grid>
           <Input
             placeholder="Nombres"
             value={name}
             onChange={(event) => setName(event.target.value)}
             addonBefore="Cliente"
+            disabled={disabled}
           />
           <Input
             placeholder="Apellidos"
             value={lastName}
             onChange={(event) => setLastName(event.target.value)}
+            disabled={disabled}
           />
           <Input
             placeholder="Correo electrónico"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             addonBefore="Correo"
+            disabled={disabled}
           />
           <Input
             placeholder="Número de teléfono"
             value={phoneNumber}
             onChange={(event) => setPhoneNumber(event.target.value)}
             addonBefore="Teléfono"
+            disabled={disabled}
           />
           <Select
             value={regionId}
@@ -747,6 +866,7 @@ export default ({ setPageTitle }) => {
               value: region.id,
               label: region.name,
             }))}
+            disabled={disabled}
           />
           <Select
             value={provinceId}
@@ -761,6 +881,7 @@ export default ({ setPageTitle }) => {
               value: province.id,
               label: province.name,
             }))}
+            disabled={disabled}
           />
           <Select
             value={districtId}
@@ -775,12 +896,14 @@ export default ({ setPageTitle }) => {
               value: district.id,
               label: district.name,
             }))}
+            disabled={disabled}
           />
           <Input
             placeholder="Domicilio"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
             addonBefore="Dirección"
+            disabled={disabled}
           />
         </Grid>
       </Container>
@@ -832,7 +955,7 @@ export default ({ setPageTitle }) => {
                     ).toFixed(2)
                   );
                 }}
-                addonBefore="A Cuenta S/"
+                addonBefore="Efectivo S/"
               />
               <Input
                 value={due}
@@ -858,7 +981,7 @@ export default ({ setPageTitle }) => {
                     ).toFixed(2)
                   );
                 }}
-                addonBefore="Deuda S/"
+                addonBefore="Crédito S/"
               />
             </Grid>
             <br />

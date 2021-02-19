@@ -9,12 +9,20 @@ import {
   Select,
   ModalProforma,
 } from "../../components";
-import { getSales, getUsers, userProvider } from "../../providers";
+import {
+  getBank,
+  getSales,
+  getUsers,
+  userProvider,
+  getSale,
+  getSalesSigo,
+} from "../../providers";
 import { Input, notification, Table, Modal } from "antd";
-
+import { get } from "lodash";
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import * as FileSaver from "file-saver";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Administración Ventas");
@@ -109,11 +117,15 @@ export default ({ setPageTitle }) => {
           "-"
         ) : (
           <Button
-            onClick={async () =>
-              data.typeDescription === "En tienda"
-                ? router.push(`/cashHistory?proformaId=${data.proformaId}`)
-                : ""
-            }
+            onClick={async () => {
+              if (data.typeDescription === "En tienda") {
+                router.push(`/cashHistory?proformaId=${data.proformaId}`);
+              } else {
+                setIdModalVoucher(id);
+                setIsVisibleModalVoucher(true);
+                setNameClient(data.proforma.client.name);
+              }
+            }}
             type={"primary"}
           >
             {data.typeDescription === "En tienda" ? "Hist. Caja" : "Voucher"}
@@ -127,6 +139,8 @@ export default ({ setPageTitle }) => {
   const [pagination, setPagination] = useState(null);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [page, setPage] = useState(1);
+
+  const [total, setTotal] = useState(0);
 
   //para el filtro por fecha
   const [from, setFrom] = useState();
@@ -155,6 +169,29 @@ export default ({ setPageTitle }) => {
   const [isVisibleModalProforma, setIsVisibleModalProforma] = useState(false);
   const [idModal, setIdModal] = useState("");
 
+  //Modal voucher
+  const [isVisibleModalVoucher, setIsVisibleModalVoucher] = useState(false);
+  const [idModalVoucher, setIdModalVoucher] = useState(null);
+  const [sale, setSale] = useState(null);
+  const [nameClient, setNameClient] = useState(null);
+  const [bank, setBank] = useState(null);
+
+  useEffect(() => {
+    const fetchSale = async () => {
+      try {
+        const _sale = await getSale(idModalVoucher);
+        const _bank = await getBank(_sale.bankAccount.bankId);
+        setBank(_bank);
+        setSale(_sale);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (idModalVoucher) {
+      fetchSale();
+    }
+  }, [idModalVoucher]);
+
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
@@ -164,7 +201,7 @@ export default ({ setPageTitle }) => {
     const initialize = async () => {
       try {
         const _users = await getUsers();
-        setUsers(_users);
+        setUsers(_users.rows);
         const _me = await userProvider.getUser();
         setMe(_me);
       } catch (error) {
@@ -193,6 +230,8 @@ export default ({ setPageTitle }) => {
           current: _sales.page,
           pageSize: _sales.pageSize,
           showSizeChanger: false,
+          showQuickJumper: true,
+          showTotal: () => `Total: ${_sales.count} ítems`,
         });
         /* setsales(_sales.rows); */
         setsales(
@@ -280,6 +319,7 @@ export default ({ setPageTitle }) => {
 
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
+      setIds([...selectedRowKeys]);
       console.log(
         `selectedRowKeys: ${selectedRowKeys}`,
         "selectedRows: ",
@@ -292,6 +332,21 @@ export default ({ setPageTitle }) => {
   };
   const [selectionType, setSelectionType] = useState("checkbox");
 
+  // archivo SIGO
+
+  const [ids, setIds] = useState([]);
+  const prueba = async () => {
+    try {
+      const _response = await getSalesSigo(ids);
+      _response.blob().then((res) => {
+        console.log("_response", res);
+        FileSaver.saveAs(res, "Report.xlsx");
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <Modal
@@ -302,6 +357,48 @@ export default ({ setPageTitle }) => {
         footer={null}
       >
         <ModalProforma id={idModal}></ModalProforma>
+      </Modal>
+      <Modal
+        visible={isVisibleModalVoucher}
+        title="Información del voucher"
+        onCancel={() => setIsVisibleModalVoucher(false)}
+        footer={null}
+      >
+        <Container
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          padding="0px"
+        >
+          <Input value={nameClient} disabled addonBefore="Cliente" />
+          <br />
+          <Input value={get(bank, "name", null)} disabled addonBefore="Banco" />
+          <br />
+          <Input value={sale?.bankAccount.name} disabled addonBefore="Cuenta" />
+          <br />
+          <DatePicker
+            value={moment()}
+            format={clientDateFormat}
+            label={
+              <>
+                <Icon icon={faCalendarAlt} />
+                Fecha del depósito
+              </>
+            }
+          />
+          <br />
+          <img
+            src={get(sale, "voucherImage", null)}
+            style={{ margin: "10px 0px", maxWidth: "90%" }}
+            alt="voucher-image"
+          />
+          <Button
+            type="primary"
+            onClick={() => setIsVisibleModalVoucher(false)}
+          >
+            Regresar
+          </Button>
+        </Container>
       </Modal>
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
@@ -316,7 +413,7 @@ export default ({ setPageTitle }) => {
               value={from}
               onChange={(value) => setFrom(value)}
               format={clientDateFormat}
-              disabledDate={(value) => value >= to}
+              disabledDate={(value) => to && value >= to}
               label={
                 <>
                   <Icon icon={faCalendarAlt} />
@@ -378,7 +475,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-          <Button type="primary" gridColumnStart="2">
+          <Button onClick={prueba} type="primary" gridColumnStart="2">
             Crear Archivo SIGO
           </Button>
           <Button
