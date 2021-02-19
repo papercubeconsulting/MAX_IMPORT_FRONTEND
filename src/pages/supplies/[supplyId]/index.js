@@ -443,7 +443,6 @@ export default ({ setPageTitle }) => {
       setProviderId(get(_supply, "providerId", null));
       setWarehouseId(get(_supply, "warehouseId", null));
       setCode(get(_supply, "code", null));
-      setArrivalDate(get(_supply, "arrivalDate", null));
       setSuppliedProducts(
         get(_supply, "suppliedProducts", []).map((suppliedProduct, index) => ({
           id: index + 1,
