@@ -27,7 +27,7 @@ import {
 } from "../../../providers";
 import { get, orderBy } from "lodash";
 import { Input, notification, Table } from "antd";
-import { clientDateFormat } from "../../../util";
+import { clientDateFormat, serverDateFormat } from "../../../util";
 import {
   faCalendarAlt,
   faPlus,
@@ -360,6 +360,7 @@ export default ({ setPageTitle }) => {
   const [providerId, setProviderId] = useState(null);
   const [warehouseId, setWarehouseId] = useState(null);
   const [code, setCode] = useState(null);
+  const [arrivalDate, setArrivalDate] = useState(moment());
   const [suppliedProducts, setSuppliedProducts] = useState([]);
   const [me, setMe] = useState({ name: null });
 
@@ -442,6 +443,7 @@ export default ({ setPageTitle }) => {
       setProviderId(get(_supply, "providerId", null));
       setWarehouseId(get(_supply, "warehouseId", null));
       setCode(get(_supply, "code", null));
+      setArrivalDate(get(_supply, "arrivalDate", null));
       setSuppliedProducts(
         get(_supply, "suppliedProducts", []).map((suppliedProduct, index) => ({
           id: index + 1,
@@ -513,11 +515,14 @@ export default ({ setPageTitle }) => {
         providerId,
         warehouseId,
         code,
+        arrivalDate,
       };
 
-      if (isEdit) await putSupply(supplyId, body);
-      else await postSupply(body);
-
+      if (isEdit) {
+        await putSupply(supplyId, body);
+      } else {
+        await postSupply(body);
+      }
       await router.push("/supplies");
       setLoadingSupply(false);
     } catch (error) {
@@ -609,7 +614,8 @@ export default ({ setPageTitle }) => {
       <Container height="10%">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <DatePicker
-            value={moment()}
+            value={arrivalDate}
+            onChange={(value) => setArrivalDate(value)}
             format={clientDateFormat}
             disabled={disabled}
             label={
