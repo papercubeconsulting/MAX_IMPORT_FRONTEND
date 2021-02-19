@@ -439,6 +439,7 @@ export default ({ setPageTitle }) => {
 
       const _supply = await getSupply(supplyId);
 
+      setArrivalDate(moment(_supply.arrivalDate));
       setSupply(_supply);
       setProviderId(get(_supply, "providerId", null));
       setWarehouseId(get(_supply, "warehouseId", null));
