@@ -61,11 +61,11 @@ export default ({ setPageTitle }) => {
       render: (warehouse) => warehouse.name,
     },
     {
-      title: "Fecha Reg.",
-      dataIndex: "createdAt",
+      title: "Fecha LLeg.",
+      dataIndex: "arrivalDate",
       align: "center",
-      render: (createdAt) =>
-        moment(createdAt, serverDateFormat).format(clientDateFormat),
+      render: (arrivalDate) =>
+        moment(arrivalDate, serverDateFormat).format(clientDateFormat),
     },
     {
       title: "Estado",
