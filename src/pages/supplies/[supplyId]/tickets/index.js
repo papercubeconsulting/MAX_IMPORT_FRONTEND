@@ -84,10 +84,10 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                     <span style={{ fontSize: "28px" }}>{modelName}</span>
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <span style={{ fontSize: "32px" }}>
+                    <strong style={{ fontSize: "32px" }}>
                       Nombre Comercial:{" "}
-                    </span>
-                    <strong style={{ fontSize: "32px" }}>{tradename}</strong>
+                    </strong>
+                    <span style={{ fontSize: "32px" }}>{tradename}</span>
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
                     <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
