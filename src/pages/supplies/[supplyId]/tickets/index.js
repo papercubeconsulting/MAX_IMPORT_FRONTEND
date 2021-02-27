@@ -25,6 +25,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
       modelName,
       boxSize,
       tradename,
+      providerName,
     } = query;
     let { boxes, productBoxesCodes } = query;
 
@@ -83,21 +84,21 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                     <span style={{ fontSize: "28px" }}>{modelName}</span>
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "30px" }}>
+                    <strong style={{ fontSize: "32px" }}>
                       Nombre Comercial:{" "}
                     </strong>
-                    <span style={{ fontSize: "30px" }}>{tradename}</span>
+                    <span style={{ fontSize: "32px" }}>{tradename}</span>
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
                     <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      Unid/Caja:{" "}
+                      Proveedor:{" "}
                     </strong>
-                    <span style={{ fontSize: "25px" }}>{boxSize}</span>
+                    <span style={{ fontSize: "25px" }}>{providerName}</span>
                   </div>
                   <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      #Caja:{" "}
-                    </strong>
+                    <strong style={{ fontSize: "25px" }}>Unid/Caja: </strong>
+                    <span style={{ fontSize: "25px" }}>{boxSize} // </span>
+                    <strong style={{ fontSize: "25px" }}> #Caja: </strong>
                     <span style={{ fontSize: "25px" }}>{box}</span>
                   </div>
                   <img

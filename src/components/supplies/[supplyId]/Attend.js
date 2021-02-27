@@ -57,6 +57,8 @@ export const Attend = (props) => {
       const suppliedProduct = get(response, "suppliedProducts", []).find(
         (obj) => obj.id === props.product.dbId
       );
+      const providerName = response.provider.name;
+      // console.log("providerName", providerName);
       const {
         familyName,
         subfamilyName,
@@ -71,6 +73,7 @@ export const Attend = (props) => {
         elementName,
         modelName,
         tradename,
+        providerName,
         /* boxes, */
         boxSize: suppliedProduct.boxSize,
         /* productBoxesCodes: boxes.map(box=> get(suppliedProduct, "productBoxes", [])
@@ -111,9 +114,9 @@ export const Attend = (props) => {
         `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
       );
 
-      console.log(
+      /* console.log(
         `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
-      );
+      ); */
 
       /* await router.push({
                 pathname: `/supplies/${props.supplyId}/tickets`,
