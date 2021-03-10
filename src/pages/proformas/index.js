@@ -119,9 +119,8 @@ export default ({ setPageTitle }) => {
   const [to, setTo] = useState();
   //para el filtro por nro doc
   const [documentNumber, setDocumentNumber] = useState(null);
-  //para el filtro con datos de cliente
-  const [clientName, setClientName] = useState(null);
-  const [clientLastName, setClientLastName] = useState(null);
+  //para el filtro por DNI/RUC
+  const [idNumber, setIdNumber] = useState(null);
   //para el filtro por status de proforma
   const [status, setStatus] = useState(null);
   const [saleStatus, setSaleStatus] = useState(null);
@@ -203,8 +202,7 @@ export default ({ setPageTitle }) => {
     status && (params.status = status);
     saleStatus && (params.saleStatus = saleStatus);
     dispatchStatus && (params.dispatchStatus = dispatchStatus);
-    clientName && (params.name = clientName);
-    clientLastName && (params.lastname = clientLastName);
+    idNumber && (params.idNumber = idNumber);
     await router.push(`/proformas${urlQueryParams(params)}`);
   };
 
@@ -224,8 +222,7 @@ export default ({ setPageTitle }) => {
     setStatus(queryParams.status || null);
     setSaleStatus(queryParams.saleStatus || null);
     setDispatchStatus(queryParams.dispatchStatus || null);
-    setClientName(queryParams.name || null);
-    setClientLastName(queryParams.lastname || null);
+    setIdNumber(queryParams.idNumber || null);
   };
 
   const updateState = (setState, value, isPagination) => {
@@ -345,13 +342,9 @@ export default ({ setPageTitle }) => {
             addonBefore="Proforma"
           />
           <Input
-            value={clientName}
-            onChange={(event) => setClientName(event.target.value)}
-            addonBefore="Cliente"
-          />
-          <Input
-            value={clientLastName}
-            onChange={(event) => setClientLastName(event.target.value)}
+            value={idNumber}
+            onChange={(event) => setIdNumber(event.target.value)}
+            addonBefore="DNI/RUC"
           />
           <Select
             value={userId}
