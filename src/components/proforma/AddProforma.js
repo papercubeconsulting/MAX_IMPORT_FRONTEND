@@ -92,7 +92,6 @@ export const AddProforma = (props) => {
     }));
 
   // funcion para consignar la venta
-  //TODO: agregar campo fecha de deposito (datepicker) al body en postSale
   const summitSale = async () => {
     try {
       const body = {
@@ -111,12 +110,14 @@ export const AddProforma = (props) => {
       props.saleWay === 2 && (body.bankAccountId = bankAccount.id);
       props.saleWay === 2 && (body.paymentDate = paymentDate);
 
-      if (!voucherNum || !imageBase64 || !bankAccount.id) {
-        Modal.warning({
-          title: "Datos faltantes",
-          content: "Por favor, completar todos los datos del depósito.",
-        });
-        return;
+      if (props.saleWay !== 1 && props.totalPaid != 0) {
+        if (!voucherNum || !imageBase64 || !bankAccount.id) {
+          Modal.warning({
+            title: "Datos faltantes",
+            content: "Por favor, completar todos los datos del depósito.",
+          });
+          return;
+        }
       }
       // console.log("body", body);
       const response = await postSale(body);
