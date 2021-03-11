@@ -42,16 +42,16 @@ export default ({ setPageTitle }) => {
     },
     {
       width: "20%",
+      title: "Acción",
+      dataIndex: "log",
+      align: "center",
+    },
+    {
+      width: "20%",
       title: "Ubicación",
       dataIndex: "warehouse",
       align: "center",
       render: (warehouse) => warehouse.name,
-    },
-    {
-      width: "20%",
-      title: "Acción",
-      dataIndex: "log",
-      align: "center",
     },
   ];
 
@@ -163,10 +163,10 @@ export default ({ setPageTitle }) => {
   };
   return (
     <>
-      <Container height="20%" flexDirection="column">
-        <Grid gridTemplateRows="1fr 2fr" gridGap="1rem">
+      <Container height="auto" flexDirection="column">
+        <Grid gridTemplateRows="1fr" gridGap="1rem">
           <Grid
-            gridTemplateColumns="repeat(4, 1fr)"
+            gridTemplateColumns="repeat(3, 1fr)"
             gridTemplateRows="repeat(1, 2rem)"
             gridGap="1rem"
           >
@@ -190,12 +190,6 @@ export default ({ setPageTitle }) => {
               addonBefore="Correlativo en abastecimiento"
               value={get(productBox, "indexFromSupliedProduct", "-")}
             />
-          </Grid>
-          <Grid
-            gridTemplateColumns="repeat(4, 1fr)"
-            gridTemplateRows="repeat(2, 2rem)"
-            gridGap="1rem"
-          >
             <Input
               disabled
               addonBefore="Familia"
@@ -244,7 +238,7 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Container>
       <Container
-        height="20%"
+        height="auto"
         //    width="50%"
         flexDirection="column"
         textAlign="center"
@@ -277,7 +271,7 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Container>
       <Container
-        height="60%"
+        height="auto"
         flexDirection="column"
         textAlign="center"
         padding="1rem 0"
