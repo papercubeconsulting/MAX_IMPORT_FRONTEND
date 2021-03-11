@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "reactn";
 import styled from "styled-components";
+import { Menu as MenuDrop, Dropdown } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCalendarAlt,
@@ -36,6 +37,22 @@ export const BaseLayout = (props) => {
 
     return route === currentRoute;
   };
+
+  const menu = (
+    <MenuDrop>
+      <MenuDrop.Item key="1">
+        <span
+          onClick={() => {
+            setGlobalAuthUser(null);
+            localStorage.removeItem("authUser");
+            router.push("/");
+          }}
+        >
+          Cerrar sesión
+        </span>
+      </MenuDrop.Item>
+    </MenuDrop>
+  );
 
   return (
     <>
@@ -102,22 +119,15 @@ export const BaseLayout = (props) => {
               <Icon icon={faCalendarAlt} />
               <h3>{moment().format(clientDateFormat)}</h3>
               <Divider />
-              <Icon icon={faUser} />
-              <h3>{get(globalAuthUser, "user.name", "Bienvenido")}</h3>
-              {globalAuthUser && (
-                <>
-                  <Divider />
-                  <h3
-                    onClick={async () => {
-                      await setGlobalAuthUser(null);
-                      localStorage.removeItem("authUser");
-                      router.push("/");
-                    }}
-                  >
-                    Cerrar sesión
-                  </h3>
-                </>
-              )}
+              <Dropdown
+                overlay={menu}
+                trigger={globalAuthUser ? ["click"] : [""]}
+              >
+                <h3>
+                  <Icon style={{ cursor: "pointer" }} icon={faUser} />
+                  {get(globalAuthUser, "user.name", "Bienvenido")}
+                </h3>
+              </Dropdown>
             </Container>
           </Header>
           <Content>{props.children}</Content>
