@@ -25,7 +25,6 @@ import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import * as FileSaver from "file-saver";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Administración Ventas");
   const columns = [
     {
       dataIndex: "createdAt",
@@ -175,6 +174,8 @@ export default ({ setPageTitle }) => {
   const [sale, setSale] = useState(null);
   const [nameClient, setNameClient] = useState(null);
   const [bank, setBank] = useState(null);
+
+  setPageTitle(`Administración Ventas - ${sales.length} ítem(s)`);
 
   useEffect(() => {
     const fetchSale = async () => {
@@ -476,7 +477,7 @@ export default ({ setPageTitle }) => {
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
           <Button onClick={prueba} type="primary" gridColumnStart="2">
-            Crear Archivo SIGO
+            Crear Archivo SIIGO
           </Button>
           <Button
             type="primary"
