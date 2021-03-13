@@ -12,8 +12,9 @@ import { faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import moment from "moment-timezone";
 
-export default ({ setPageTitle }) => {
+export default ({ setPageTitle, setShowButton }) => {
   setPageTitle("Caja de productos");
+  setShowButton(true);
   const productBoxLogColumns = [
     {
       width: "20%",

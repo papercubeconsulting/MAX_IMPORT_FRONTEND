@@ -9,6 +9,7 @@ import {
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { Container } from "./Container";
+import { Button } from "./Button";
 import { clientDateFormat } from "../util";
 import moment from "moment";
 import { useRouter } from "next/router";
@@ -116,6 +117,17 @@ export const BaseLayout = (props) => {
               justifyContent="flex-end"
               alignItems="center"
             >
+              {props.showButton && (
+                <Button
+                  width="90px"
+                  margin="2% 20px 2% 0%"
+                  type="primary"
+                  onClick={async () => router.back()}
+                >
+                  Regresar
+                </Button>
+              )}
+
               <Icon icon={faCalendarAlt} />
               <h3>{moment().format(clientDateFormat)}</h3>
               <Divider />
