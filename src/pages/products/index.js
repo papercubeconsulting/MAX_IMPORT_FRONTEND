@@ -347,7 +347,7 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalReadProductBoxCodeVisible}
         />
       )}
-      <Container height="20%">
+      <Container height="auto">
         <Grid
           gridTemplateColumns="repeat(3, 1fr)"
           gridTemplateRows="repeat(2, 1fr)"

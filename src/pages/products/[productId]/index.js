@@ -8,6 +8,8 @@ import { Input, Modal, Table, Button, notification, Upload } from "antd";
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
+import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
+
 export default () => {
   const stockByWarehouseColumns = [
     {
@@ -64,6 +66,12 @@ export default () => {
   const [tradename, setTradename] = useState("");
   const [imageBase64, setImageBase64] = useState(null);
   const [disabled, setDisabled] = useState(true);
+
+  // modal código de caja
+  const [
+    isModalReadProductBoxCodeVisible,
+    setIsModalReadProductBoxCodeVisible,
+  ] = useState(false);
 
   const router = useRouter();
   const { productId } = router.query;
@@ -148,6 +156,12 @@ export default () => {
 
   return (
     <>
+      {isModalReadProductBoxCodeVisible && (
+        <ReadProductCode
+          visible={isModalReadProductBoxCodeVisible}
+          trigger={setIsModalReadProductBoxCodeVisible}
+        />
+      )}
       <Modal
         visible={showImagePreview}
         width="90%"
@@ -158,8 +172,8 @@ export default () => {
           <img src={get(product, "imageBase64", null)} alt="image" />
         </ImagePreviewContainer>
       </Modal>
-      <Container height="20%" flexDirection="column">
-        <Grid gridTemplateRows="2fr 1fr" gridGap="1rem">
+      <Container height="auto" flexDirection="column">
+        <Grid gridTemplateRows="1fr" gridGap="1rem">
           <Grid
             gridTemplateColumns="repeat(4, 1fr)"
             gridTemplateRows="repeat(2, 2rem)"
@@ -241,7 +255,7 @@ export default () => {
         </Grid>
       </Container>
       <Container
-        height="80%"
+        height="auto"
         flexDirection="column"
         textAlign="center"
         padding="1rem 0"
@@ -249,7 +263,7 @@ export default () => {
         <Grid gridTemplateRows="repeat(2, auto)" gridGap="1rem">
           <div>
             <h3>
-              Disponibilidad del producto en los almacenes(unidades totales)
+              Disponibilidad del producto en los almacenes (unidades totales)
             </h3>
             <br />
             <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
@@ -315,6 +329,16 @@ export default () => {
             />
           </div>
         </Grid>
+      </Container>
+      <Container height="15%" justifyContent="space-around">
+        <Button
+          onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+          size="large"
+          width="30%"
+          type="primary"
+        >
+          Mover Caja
+        </Button>
       </Container>
     </>
   );
