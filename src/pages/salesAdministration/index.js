@@ -377,10 +377,12 @@ export default ({ setPageTitle }) => {
           <br />
           <Input value={sale?.bankAccount.name} disabled addonBefore="Cuenta" />
           <br />
-          <DatePicker
-            value={moment()}
-            format={clientDateFormat}
-            label={
+          <Input
+            value={moment(get(sale, "paymentDate", null)).format(
+              clientDateFormat
+            )}
+            disabled
+            addonBefore={
               <>
                 <Icon icon={faCalendarAlt} />
                 Fecha del depósito
