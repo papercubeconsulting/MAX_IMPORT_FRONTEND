@@ -60,14 +60,16 @@ export default ({ setPageTitle }) => {
       title: "Cliente",
       width: "fit-content",
       align: "center",
-      render: (proforma) => proforma.client.name,
+      render: (proforma) =>
+        `${proforma.client.name} ${proforma.client.lastname}`,
     },
     {
       dataIndex: "sale",
       title: "Tip. Despacho",
       width: "fit-content",
       align: "center",
-      render: (sale) => sale.dispatchmentType,
+      render: (sale) =>
+        sale.dispatchmentType === "PICK_UP" ? "EN TIENDA" : "DELIVERY",
     },
     {
       dataIndex: "id",
@@ -161,7 +163,7 @@ export default ({ setPageTitle }) => {
           status: "OPEN",
           ...queryParams,
         });
-        console.log("disp", _dispatches);
+        console.log("disp", _dispatches.rows);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,

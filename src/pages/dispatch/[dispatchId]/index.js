@@ -69,7 +69,7 @@ export default ({ setPageTitle }) => {
       render: (product) => get(product, "modelName", null),
     },
     {
-      title: "Cantidad",
+      title: "Ctd. a Despachar",
       dataIndex: "quantity",
       align: "center",
     },
