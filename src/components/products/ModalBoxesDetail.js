@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { Table } from "antd";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
@@ -7,6 +8,7 @@ import { getProductBoxes } from "../../providers";
 import { Button, Container, Grid, Icon } from "../../components";
 
 export const ModalBoxesDetail = ({ productId }) => {
+  const router = useRouter();
   const columns = [
     {
       title: "Código de caja",
@@ -21,13 +23,13 @@ export const ModalBoxesDetail = ({ productId }) => {
       align: "center",
     },
     {
-      title: "Box size",
+      title: "Unidades/caja",
       dataIndex: "boxSize",
       width: "fit-content",
       align: "center",
     },
     {
-      title: "Supply",
+      title: "Código de abastecimiento",
       dataIndex: "supply",
       width: "fit-content",
       align: "center",
@@ -42,12 +44,14 @@ export const ModalBoxesDetail = ({ productId }) => {
     },
     {
       title: "",
-      dataIndex: "id",
+      dataIndex: "trackingCode",
       width: "fit-content",
       align: "center",
-      render: (productId) => (
+      render: (trackingCode) => (
         <Button
-          onClick={async () => router.push(`/products/${productId}`)}
+          onClick={async () =>
+            router.push(`/products/productBoxes/${trackingCode}`)
+          }
           type="primary"
         >
           <Icon icon={faEye} />
@@ -65,7 +69,7 @@ export const ModalBoxesDetail = ({ productId }) => {
   }, []);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchBoxes = async () => {
       try {
         const _boxes = await getProductBoxes({ productId });
         setBoxes(_boxes);
@@ -73,8 +77,7 @@ export const ModalBoxesDetail = ({ productId }) => {
         console.log(error);
       }
     };
-
-    fetchProduct();
+    fetchBoxes();
   }, []);
 
   return (
@@ -82,7 +85,9 @@ export const ModalBoxesDetail = ({ productId }) => {
       <Container height="80%" flexDirection="column" textAlign="center">
         <Grid gridTemplateRows="repeat(2, auto)" gridGap="1rem">
           <div>
-            <h3>Detalle de las cajas registradas en el ítem</h3>
+            <h3>
+              <strong>Detalle de las cajas registradas en el ítem</strong>
+            </h3>
             <br />
             <Table
               columns={columns}
