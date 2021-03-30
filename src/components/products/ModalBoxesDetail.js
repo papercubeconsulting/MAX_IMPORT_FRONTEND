@@ -1,56 +1,80 @@
 import React, { useEffect, useState } from "react";
-import { Container } from "../Container";
-import { Grid } from "../Grid";
-import { getProduct } from "../../providers";
 import { Table } from "antd";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
+
+import { getProductBoxes } from "../../providers";
+
+import { Button, Container, Grid, Icon } from "../../components";
 
 export const ModalBoxesDetail = ({ productId }) => {
-  const stockByWarehouseAndBoxSizeColumns = [
+  const columns = [
     {
       title: "Código de caja",
-      dataIndex: "warehouseName",
+      dataIndex: "trackingCode",
       width: "fit-content",
       align: "center",
     },
     {
       title: "Stock",
-      dataIndex: "warehouseName",
+      dataIndex: "stock",
       width: "fit-content",
       align: "center",
     },
     {
       title: "Box size",
-      dataIndex: "warehouseName",
+      dataIndex: "boxSize",
       width: "fit-content",
       align: "center",
     },
     {
       title: "Supply",
-      dataIndex: "quantityBoxes",
+      dataIndex: "supply",
       width: "fit-content",
       align: "center",
+      render: (supply) => supply.code,
     },
     {
       title: "Ubicación",
-      dataIndex: "warehouseName",
+      dataIndex: "warehouse",
       width: "fit-content",
       align: "center",
+      render: (warehouse) => warehouse.name,
+    },
+    {
+      title: "",
+      dataIndex: "id",
+      width: "fit-content",
+      align: "center",
+      render: (productId) => (
+        <Button
+          onClick={async () => router.push(`/products/${productId}`)}
+          type="primary"
+        >
+          <Icon icon={faEye} />
+          Ver
+        </Button>
+      ),
     },
   ];
 
-  const [product, setProduct] = useState(null);
+  const [boxes, setBoxes] = useState([]);
+  const [windowHeight, setWindowHeight] = useState(0);
 
   useEffect(() => {
-    /* const fetchProduct = async () => {
+    setWindowHeight(window.innerHeight);
+  }, []);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
       try {
-        const _product = await getProduct(props.id);
-        setProduct(_product);
+        const _boxes = await getProductBoxes({ productId });
+        setBoxes(_boxes);
       } catch (error) {
         console.log(error);
       }
     };
 
-    fetchProduct(); */
+    fetchProduct();
   }, []);
 
   return (
@@ -61,11 +85,12 @@ export const ModalBoxesDetail = ({ productId }) => {
             <h3>Detalle de las cajas registradas en el ítem</h3>
             <br />
             <Table
-              columns={stockByWarehouseAndBoxSizeColumns}
+              columns={columns}
               bordered
               scrollToFirstRowOnChange
+              scroll={{ y: windowHeight * 0.5 - 32 }}
               pagination={false}
-              dataSource={[]}
+              dataSource={boxes}
             />
           </div>
         </Grid>
