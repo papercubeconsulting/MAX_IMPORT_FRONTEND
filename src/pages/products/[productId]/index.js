@@ -1,5 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Container, Grid, Icon } from "../../../components";
+import {
+  Container,
+  Grid,
+  Icon,
+  Button as CustomButton,
+} from "../../../components";
 import { useRouter } from "next/router";
 import { getProduct, updateProduct } from "../../../providers";
 import { get } from "lodash";
@@ -9,6 +14,7 @@ import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
+import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail";
 
 export default () => {
   const stockByWarehouseColumns = [
@@ -66,6 +72,11 @@ export default () => {
   const [tradename, setTradename] = useState("");
   const [imageBase64, setImageBase64] = useState(null);
   const [disabled, setDisabled] = useState(true);
+
+  // modal código de caja
+  const [isModalBoxesDetailVisible, setIsModalBoxesDetailVisible] = useState(
+    false
+  );
 
   // modal código de caja
   const [
@@ -171,6 +182,14 @@ export default () => {
         <ImagePreviewContainer justifyContent="center">
           <img src={get(product, "imageBase64", null)} alt="image" />
         </ImagePreviewContainer>
+      </Modal>
+      <Modal
+        visible={isModalBoxesDetailVisible}
+        width="70%"
+        footer={null}
+        onCancel={() => setIsModalBoxesDetailVisible(false)}
+      >
+        <ModalBoxesDetail productId={productId} />
       </Modal>
       <Container height="auto" flexDirection="column">
         <Grid gridTemplateRows="1fr" gridGap="1rem">
@@ -331,14 +350,22 @@ export default () => {
         </Grid>
       </Container>
       <Container height="15%" justifyContent="space-around">
-        <Button
+        <CustomButton
           onClick={() => setIsModalReadProductBoxCodeVisible(true)}
           size="large"
           width="30%"
           type="primary"
         >
           Mover Caja
-        </Button>
+        </CustomButton>
+        <CustomButton
+          onClick={() => setIsModalBoxesDetailVisible(true)}
+          size="large"
+          width="30%"
+          type="primary"
+        >
+          Ver detalle de cajas
+        </CustomButton>
       </Container>
     </>
   );
