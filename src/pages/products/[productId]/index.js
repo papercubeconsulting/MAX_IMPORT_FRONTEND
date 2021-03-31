@@ -7,6 +7,8 @@ import { toBase64 } from "../../../util";
 import { Input, Modal, Table, Button, notification, Upload } from "antd";
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
+// fix window
+import window from 'global';
 
 export default () => {
   const stockByWarehouseColumns = [

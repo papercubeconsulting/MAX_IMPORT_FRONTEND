@@ -4,6 +4,9 @@ import { getProforma } from "../providers";
 import { get } from "lodash";
 import { Input, Table, Modal } from "antd";
 
+// fix window
+import window from 'global';
+
 export const ModalProforma = (props) => {
   const columns = [
     {

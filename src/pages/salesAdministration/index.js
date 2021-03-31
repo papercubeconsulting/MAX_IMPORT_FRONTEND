@@ -24,6 +24,9 @@ import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import * as FileSaver from "file-saver";
 
+// fix window
+import window from 'global';
+
 export default ({ setPageTitle }) => {
   setPageTitle("Administración Ventas");
   const columns = [

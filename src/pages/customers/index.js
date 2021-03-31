@@ -23,6 +23,8 @@ import { urlQueryParams, serverDateFormat, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   setPageTitle("BD de Clientes");

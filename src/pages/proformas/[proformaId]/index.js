@@ -4,6 +4,8 @@ import { Button, Container, Grid, ModalProduct } from "../../../components";
 import { getProforma } from "../../../providers";
 import { get } from "lodash";
 import { Input, Table, Modal } from "antd";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   setPageTitle("Información de proforma");

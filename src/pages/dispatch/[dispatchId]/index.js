@@ -15,6 +15,9 @@ import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
 import styled from "styled-components";
 
+// fix window
+import window from 'global';
+
 const QRScanner = styled.div`
   .viewport {
     width: 60%;

@@ -14,6 +14,8 @@ import { clientDateFormat, serverDateFormat } from "../../util";
 import { getSupplies, putSupplyStatus } from "../../providers";
 import { useGlobal } from "reactn";
 import { get } from "lodash";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");

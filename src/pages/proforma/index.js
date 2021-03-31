@@ -28,6 +28,8 @@ import { get, orderBy } from "lodash";
 import { Input, Table, notification, Modal } from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   const router = useRouter();

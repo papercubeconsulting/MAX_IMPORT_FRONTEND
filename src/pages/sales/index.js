@@ -16,6 +16,8 @@ import { useRouter } from "next/router";
 import moment from "moment";
 import { clientDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   setPageTitle("Pagos en caja");

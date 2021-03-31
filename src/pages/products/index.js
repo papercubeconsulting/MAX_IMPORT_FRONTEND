@@ -22,6 +22,9 @@ import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
+// fix window
+import window from 'global';
+
 export default ({ setPageTitle }) => {
   setPageTitle("Inventario");
 

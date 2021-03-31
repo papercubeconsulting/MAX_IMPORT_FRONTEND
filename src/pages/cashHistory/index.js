@@ -16,6 +16,9 @@ import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
+// fix window
+import window from 'global';
+
 export default ({ setPageTitle }) => {
   setPageTitle("Historial de Caja");
   const columns = [

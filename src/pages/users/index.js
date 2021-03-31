@@ -7,6 +7,8 @@ import { getUsers, userProvider, putUser } from "../../providers";
 import { urlQueryParams, clientDateFormat } from "../../util";
 import { Input, notification, Table, Modal, Space } from "antd";
 import { faEye, faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
+// fix window
+import window from 'global';
 
 export default ({ setPageTitle }) => {
   setPageTitle("Administración de Usuarios");
