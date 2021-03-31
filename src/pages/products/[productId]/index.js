@@ -185,6 +185,7 @@ export default () => {
       </Modal>
       <Modal
         visible={isModalBoxesDetailVisible}
+        centered
         width="80%"
         footer={null}
         onCancel={() => setIsModalBoxesDetailVisible(false)}

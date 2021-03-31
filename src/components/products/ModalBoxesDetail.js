@@ -13,39 +13,43 @@ export const ModalBoxesDetail = ({ productId }) => {
     {
       title: "Código de caja",
       dataIndex: "trackingCode",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Stock",
       dataIndex: "stock",
-      width: "fit-content",
+      width: "75px",
       align: "center",
     },
     {
       title: "Unidades/caja",
       dataIndex: "boxSize",
-      width: "fit-content",
+      width: "100px",
       align: "center",
     },
     {
       title: "Código de abastecimiento",
       dataIndex: "supply",
-      width: "fit-content",
       align: "center",
       render: (supply) => supply.code,
     },
     {
-      title: "Ubicación",
+      title: "Ubicación actual",
       dataIndex: "warehouse",
-      width: "fit-content",
       align: "center",
       render: (warehouse) => warehouse.name,
     },
     {
+      title: "Ubicación anterior",
+      dataIndex: "previousWarehouse",
+      align: "center",
+      render: (previousWarehouse) =>
+        previousWarehouse ? previousWarehouse.name : "-",
+    },
+    {
       title: "",
       dataIndex: "trackingCode",
-      width: "fit-content",
+      width: "110px",
       align: "center",
       render: (trackingCode) => (
         <Button
@@ -83,22 +87,18 @@ export const ModalBoxesDetail = ({ productId }) => {
   return (
     <>
       <Container height="80%" flexDirection="column" textAlign="center">
-        <Grid gridTemplateRows="repeat(2, auto)" gridGap="1rem">
-          <div>
-            <h3>
-              <strong>Detalle de las cajas registradas en el ítem</strong>
-            </h3>
-            <br />
-            <Table
-              columns={columns}
-              bordered
-              scrollToFirstRowOnChange
-              scroll={{ y: windowHeight * 0.5 - 32 }}
-              pagination={false}
-              dataSource={boxes}
-            />
-          </div>
-        </Grid>
+        <h3>
+          <strong>Detalle de las cajas registradas en el ítem</strong>
+        </h3>
+        <br />
+        <Table
+          columns={columns}
+          bordered
+          scrollToFirstRowOnChange
+          scroll={{ y: windowHeight * 0.5 - 32 }}
+          pagination={false}
+          dataSource={boxes}
+        />
       </Container>
     </>
   );
