@@ -15,6 +15,7 @@ import {
   getModels,
   getProducts,
   getSubfamilies,
+  getTradenames,
 } from "../../providers";
 import { urlQueryParams } from "../../util";
 import { get } from "lodash";
@@ -135,6 +136,7 @@ export default ({ setPageTitle }) => {
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
   const [products, setProducts] = useState([]);
+  const [tradenames, setTradenames] = useState([]);
 
   const [page, setPage] = useState(null);
   const [stock, setStock] = useState(null);
@@ -144,6 +146,7 @@ export default ({ setPageTitle }) => {
   const [elementId, setElementId] = useState(null);
   const [modelId, setModelId] = useState(null);
   const [model, setModel] = useState(null);
+  const [tradename, setTradename] = useState(null);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -191,13 +194,14 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
-  }, [page, stock, code, familyId, subfamilyId, elementId, modelId]);
+  }, [page, stock, code, familyId, subfamilyId, elementId, modelId, tradename]);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         const _families = await getFamilies();
-
+        const _tradenames = await getTradenames();
+        setTradenames(_tradenames.rows);
         setFamilies(_families);
       } catch (error) {
         notification.error({
@@ -273,7 +277,6 @@ export default ({ setPageTitle }) => {
 
         if (elementId) {
           const _models = await getModels(elementId);
-          console.log(_models);
           setModels(_models);
           setModel(null);
         }
@@ -296,6 +299,7 @@ export default ({ setPageTitle }) => {
     setSubfamilyId(Number.parseInt(queryParams.subfamilyId) || null);
     setElementId(Number.parseInt(queryParams.elementId) || null);
     setModelId(Number.parseInt(queryParams.modelId) || null);
+    setTradename(queryParams.tradename || null);
   };
 
   const stateToUrl = async () => {
@@ -307,6 +311,7 @@ export default ({ setPageTitle }) => {
     familyId && subfamilyId && (params.subfamilyId = subfamilyId);
     subfamilyId && elementId && (params.elementId = elementId);
     elementId && modelId && (params.modelId = modelId);
+    tradename && (params.tradename = tradename);
     await router.push(`/products${urlQueryParams(params)}`);
   };
 
@@ -418,6 +423,37 @@ export default ({ setPageTitle }) => {
               if (typeof input === "number") {
                 return;
               }
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
+          />
+          <AutoComplete
+            label="Nombre comercial"
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            value={tradename}
+            onSelect={(value) => {
+              updateState(setTradename, value);
+            }}
+            onSearch={(value) => {
+              setTradename(value);
+            }}
+            _options={tradenames.map((trade) => ({
+              value: trade.tradename,
+              label: trade.tradename,
+            }))}
+            /*  _options={[
+              {
+                value: null,
+                label: "Todos",
+              },
+              ...tradenames.map((trade) => ({
+                value: trade.tradename,
+                label: trade.tradename,
+              })),
+            ]} */
+            filterOption={(input, option) => {
               return option.children
                 .toLowerCase()
                 .includes(input.toLowerCase());

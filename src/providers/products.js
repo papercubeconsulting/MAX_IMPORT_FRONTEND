@@ -10,4 +10,6 @@ const postProduct = async (body) => baseProvider.httpPost("products", body);
 const updateProduct = async (productId, body) =>
   baseProvider.httpPut(`products/${productId}`, body);
 
-export { getProducts, getProduct, postProduct, updateProduct };
+const getTradenames = async () => baseProvider.httpGet(`products/tradename`);
+
+export { getProducts, getProduct, postProduct, updateProduct, getTradenames };
