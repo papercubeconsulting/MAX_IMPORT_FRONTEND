@@ -344,7 +344,6 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalAddProductVisible}
         />
       )}
-      ,
       {isModalReadProductBoxCodeVisible && (
         <ReadProductCode
           visible={isModalReadProductBoxCodeVisible}
@@ -352,37 +351,8 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalReadProductBoxCodeVisible}
         />
       )}
-      <Container height="auto">
-        <Grid
-          gridTemplateColumns="repeat(3, 1fr)"
-          gridTemplateRows="repeat(2, 1fr)"
-          gridGap="2rem"
-        >
-          <Select
-            value={stock}
-            onChange={(value) => updateState(setStock, value)}
-            label="Stock"
-            options={[
-              {
-                value: null,
-                label: "Todos",
-              },
-              {
-                value: "yes",
-                label: "Sí",
-              },
-              {
-                value: "no",
-                label: "No",
-              },
-            ]}
-          />
-          <Input
-            value={code}
-            type="text"
-            onChange={(event) => updateState(setCode, event.target.value)}
-            addonBefore="Código de inventario"
-          />
+      <Container height="auto" flexDirection="column">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Select
             value={familyId}
             onChange={(value) => updateState(setFamilyId, value)}
@@ -428,6 +398,9 @@ export default ({ setPageTitle }) => {
                 .includes(input.toLowerCase());
             }}
           />
+        </Grid>
+        <br />
+        <Grid gridTemplateColumns="2fr 1fr 2fr" gridGap="1rem">
           <AutoComplete
             label="Nombre comercial"
             color={"white"}
@@ -459,8 +432,34 @@ export default ({ setPageTitle }) => {
                 .includes(input.toLowerCase());
             }}
           />
+          <Select
+            value={stock}
+            onChange={(value) => updateState(setStock, value)}
+            label="Stock"
+            options={[
+              {
+                value: null,
+                label: "Todos",
+              },
+              {
+                value: "yes",
+                label: "Sí",
+              },
+              {
+                value: "no",
+                label: "No",
+              },
+            ]}
+          />
+          <Input
+            value={code}
+            type="text"
+            onChange={(event) => updateState(setCode, event.target.value)}
+            addonBefore="Código de inventario"
+          />
         </Grid>
       </Container>
+      <br />
       <Table
         columns={columns}
         bordered
