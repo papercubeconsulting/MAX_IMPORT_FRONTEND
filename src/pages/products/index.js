@@ -412,7 +412,8 @@ export default ({ setPageTitle }) => {
               updateState(setTradename, value);
             }}
             onSearch={(value) => {
-              setTradename(value);
+              updateState(setTradename, value);
+              /* setTradename(value); */
             }}
             _options={tradenames.map((trade) => ({
               value: trade.tradename,
