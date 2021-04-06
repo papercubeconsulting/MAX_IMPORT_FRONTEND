@@ -24,11 +24,9 @@ import { ReadProductCode } from "../../components/products/productBoxes/ReadProd
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Inventario");
-
   const columns = [
     {
-      title: "Cód. Inv.",
+      title: "Cod.",
       dataIndex: "code",
       width: "fit-content",
       align: "center",
@@ -58,7 +56,7 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      title: "Nombre Comercial",
+      title: "Nom.",
       dataIndex: "tradename",
       width: "fit-content",
       align: "center",
@@ -148,6 +146,9 @@ export default ({ setPageTitle }) => {
   const [model, setModel] = useState(null);
   const [tradename, setTradename] = useState(null);
 
+  // Actualiza nombre de la página
+  setPageTitle(`Inventario - ${products.length} ítem(s)`);
+
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
   );
@@ -171,6 +172,7 @@ export default ({ setPageTitle }) => {
     const fetchProducts = async () => {
       try {
         const _products = await getProducts(queryParams);
+        console.log("_products", _products);
         setPagination({
           position: ["bottomCenter"],
           total: _products.pageSize * _products.pages,
