@@ -93,18 +93,14 @@ export const ReadProductCode = (props) => {
     );
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
-        const _code = get(data, "codeResult.code", null);
-        const codeExist = dataCodes.some((code) => code.code == _code);
-        console.log(dataCodes);
-        console.log(_code);
-        console.log(codeExist);
-        if (!codeExist) {
-          console.log("deberia agregar");
-          setDataCodes((prev) => [
-            ...prev,
-            { id: dataCodes.length, code: _code },
-          ]);
-        }
+        const _code = data.codeResult.code;
+        setDataCodes((prev) => {
+          if (prev.some((code) => code.code == _code)) {
+            return [...prev];
+          } else {
+            return [...prev, { id: prev.length + 1, code: _code }];
+          }
+        });
         Quagga.stop();
       }
     });
@@ -113,7 +109,13 @@ export const ReadProductCode = (props) => {
   return (
     <Modal
       visible={props.visible}
-      onOk={async () => router.push(`/products/productBoxes/${productBoxCode}`)}
+      onOk={async () => {
+        if (dataCodes.length === 1) {
+          router.push(`/products/productBoxes/${dataCodes[0].code}`);
+        } else {
+          console.log(dataCodes);
+        }
+      }}
       onCancel={() => props.trigger && props.trigger(false)}
       width="90%"
       title="Escanear o ingresar código de caja"
