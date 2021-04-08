@@ -12,7 +12,7 @@ import { Button } from "../../Button";
 import { Icon } from "../../Icon";
 
 export const ReadProductCode = (props) => {
-  const [productBoxCode, setProductBoxCode] = useState(null);
+  const [dataCodes, setDataCodes] = useState([]);
 
   const router = useRouter();
 
@@ -28,26 +28,24 @@ export const ReadProductCode = (props) => {
       align: "center",
     },
     {
-      dataIndex: "id",
+      dataIndex: "code",
       align: "center",
-      render: (id, product) => (
+      render: (code) => (
         <>
           <Button
             padding="0 0.25rem"
             margin="0 0.25rem"
             type="danger"
-            onClick={() =>
-              setproformaProducts((prevState) =>
+            onClick={() => {
+              setDataCodes((prevState) =>
                 prevState
-                  .filter((proformaProduct) => {
-                    return proformaProduct.id !== id;
-                  })
-                  .map((proformaProduct, index) => ({
-                    ...proformaProduct,
+                  .filter((elem) => elem.code !== code)
+                  .map((code, index) => ({
+                    ...code,
                     id: index + 1,
                   }))
-              )
-            }
+              );
+            }}
           >
             <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
           </Button>
@@ -56,30 +54,7 @@ export const ReadProductCode = (props) => {
     },
   ];
 
-  const data = [
-    {
-      id: "1",
-      code: "1010202030304040",
-    },
-    {
-      id: "2",
-      code: "9090808070706060",
-    },
-    {
-      id: "3",
-      code: "4040505060607070",
-    },
-  ];
-
   const scanBarcode = () => {
-    /* navigator.permissions
-      .query({ name: "camera" })
-      .then((permissionObj) => {
-        console.log(permissionObj.state);
-      })
-      .catch((error) => {
-        console.log("Got error :", error);
-      }); */
     navigator.mediaDevices
       .getUserMedia({ video: true })
       .then((stream) => {
@@ -118,8 +93,18 @@ export const ReadProductCode = (props) => {
     );
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
-        setProductBoxCode(get(data, "codeResult.code", null));
-        console.log(get(data, "codeResult.code", null));
+        const _code = get(data, "codeResult.code", null);
+        const codeExist = dataCodes.some((code) => code.code == _code);
+        console.log(dataCodes);
+        console.log(_code);
+        console.log(codeExist);
+        if (!codeExist) {
+          console.log("deberia agregar");
+          setDataCodes((prev) => [
+            ...prev,
+            { id: dataCodes.length, code: _code },
+          ]);
+        }
         Quagga.stop();
       }
     });
@@ -135,9 +120,8 @@ export const ReadProductCode = (props) => {
     >
       <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
         <Input
-          value={productBoxCode}
           justify="center"
-          onChange={(event) => setProductBoxCode(event.target.value)}
+          /* onChange={(event) => setProductBoxCode(event.target.value)} */
           addonBefore="Código de caja"
         />
         <Button onClick={scanBarcode}>Leer Código de barras</Button>
@@ -146,7 +130,7 @@ export const ReadProductCode = (props) => {
         <Container padding="1rem 0rem">
           <Table
             columns={columns}
-            dataSource={data}
+            dataSource={dataCodes}
             pagination={false}
             bordered
             size="middle"
