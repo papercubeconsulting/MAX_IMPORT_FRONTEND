@@ -6,6 +6,8 @@ import Quagga from "quagga";
 import { get } from "lodash";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
+import { getProductBox } from "../../../providers";
+
 import { Container } from "../../Container";
 import { Grid } from "../../Grid";
 import { Button } from "../../Button";
@@ -22,6 +24,7 @@ export const ReadProductCode = (props) => {
       title: "N°",
       dataIndex: "id",
       align: "center",
+      width: "38px",
     },
     {
       title: "Código",
@@ -29,8 +32,14 @@ export const ReadProductCode = (props) => {
       align: "center",
     },
     {
+      title: "Almacén",
+      dataIndex: "warehouse",
+      align: "center",
+    },
+    {
       dataIndex: "code",
       align: "center",
+      width: "36px",
       render: (code) => (
         <>
           <Button
@@ -55,18 +64,26 @@ export const ReadProductCode = (props) => {
     },
   ];
 
-  const addCode = (newCode, showNotification) => {
-    setDataCodes((prev) => {
-      if (prev.some((code) => code.code == newCode)) {
-        showNotification &&
-          notification.info({
-            message: "El código ingresado ya existe en la tabla",
-          });
-        return [...prev];
-      } else {
-        return [...prev, { id: prev.length + 1, code: newCode }];
-      }
-    });
+  const addCode = async (newCode, showNotification) => {
+    try {
+      const _productBox = await getProductBox(newCode);
+      const warehouse = _productBox.warehouse.name;
+      setDataCodes((prev) => {
+        if (prev.some((code) => code.code == newCode)) {
+          showNotification &&
+            notification.info({
+              message: "El código ingresado ya existe en la tabla",
+            });
+          return [...prev];
+        } else {
+          return [...prev, { id: prev.length + 1, code: newCode, warehouse }];
+        }
+      });
+    } catch (error) {
+      notification.error({
+        message: "El código ingresado no fue encontrado",
+      });
+    }
   };
 
   const scanBarcode = () => {
@@ -78,7 +95,7 @@ export const ReadProductCode = (props) => {
       .catch((e) => {
         console.log("e: ", e);
         notification.error({
-          message: "Ocurrió un error (navig)",
+          message: "Ocurrió un error",
           description: e.message,
         });
       });
