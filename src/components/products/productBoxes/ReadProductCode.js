@@ -13,6 +13,7 @@ import { Icon } from "../../Icon";
 
 export const ReadProductCode = (props) => {
   const [dataCodes, setDataCodes] = useState([]);
+  const [productBoxCode, setProductBoxCode] = useState("");
 
   const router = useRouter();
 
@@ -54,6 +55,20 @@ export const ReadProductCode = (props) => {
     },
   ];
 
+  const addCode = (newCode, showNotification) => {
+    setDataCodes((prev) => {
+      if (prev.some((code) => code.code == newCode)) {
+        showNotification &&
+          notification.info({
+            message: "El código ingresado ya existe en la tabla",
+          });
+        return [...prev];
+      } else {
+        return [...prev, { id: prev.length + 1, code: newCode }];
+      }
+    });
+  };
+
   const scanBarcode = () => {
     navigator.mediaDevices
       .getUserMedia({ video: true })
@@ -94,13 +109,7 @@ export const ReadProductCode = (props) => {
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
         const _code = data.codeResult.code;
-        setDataCodes((prev) => {
-          if (prev.some((code) => code.code == _code)) {
-            return [...prev];
-          } else {
-            return [...prev, { id: prev.length + 1, code: _code }];
-          }
-        });
+        addCode(_code);
         Quagga.stop();
       }
     });
@@ -121,11 +130,24 @@ export const ReadProductCode = (props) => {
       title="Escanear o ingresar código de caja"
     >
       <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
-        <Input
-          justify="center"
-          /* onChange={(event) => setProductBoxCode(event.target.value)} */
-          addonBefore="Código de caja"
-        />
+        <Container padding="0rem">
+          <Input
+            justify="center"
+            value={productBoxCode}
+            onChange={(event) => setProductBoxCode(event.target.value)}
+            addonBefore="Código de caja"
+          />
+          <Button
+            type="primary"
+            disabled={!productBoxCode}
+            onClick={() => {
+              addCode(productBoxCode, true);
+              setProductBoxCode("");
+            }}
+          >
+            Agregar
+          </Button>
+        </Container>
         <Button onClick={scanBarcode}>Leer Código de barras</Button>
       </Grid>
       <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
