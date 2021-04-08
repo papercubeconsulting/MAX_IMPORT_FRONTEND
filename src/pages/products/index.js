@@ -155,7 +155,7 @@ export default ({ setPageTitle }) => {
   const [
     isModalReadProductBoxCodeVisible,
     setIsModalReadProductBoxCodeVisible,
-  ] = useState(true);
+  ] = useState(false);
 
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
