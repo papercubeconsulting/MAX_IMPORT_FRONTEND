@@ -155,7 +155,7 @@ export default ({ setPageTitle }) => {
   const [
     isModalReadProductBoxCodeVisible,
     setIsModalReadProductBoxCodeVisible,
-  ] = useState(false);
+  ] = useState(true);
 
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
@@ -346,13 +346,11 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalAddProductVisible}
         />
       )}
-      {isModalReadProductBoxCodeVisible && (
-        <ReadProductCode
-          visible={isModalReadProductBoxCodeVisible}
-          toggleUpdateTable={setToggleUpdateTable}
-          trigger={setIsModalReadProductBoxCodeVisible}
-        />
-      )}
+      <ReadProductCode
+        visible={isModalReadProductBoxCodeVisible}
+        toggleUpdateTable={setToggleUpdateTable}
+        trigger={setIsModalReadProductBoxCodeVisible}
+      />
       <Container height="auto" flexDirection="column">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Select
