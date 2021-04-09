@@ -86,20 +86,7 @@ export const ReadProductCode = (props) => {
     }
   };
 
-  const scanBarcode = () => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        console.log("success!");
-      })
-      .catch((e) => {
-        console.log("e: ", e);
-        notification.error({
-          message: "Ocurrió un error",
-          description: e.message,
-        });
-      });
-
+  const initQuagga = () => {
     Quagga.init(
       {
         inputStream: {
@@ -123,11 +110,30 @@ export const ReadProductCode = (props) => {
         Quagga.start();
       }
     );
+  };
+
+  const scanBarcode = () => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        console.log("success!");
+      })
+      .catch((e) => {
+        console.log("e: ", e);
+        notification.error({
+          message: "Ocurrió un error",
+          description: e.message,
+        });
+      });
+    initQuagga();
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
         const _code = data.codeResult.code;
         addCode(_code);
         Quagga.stop();
+        setTimeout(() => {
+          initQuagga();
+        }, 1000);
       }
     });
   };
