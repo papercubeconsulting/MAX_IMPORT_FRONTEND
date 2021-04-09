@@ -1,23 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Input, Modal, notification, Table } from "antd";
 import styled from "styled-components";
 import Quagga from "quagga";
 import { get } from "lodash";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
 
-import { getProductBox } from "../../../providers";
+import { getProductBox, getWarehouses } from "../../../providers";
+import { selectOptions } from "../../../util";
 
 import { Container } from "../../Container";
 import { Grid } from "../../Grid";
+import { Select } from "../../Select";
 import { Button } from "../../Button";
 import { Icon } from "../../Icon";
 
 export const ReadProductCode = (props) => {
+  const router = useRouter();
+
   const [dataCodes, setDataCodes] = useState([]);
   const [productBoxCode, setProductBoxCode] = useState("");
+  const [warehouses, setWarehouses] = useState([]);
 
-  const router = useRouter();
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      const _warehouses = await getWarehouses();
+      setWarehouses(_warehouses);
+    };
+    fetchWarehouses();
+  }, []);
 
   const columns = [
     {
@@ -138,6 +149,37 @@ export const ReadProductCode = (props) => {
     });
   };
 
+  function confirm() {
+    Modal.confirm({
+      title: "Movimiento de cajas",
+      content: (
+        <>
+          <br />
+          <Select
+            /* value={newWarehouse.name} */
+            label="Ubicación destino"
+            /*  onChange={(value) => {
+              const _warehouse = warehouses.find(
+                (warehouse) => warehouse.id === value
+              );
+              setNewWarehouse(_warehouse);
+            }}*/
+            options={selectOptions(warehouses)}
+          />
+        </>
+      ),
+      okText: (
+        <>
+          <Icon icon={faPeopleCarry} />
+          Mover
+        </>
+      ),
+      cancelText: "Cancelar",
+      width: "600px",
+      centered: true,
+    });
+  }
+
   return (
     <Modal
       visible={props.visible}
@@ -146,6 +188,7 @@ export const ReadProductCode = (props) => {
           router.push(`/products/productBoxes/${dataCodes[0].code}`);
         } else {
           console.log(dataCodes);
+          confirm();
         }
       }}
       onCancel={() => props.trigger && props.trigger(false)}
