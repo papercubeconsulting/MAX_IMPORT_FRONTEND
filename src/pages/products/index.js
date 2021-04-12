@@ -1,14 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  Button,
-  Container,
-  Grid,
-  Icon,
-  Select,
-  AutoComplete,
-} from "../../components";
 import { Input, notification, Table } from "antd";
+import { get } from "lodash";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
+
 import {
   getElements,
   getFamilies,
@@ -18,10 +13,17 @@ import {
   getTradenames,
 } from "../../providers";
 import { urlQueryParams } from "../../util";
-import { get } from "lodash";
+
+import {
+  Button,
+  Container,
+  Grid,
+  Icon,
+  Select,
+  AutoComplete,
+} from "../../components";
 import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   const columns = [
@@ -486,7 +488,7 @@ export default ({ setPageTitle }) => {
           width="30%"
           type="primary"
         >
-          Mover Caja
+          Mover Caja(s)
         </Button>
       </Container>
     </>

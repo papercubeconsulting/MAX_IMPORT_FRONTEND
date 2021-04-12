@@ -1,18 +1,19 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { get } from "lodash";
+import { Input, Modal, Table, Button, notification, Upload } from "antd";
+import styled from "styled-components";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
+
+import { getProduct, updateProduct } from "../../../providers";
+import { toBase64 } from "../../../util";
+
 import {
   Container,
   Grid,
   Icon,
   Button as CustomButton,
 } from "../../../components";
-import { useRouter } from "next/router";
-import { getProduct, updateProduct } from "../../../providers";
-import { get } from "lodash";
-import { toBase64 } from "../../../util";
-import { Input, Modal, Table, Button, notification, Upload } from "antd";
-import styled from "styled-components";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
-
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
 import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail";
 
@@ -357,7 +358,7 @@ export default () => {
           width="30%"
           type="primary"
         >
-          Mover Caja
+          Mover Caja(s)
         </CustomButton>
         <CustomButton
           onClick={() => setIsModalBoxesDetailVisible(true)}

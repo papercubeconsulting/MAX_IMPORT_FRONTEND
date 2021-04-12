@@ -1,16 +1,18 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Container, Grid, Select, Button, Icon } from "../../../components";
 import { useRouter } from "next/router";
+import { get } from "lodash";
+import { Input, Modal, Table, Tag, notification } from "antd";
+import { faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
+import moment from "moment-timezone";
+
 import {
   getProductBox,
   putProductBox,
   getWarehouses,
 } from "../../../providers";
-import { get } from "lodash";
-import { Input, Modal, Table, Tag, notification } from "antd";
-import { faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
-import styled from "styled-components";
-import moment from "moment-timezone";
+
+import { Container, Grid, Select, Button, Icon } from "../../../components";
+import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
 
 export default ({ setPageTitle, setShowButton }) => {
   setPageTitle("Caja de productos");
@@ -61,6 +63,10 @@ export default ({ setPageTitle, setShowButton }) => {
   const [newWarehouse, setNewWarehouse] = useState({});
   const [warehouses, setWarehouses] = useState([]);
   // const [productBoxLogs, setProductBoxLogs] = useState(null);
+  const [
+    isModalReadProductBoxCodeVisible,
+    setIsModalReadProductBoxCodeVisible,
+  ] = useState(false);
 
   const router = useRouter();
   const { productBoxCode } = router.query;
@@ -164,6 +170,10 @@ export default ({ setPageTitle, setShowButton }) => {
   };
   return (
     <>
+      <ReadProductCode
+        visible={isModalReadProductBoxCodeVisible}
+        trigger={setIsModalReadProductBoxCodeVisible}
+      />
       <Container height="auto" flexDirection="column">
         <Grid gridTemplateRows="1fr" gridGap="1rem">
           <Grid
@@ -291,6 +301,16 @@ export default ({ setPageTitle, setShowButton }) => {
             />
           </div>
         </Grid>
+      </Container>
+      <Container height="15%" justifyContent="space-around">
+        <Button
+          onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+          size="large"
+          width="30%"
+          type="primary"
+        >
+          Mover Caja(s)
+        </Button>
       </Container>
     </>
   );
