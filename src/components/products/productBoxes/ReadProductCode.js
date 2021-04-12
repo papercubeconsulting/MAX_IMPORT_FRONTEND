@@ -26,6 +26,13 @@ export const ReadProductCode = (props) => {
   const [productBoxCode, setProductBoxCode] = useState("");
   const [warehouses, setWarehouses] = useState([]);
   const [newWarehouse, setNewWarehouse] = useState({});
+  const [modalConfirm, setModalConfirm] = useState(false);
+
+  const [windowHeight, setWindowHeight] = useState(0);
+
+  useEffect(() => {
+    setWindowHeight(window.innerHeight);
+  }, []);
 
   useEffect(() => {
     const fetchWarehouses = async () => {
@@ -56,7 +63,7 @@ export const ReadProductCode = (props) => {
     {
       dataIndex: "trackingCode",
       align: "center",
-      width: "36px",
+      width: "42px",
       render: (trackingCode) => (
         <>
           <Button
@@ -160,21 +167,39 @@ export const ReadProductCode = (props) => {
       warehouseId: newWarehouse.id,
       previousWarehouseId: elem.warehouseId,
     }));
-    console.log("data", data);
     try {
       const response = await putProductBoxes({ boxes: data });
-      console.log("response", response);
+      notification.success({
+        message: "Las cajas han sido movidas correctamente",
+      });
+      setModalConfirm(false);
+      setDataCodes([]);
+      props.trigger(false);
     } catch (error) {
-      console.log(error);
+      console.log("error", error);
+      notification.error({
+        message: "Ocurrió un error. Vuelva a intentarlo por favor",
+      });
     }
   };
 
-  const confirm = () => {
-    Modal.confirm({
-      title: "Movimiento de cajas",
-      content: (
+  return (
+    <>
+      <Modal
+        visible={modalConfirm}
+        onOk={() => moveBoxes()}
+        okText={
+          <>
+            <Icon icon={faPeopleCarry} />
+            Mover
+          </>
+        }
+        onCancel={() => setModalConfirm(false)}
+        width="600px"
+        title="Movimiento de cajas"
+        centered
+      >
         <>
-          <br />
           <Select
             value={newWarehouse.name}
             label="Ubicación destino"
@@ -187,75 +212,61 @@ export const ReadProductCode = (props) => {
             options={selectOptions(warehouses)}
           />
         </>
-      ),
-      onOk() {
-        moveBoxes();
-      },
-      okText: (
-        <>
-          <Icon icon={faPeopleCarry} />
-          Mover
-        </>
-      ),
-      cancelText: "Cancelar",
-      width: "600px",
-      centered: true,
-    });
-  };
-
-  return (
-    <Modal
-      visible={props.visible}
-      onOk={async () => {
-        if (dataCodes.length === 1) {
-          router.push(`/products/productBoxes/${dataCodes[0].code}`);
-        } else {
-          confirm();
-        }
-      }}
-      onCancel={() => props.trigger && props.trigger(false)}
-      width="90%"
-      title="Escanear o ingresar código de caja"
-    >
-      <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
-        <Container padding="0rem">
-          <Input
-            justify="center"
-            value={productBoxCode}
-            onChange={(event) => setProductBoxCode(event.target.value)}
-            addonBefore="Código de caja"
-          />
-          <Button
-            type="primary"
-            disabled={!productBoxCode}
-            onClick={() => {
-              addCode(productBoxCode, true);
-              setProductBoxCode("");
-            }}
-          >
-            Agregar
-          </Button>
-        </Container>
-        <Button onClick={scanBarcode}>Leer Código de barras</Button>
-      </Grid>
-      <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
-        <Container padding="1rem 0rem">
-          <Table
-            columns={columns}
-            dataSource={dataCodes}
-            pagination={false}
-            bordered
-            size="middle"
-          />
-        </Container>
-        <QRScanner>
-          <div id="interactive" className="viewport">
-            <video autoPlay="true" preload="auto" />
-          </div>
-          <canvas className="drawingBuffer"></canvas>
-        </QRScanner>
-      </Grid>
-    </Modal>
+      </Modal>
+      <Modal
+        visible={props.visible}
+        onOk={async () => {
+          if (dataCodes.length === 1) {
+            router.push(`/products/productBoxes/${dataCodes[0].code}`);
+          } else {
+            setModalConfirm(true);
+          }
+        }}
+        onCancel={() => props.trigger && props.trigger(false)}
+        width="90%"
+        title="Escanear o ingresar código de caja"
+      >
+        <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
+          <Container padding="0rem">
+            <Input
+              justify="center"
+              value={productBoxCode}
+              onChange={(event) => setProductBoxCode(event.target.value)}
+              addonBefore="Código de caja"
+            />
+            <Button
+              type="primary"
+              disabled={!productBoxCode}
+              onClick={() => {
+                addCode(productBoxCode, true);
+                setProductBoxCode("");
+              }}
+            >
+              Agregar
+            </Button>
+          </Container>
+          <Button onClick={scanBarcode}>Leer Código de barras</Button>
+        </Grid>
+        <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
+          <Container padding="1rem 0rem">
+            <Table
+              columns={columns}
+              dataSource={dataCodes}
+              pagination={false}
+              scroll={{ y: windowHeight * 0.3 - 48 }}
+              bordered
+              size="middle"
+            />
+          </Container>
+          <QRScanner>
+            <div id="interactive" className="viewport">
+              <video autoPlay="true" preload="auto" />
+            </div>
+            <canvas className="drawingBuffer"></canvas>
+          </QRScanner>
+        </Grid>
+      </Modal>
+    </>
   );
 };
 
