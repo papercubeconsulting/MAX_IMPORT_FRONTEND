@@ -6,7 +6,11 @@ import Quagga from "quagga";
 import { get } from "lodash";
 import { faTrash, faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
 
-import { getProductBox, getWarehouses } from "../../../providers";
+import {
+  getProductBox,
+  getWarehouses,
+  putProductBoxes,
+} from "../../../providers";
 import { selectOptions } from "../../../util";
 
 import { Container } from "../../Container";
@@ -21,6 +25,7 @@ export const ReadProductCode = (props) => {
   const [dataCodes, setDataCodes] = useState([]);
   const [productBoxCode, setProductBoxCode] = useState("");
   const [warehouses, setWarehouses] = useState([]);
+  const [newWarehouse, setNewWarehouse] = useState({});
 
   useEffect(() => {
     const fetchWarehouses = async () => {
@@ -33,25 +38,26 @@ export const ReadProductCode = (props) => {
   const columns = [
     {
       title: "N°",
-      dataIndex: "id",
+      dataIndex: "key",
       align: "center",
       width: "38px",
     },
     {
       title: "Código",
-      dataIndex: "code",
+      dataIndex: "trackingCode",
       align: "center",
     },
     {
       title: "Almacén",
       dataIndex: "warehouse",
       align: "center",
+      render: (warehouse) => warehouse.name,
     },
     {
-      dataIndex: "code",
+      dataIndex: "trackingCode",
       align: "center",
       width: "36px",
-      render: (code) => (
+      render: (trackingCode) => (
         <>
           <Button
             padding="0 0.25rem"
@@ -60,10 +66,10 @@ export const ReadProductCode = (props) => {
             onClick={() => {
               setDataCodes((prevState) =>
                 prevState
-                  .filter((elem) => elem.code !== code)
+                  .filter((elem) => elem.trackingCode !== trackingCode)
                   .map((code, index) => ({
                     ...code,
-                    id: index + 1,
+                    key: index + 1,
                   }))
               );
             }}
@@ -78,16 +84,15 @@ export const ReadProductCode = (props) => {
   const addCode = async (newCode, showNotification) => {
     try {
       const _productBox = await getProductBox(newCode);
-      const warehouse = _productBox.warehouse.name;
       setDataCodes((prev) => {
-        if (prev.some((code) => code.code == newCode)) {
+        if (prev.some((code) => code.trackingCode == newCode)) {
           showNotification &&
             notification.info({
               message: "El código ingresado ya existe en la tabla",
             });
           return [...prev];
         } else {
-          return [...prev, { id: prev.length + 1, code: newCode, warehouse }];
+          return [...prev, { key: prev.length + 1, ..._productBox }];
         }
       });
     } catch (error) {
@@ -149,25 +154,43 @@ export const ReadProductCode = (props) => {
     });
   };
 
-  function confirm() {
+  const moveBoxes = async () => {
+    const data = dataCodes.map((elem) => ({
+      id: elem.id,
+      warehouseId: newWarehouse.id,
+      previousWarehouseId: elem.warehouseId,
+    }));
+    console.log("data", data);
+    try {
+      const response = await putProductBoxes({ boxes: data });
+      console.log("response", response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const confirm = () => {
     Modal.confirm({
       title: "Movimiento de cajas",
       content: (
         <>
           <br />
           <Select
-            /* value={newWarehouse.name} */
+            value={newWarehouse.name}
             label="Ubicación destino"
-            /*  onChange={(value) => {
+            onChange={(value) => {
               const _warehouse = warehouses.find(
                 (warehouse) => warehouse.id === value
               );
               setNewWarehouse(_warehouse);
-            }}*/
+            }}
             options={selectOptions(warehouses)}
           />
         </>
       ),
+      onOk() {
+        moveBoxes();
+      },
       okText: (
         <>
           <Icon icon={faPeopleCarry} />
@@ -178,7 +201,7 @@ export const ReadProductCode = (props) => {
       width: "600px",
       centered: true,
     });
-  }
+  };
 
   return (
     <Modal
@@ -187,7 +210,6 @@ export const ReadProductCode = (props) => {
         if (dataCodes.length === 1) {
           router.push(`/products/productBoxes/${dataCodes[0].code}`);
         } else {
-          console.log(dataCodes);
           confirm();
         }
       }}
