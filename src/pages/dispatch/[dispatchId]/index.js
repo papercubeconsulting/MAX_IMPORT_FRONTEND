@@ -15,7 +15,15 @@ import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
 import styled from "styled-components";
 
-const QRScanner = styled.div`
+const QRScanner = styled(Container)`
+  .drawingBuffer {
+    position: absolute;
+    /* top: 0; */
+    left: 0;
+  }
+`;
+
+/* const QRScanner = styled.div`
   .viewport {
     width: 60%;
     height: 60%;
@@ -28,7 +36,7 @@ const QRScanner = styled.div`
     width: 0;
     height: 0;
   }
-`;
+`; */
 
 export default ({ setPageTitle }) => {
   setPageTitle("Despacho de pedido");
@@ -69,7 +77,7 @@ export default ({ setPageTitle }) => {
       render: (product) => get(product, "modelName", null),
     },
     {
-      title: "Cantidad",
+      title: "Ctd. a Despachar",
       dataIndex: "quantity",
       align: "center",
     },
@@ -140,6 +148,26 @@ export default ({ setPageTitle }) => {
   const [isVisibleReadProductCode, setIsVisibleReadProductCode] = useState(
     false
   );
+  const [productBoxCode, setProductBoxCode] = useState(null);
+
+  //
+  const fetchProductBox = async () => {
+    try {
+      const _productBox = await getProductBox(productBoxCode);
+      setDataProduct(_productBox);
+      setProductBoxId(_productBox.id);
+      /* console.log("_productBox", _productBox); */
+      setIsVisibleReadProductCode(false);
+      setIsVisibleConfirmDispatch(true);
+    } catch (error) {
+      /* console.log("error", error); */
+      notification.error({
+        message: "Error al escanear código",
+        description: error.userMessage,
+      });
+    }
+  };
+
   const scanBarcode = () => {
     Quagga.init(
       {
@@ -163,23 +191,8 @@ export default ({ setPageTitle }) => {
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
         const codeProduct = get(data, "codeResult.code", null);
+        setProductBoxCode(get(data, "codeResult.code", null));
         /* console.log(codeProduct); */
-        const fetchProductBox = async () => {
-          try {
-            const _productBox = await getProductBox(codeProduct);
-            setDataProduct(_productBox);
-            setProductBoxId(_productBox.id);
-            /* console.log("_productBox", _productBox); */
-            setIsVisibleReadProductCode(false);
-            setIsVisibleConfirmDispatch(true);
-          } catch (error) {
-            /* console.log("error", error); */
-            notification.error({
-              message: "Error al escanear código",
-              description: error.userMessage,
-            });
-          }
-        };
         codeProduct && fetchProductBox();
         Quagga.stop();
       }
@@ -311,16 +324,34 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Modal
         visible={isVisibleReadProductCode}
-        width="50%"
         onCancel={() => setIsVisibleReadProductCode(false)}
-        footer={null}
+        onOk={() => fetchProductBox()}
+        title="Escanear o ingresar código de caja"
+        width="90%"
       >
-        <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
+        <Grid gridTemplateColumns="1fr 1fr" gridGap="1rem" marginBottom="1rem">
+          <Input
+            value={productBoxCode}
+            justify="center"
+            onChange={(event) => setProductBoxCode(event.target.value)}
+            addonBefore="Código de caja"
+          />
+          <Button onClick={scanBarcode}>Escanear Código de barras</Button>
+        </Grid>
+        <QRScanner>
+          <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
+            <div id="interactive" className="viewport">
+              <video autoPlay="true" preload="auto" />
+            </div>
+            <canvas className="drawingBuffer"></canvas>
+          </Grid>
+        </QRScanner>
+        {/* <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
           <Button onClick={scanBarcode}>Escanear Código de barras</Button>
           <QRScanner>
             <div id="interactive" className="viewport"></div>
           </QRScanner>
-        </Grid>
+        </Grid> */}
       </Modal>
       <Modal
         visible={isVisibleConfirmDispatch}

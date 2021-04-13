@@ -1,5 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
+import { Input, notification, Table } from "antd";
+import { get } from "lodash";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
+
+import {
+  getElements,
+  getFamilies,
+  getModels,
+  getProducts,
+  getSubfamilies,
+  getTradenames,
+} from "../../providers";
+import { urlQueryParams } from "../../util";
+
 import {
   Button,
   Container,
@@ -8,26 +22,13 @@ import {
   Select,
   AutoComplete,
 } from "../../components";
-import { Input, notification, Table } from "antd";
-import {
-  getElements,
-  getFamilies,
-  getModels,
-  getProducts,
-  getSubfamilies,
-} from "../../providers";
-import { urlQueryParams } from "../../util";
-import { get } from "lodash";
 import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Inventario");
-
   const columns = [
     {
-      title: "Cód. Inv.",
+      title: "Cod.",
       dataIndex: "code",
       width: "fit-content",
       align: "center",
@@ -57,7 +58,7 @@ export default ({ setPageTitle }) => {
       align: "center",
     },
     {
-      title: "Nombre Comercial",
+      title: "Nom.",
       dataIndex: "tradename",
       width: "fit-content",
       align: "center",
@@ -135,6 +136,7 @@ export default ({ setPageTitle }) => {
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
   const [products, setProducts] = useState([]);
+  const [tradenames, setTradenames] = useState([]);
 
   const [page, setPage] = useState(null);
   const [stock, setStock] = useState(null);
@@ -144,6 +146,10 @@ export default ({ setPageTitle }) => {
   const [elementId, setElementId] = useState(null);
   const [modelId, setModelId] = useState(null);
   const [model, setModel] = useState(null);
+  const [tradename, setTradename] = useState(null);
+
+  // Actualiza nombre de la página
+  setPageTitle(`Inventario - ${products.length} ítem(s)`);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -191,13 +197,14 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
-  }, [page, stock, code, familyId, subfamilyId, elementId, modelId]);
+  }, [page, stock, code, familyId, subfamilyId, elementId, modelId, tradename]);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         const _families = await getFamilies();
-
+        const _tradenames = await getTradenames();
+        setTradenames(_tradenames.rows);
         setFamilies(_families);
       } catch (error) {
         notification.error({
@@ -273,7 +280,6 @@ export default ({ setPageTitle }) => {
 
         if (elementId) {
           const _models = await getModels(elementId);
-          console.log(_models);
           setModels(_models);
           setModel(null);
         }
@@ -296,6 +302,7 @@ export default ({ setPageTitle }) => {
     setSubfamilyId(Number.parseInt(queryParams.subfamilyId) || null);
     setElementId(Number.parseInt(queryParams.elementId) || null);
     setModelId(Number.parseInt(queryParams.modelId) || null);
+    setTradename(queryParams.tradename || null);
   };
 
   const stateToUrl = async () => {
@@ -307,6 +314,7 @@ export default ({ setPageTitle }) => {
     familyId && subfamilyId && (params.subfamilyId = subfamilyId);
     subfamilyId && elementId && (params.elementId = elementId);
     elementId && modelId && (params.modelId = modelId);
+    tradename && (params.tradename = tradename);
     await router.push(`/products${urlQueryParams(params)}`);
   };
 
@@ -339,45 +347,13 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalAddProductVisible}
         />
       )}
-      ,
-      {isModalReadProductBoxCodeVisible && (
-        <ReadProductCode
-          visible={isModalReadProductBoxCodeVisible}
-          toggleUpdateTable={setToggleUpdateTable}
-          trigger={setIsModalReadProductBoxCodeVisible}
-        />
-      )}
-      <Container height="20%">
-        <Grid
-          gridTemplateColumns="repeat(3, 1fr)"
-          gridTemplateRows="repeat(2, 1fr)"
-          gridGap="2rem"
-        >
-          <Select
-            value={stock}
-            onChange={(value) => updateState(setStock, value)}
-            label="Stock"
-            options={[
-              {
-                value: null,
-                label: "Todos",
-              },
-              {
-                value: "yes",
-                label: "Sí",
-              },
-              {
-                value: "no",
-                label: "No",
-              },
-            ]}
-          />
-          <Input
-            value={code}
-            type="text"
-            onChange={(event) => updateState(setCode, event.target.value)}
-            addonBefore="Código de inventario"
-          />
+      <ReadProductCode
+        visible={isModalReadProductBoxCodeVisible}
+        toggleUpdateTable={setToggleUpdateTable}
+        trigger={setIsModalReadProductBoxCodeVisible}
+      />
+      <Container height="auto" flexDirection="column">
+        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Select
             value={familyId}
             onChange={(value) => updateState(setFamilyId, value)}
@@ -424,7 +400,68 @@ export default ({ setPageTitle }) => {
             }}
           />
         </Grid>
+        <br />
+        <Grid gridTemplateColumns="2fr 1fr 2fr" gridGap="1rem">
+          <AutoComplete
+            label="Nombre comercial"
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            value={tradename}
+            onSelect={(value) => {
+              updateState(setTradename, value);
+            }}
+            onSearch={(value) => {
+              updateState(setTradename, value);
+              /* setTradename(value); */
+            }}
+            _options={tradenames.map((trade) => ({
+              value: trade.tradename,
+              label: trade.tradename,
+            }))}
+            /*  _options={[
+              {
+                value: null,
+                label: "Todos",
+              },
+              ...tradenames.map((trade) => ({
+                value: trade.tradename,
+                label: trade.tradename,
+              })),
+            ]} */
+            filterOption={(input, option) => {
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
+          />
+          <Select
+            value={stock}
+            onChange={(value) => updateState(setStock, value)}
+            label="Stock"
+            options={[
+              {
+                value: null,
+                label: "Todos",
+              },
+              {
+                value: "yes",
+                label: "Sí",
+              },
+              {
+                value: "no",
+                label: "No",
+              },
+            ]}
+          />
+          <Input
+            value={code}
+            type="text"
+            onChange={(event) => updateState(setCode, event.target.value)}
+            addonBefore="Código de inventario"
+          />
+        </Grid>
       </Container>
+      <br />
       <Table
         columns={columns}
         bordered
@@ -451,7 +488,7 @@ export default ({ setPageTitle }) => {
           width="30%"
           type="primary"
         >
-          Mover Caja
+          Mover Caja(s)
         </Button>
       </Container>
     </>

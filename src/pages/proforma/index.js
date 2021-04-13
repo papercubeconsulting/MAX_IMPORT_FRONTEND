@@ -32,7 +32,11 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 export default ({ setPageTitle }) => {
   const router = useRouter();
   const queryParams = router.query;
-  setPageTitle(queryParams.id ? "Edición de Proforma" : "Nueva Proforma");
+  setPageTitle(
+    queryParams.id
+      ? `Edición de Proforma N° ${queryParams.id}`
+      : "Nueva Proforma"
+  );
 
   const columns = [
     {

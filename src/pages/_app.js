@@ -8,6 +8,7 @@ import stylesheet from "antd/dist/antd.min.css";
 
 export default ({ Component, pageProps }) => {
   const [title, setTitle] = useState(null);
+  const [showButton, setShowButton] = useState(false);
 
   const [, setGlobalAuthUser] = useGlobal("authUser");
 
@@ -24,8 +25,12 @@ export default ({ Component, pageProps }) => {
     <>
       <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
       <GlobalStyle />
-      <BaseLayout title={title}>
-        <Component setPageTitle={setTitle} {...pageProps} />
+      <BaseLayout showButton={showButton} title={title}>
+        <Component
+          setShowButton={setShowButton}
+          setPageTitle={setTitle}
+          {...pageProps}
+        />
       </BaseLayout>
     </>
   );

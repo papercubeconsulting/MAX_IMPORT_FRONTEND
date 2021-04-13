@@ -29,6 +29,7 @@ export const AddProforma = (props) => {
   const [bank, setBank] = useState({});
   const [bankAccount, setBankAccount] = useState({});
   const [imageBase64, setImageBase64] = useState(null);
+  const [paymentDate, setPaymentDate] = useState(moment());
   // Sobre el despacho
   const [dispatchWay, setDispatchWay] = useState(1);
   const [deliveryAgency, setDeliveryAgency] = useState({});
@@ -91,7 +92,6 @@ export const AddProforma = (props) => {
     }));
 
   // funcion para consignar la venta
-  //TODO: agregar campo fecha de deposito (datepicker) al body en postSale
   const summitSale = async () => {
     try {
       const body = {
@@ -108,7 +108,20 @@ export const AddProforma = (props) => {
       props.saleWay === 2 && (body.voucherImage = imageBase64);
       props.saleWay === 2 && (body.paymentMethod = "Depósito");
       props.saleWay === 2 && (body.bankAccountId = bankAccount.id);
+      props.saleWay === 2 && (body.paymentDate = paymentDate);
+
+      if (props.saleWay !== 1 && props.totalPaid != 0) {
+        if (!voucherNum || !imageBase64 || !bankAccount.id) {
+          Modal.warning({
+            title: "Datos faltantes",
+            content: "Por favor, completar todos los datos del depósito.",
+          });
+          return;
+        }
+      }
+      // console.log("body", body);
       const response = await postSale(body);
+      // console.log("response", response);
       Modal.success({
         title: "Se ha consignado la venta correctamente",
         content: `Venta: ${response.id}`,
@@ -211,7 +224,8 @@ export const AddProforma = (props) => {
             options={selectOptions(bankAccounts)}
           />
           <DatePicker
-            value={moment()}
+            value={paymentDate}
+            onChange={(value) => setPaymentDate(value)}
             format={clientDateFormat}
             label={
               <>

@@ -9,7 +9,6 @@ import { Input, notification, Table, Modal, Space } from "antd";
 import { faEye, faUser, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
-  setPageTitle("Administración de Usuarios");
   const columns = [
     {
       title: "Mto.",
@@ -128,6 +127,9 @@ export default ({ setPageTitle }) => {
   const [active, setActive] = useState("");
   const [textModal, setTextModal] = useState("");
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+
+  // Actualiza nombre de la página
+  setPageTitle(`Administración de Usuarios - ${users.length} usuario(s)`);
 
   //Obtiene a los usuarios y usuario actual
   useEffect(() => {

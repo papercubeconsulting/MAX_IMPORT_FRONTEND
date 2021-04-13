@@ -207,7 +207,7 @@ export default ({ setPageTitle }) => {
   const onPutSale = async () => {
     try {
       let _response;
-      /* console.log("dataModal", dataModal); */
+      // console.log("dataModal", dataModal);
       if (dataModal.paymentMethod === "Efectivo") {
         _response = await putSale(dataModal.id, {
           billingType: dataModal.billingType,
@@ -225,14 +225,14 @@ export default ({ setPageTitle }) => {
           referenceNumber: dataModal.referenceNumber,
         });
       }
-      /* console.log("_response", _response); */
+      // console.log("_response", _response);
       notification.success({
         message: "Pago a Cuenta registrado exitosamente",
       });
       setIsVisible(false);
       setToggleUpdateTable(true);
     } catch (error) {
-      /* console.log("error", error); */
+      // console.log("error", error);
       notification.error({
         message: error.userMessage,
       });
@@ -302,8 +302,8 @@ export default ({ setPageTitle }) => {
                       paymentType: event.target.value,
                       initialPayment:
                         event.target.value === "CASH"
-                          ? dataModal.initial
-                          : dataModal.initialPayment,
+                          ? (dataModal.total / 100).toFixed(2)
+                          : dataModal.initial,
                       received:
                         event.target.value === "CASH"
                           ? dataModal.initial
@@ -316,9 +316,12 @@ export default ({ setPageTitle }) => {
                   paymentType: event.target.value,
                   initialPayment:
                     event.target.value === "CASH"
-                      ? dataModal.initial
-                      : dataModal.initialPayment,
-                  received: dataModal.initial,
+                      ? (dataModal.total / 100).toFixed(2)
+                      : dataModal.initial,
+                  received:
+                    event.target.value === "CASH"
+                      ? (dataModal.total / 100).toFixed(2)
+                      : dataModal.initial,
                 });
               }}
             >
