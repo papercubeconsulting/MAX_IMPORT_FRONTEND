@@ -28,8 +28,7 @@ import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
 
 export default ({ setPageTitle }) => {
-  const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
-  console.log("globalAuthUser", globalAuthUser);
+  const [globalAuthUser] = useGlobal("authUser");
 
   //modal eliminar inventario
   const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
@@ -39,50 +38,43 @@ export default ({ setPageTitle }) => {
     {
       title: "Cod.",
       dataIndex: "code",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Familia",
       dataIndex: "familyName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Sub-Familia",
       dataIndex: "subfamilyName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Elemento",
       dataIndex: "elementName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Modelo",
       dataIndex: "modelName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Nom.",
       dataIndex: "tradename",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Stock",
       dataIndex: "totalStock",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "",
       dataIndex: "id",
-      width: "fit-content",
       align: "center",
+      width: "90px",
       render: (productId) => (
         <>
           <Button
@@ -92,24 +84,25 @@ export default ({ setPageTitle }) => {
           >
             <Icon marginRight="0px" icon={faEye} />
           </Button>
-          <Button
-            onClick={() => {
-              setProductId(productId);
-              setIsVisibleModalDelete(true);
-            }}
-            padding="0 0.25rem"
-            margin="0 0 0 0.25rem"
-            type="danger"
-          >
-            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-          </Button>
+          {globalAuthUser && globalAuthUser.user.role === "superuser" && (
+            <Button
+              onClick={() => {
+                setProductId(productId);
+                setIsVisibleModalDelete(true);
+              }}
+              padding="0 0.25rem"
+              margin="0 0 0 0.25rem"
+              type="danger"
+            >
+              <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+            </Button>
+          )}
         </>
       ),
     },
     {
       title: "En Tienda",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -123,7 +116,6 @@ export default ({ setPageTitle }) => {
     {
       title: "En Almacén",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -137,7 +129,6 @@ export default ({ setPageTitle }) => {
     {
       title: "En Techo",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -363,9 +354,16 @@ export default ({ setPageTitle }) => {
   const deleteProductById = async () => {
     try {
       const response = await deleteProduct(productId);
-      console.log("elimina", response);
+      // console.log("elimina", response);
+      setToggleUpdateTable((prev) => !prev);
+      setIsVisibleModalDelete(false);
+      notification.success({
+        message: "Producto eliminado correctamente",
+      });
     } catch (error) {
-      console.log(error);
+      notification.error({
+        message: "Ocurrió un error. Vuelva a intentarlo",
+      });
     }
   };
 
