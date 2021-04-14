@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import {
   getElements,
@@ -75,13 +75,23 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (productId) => (
-        <Button
-          onClick={async () => router.push(`/products/${productId}`)}
-          type="primary"
-        >
-          <Icon icon={faEye} />
-          Ver
-        </Button>
+        <>
+          <Button
+            padding="0 0.25rem"
+            onClick={async () => router.push(`/products/${productId}`)}
+            type="primary"
+          >
+            <Icon marginRight="0px" icon={faEye} />
+          </Button>
+          <Button
+            onClick={() => setIsVisibleModalDelete(true)}
+            padding="0 0.25rem"
+            margin="0 0 0 0.25rem"
+            type="danger"
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+          </Button>
+        </>
       ),
     },
     {
@@ -147,6 +157,9 @@ export default ({ setPageTitle }) => {
   const [modelId, setModelId] = useState(null);
   const [model, setModel] = useState(null);
   const [tradename, setTradename] = useState(null);
+
+  //modal eliminar inventario
+  const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
 
   // Actualiza nombre de la página
   setPageTitle(`Inventario - ${products.length} ítem(s)`);
@@ -340,6 +353,34 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <Modal
+        visible={isVisibleModalDelete}
+        width="40%"
+        onCancel={() => setIsVisibleModalDelete(false)}
+        footer={null}
+      >
+        <Container
+          height="fit-content"
+          flexDirection="column"
+          alignItems="center"
+        >
+          <p style={{ fontWeight: "bold" }}>
+            ¿Está seguro que desea eliminar este producto?
+          </p>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+            <Button margin="auto" type="primary">
+              Si, ejecutar
+            </Button>
+            <Button
+              onClick={() => setIsVisibleModalDelete(false)}
+              margin="auto"
+              type="primary"
+            >
+              No, regresar
+            </Button>
+          </Grid>
+        </Container>
+      </Modal>
       {isModalAddProductVisible && (
         <AddProduct
           visible={isModalAddProductVisible}
