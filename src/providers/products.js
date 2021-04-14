@@ -12,4 +12,14 @@ const updateProduct = async (productId, body) =>
 
 const getTradenames = async () => baseProvider.httpGet(`products/tradename`);
 
-export { getProducts, getProduct, postProduct, updateProduct, getTradenames };
+const deleteProduct = async (productId) =>
+  baseProvider.httpDelete(`products/${productId}`);
+
+export {
+  getProducts,
+  getProduct,
+  postProduct,
+  updateProduct,
+  getTradenames,
+  deleteProduct,
+};

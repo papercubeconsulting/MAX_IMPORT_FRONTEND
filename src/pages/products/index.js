@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useGlobal } from "reactn";
 import { useRouter } from "next/router";
 import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
@@ -11,6 +12,7 @@ import {
   getProducts,
   getSubfamilies,
   getTradenames,
+  deleteProduct,
 } from "../../providers";
 import { urlQueryParams } from "../../util";
 
@@ -26,6 +28,13 @@ import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
 
 export default ({ setPageTitle }) => {
+  const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
+  console.log("globalAuthUser", globalAuthUser);
+
+  //modal eliminar inventario
+  const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+  const [productId, setProductId] = useState(null);
+
   const columns = [
     {
       title: "Cod.",
@@ -84,7 +93,10 @@ export default ({ setPageTitle }) => {
             <Icon marginRight="0px" icon={faEye} />
           </Button>
           <Button
-            onClick={() => setIsVisibleModalDelete(true)}
+            onClick={() => {
+              setProductId(productId);
+              setIsVisibleModalDelete(true);
+            }}
             padding="0 0.25rem"
             margin="0 0 0 0.25rem"
             type="danger"
@@ -157,9 +169,6 @@ export default ({ setPageTitle }) => {
   const [modelId, setModelId] = useState(null);
   const [model, setModel] = useState(null);
   const [tradename, setTradename] = useState(null);
-
-  //modal eliminar inventario
-  const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
 
   // Actualiza nombre de la página
   setPageTitle(`Inventario - ${products.length} ítem(s)`);
@@ -351,6 +360,15 @@ export default ({ setPageTitle }) => {
     !isPagination && setPage(undefined);
   };
 
+  const deleteProductById = async () => {
+    try {
+      const response = await deleteProduct(productId);
+      console.log("elimina", response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <Modal
@@ -368,7 +386,7 @@ export default ({ setPageTitle }) => {
             ¿Está seguro que desea eliminar este producto?
           </p>
           <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-            <Button margin="auto" type="primary">
+            <Button onClick={deleteProductById} margin="auto" type="primary">
               Si, ejecutar
             </Button>
             <Button
@@ -453,22 +471,11 @@ export default ({ setPageTitle }) => {
             }}
             onSearch={(value) => {
               updateState(setTradename, value);
-              /* setTradename(value); */
             }}
             _options={tradenames.map((trade) => ({
               value: trade.tradename,
               label: trade.tradename,
             }))}
-            /*  _options={[
-              {
-                value: null,
-                label: "Todos",
-              },
-              ...tradenames.map((trade) => ({
-                value: trade.tradename,
-                label: trade.tradename,
-              })),
-            ]} */
             filterOption={(input, option) => {
               return option.children
                 .toLowerCase()

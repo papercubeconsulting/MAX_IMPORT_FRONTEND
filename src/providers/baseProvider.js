@@ -110,4 +110,20 @@ export const baseProvider = {
     console.log("response", response);
     return validate(response);
   },
+  httpDelete: async (url) => {
+    const token = await getToken();
+
+    const response = await fetch(buildUrl(url), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        accept: " */*",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const responseJson = await response.json();
+
+    return validate(responseJson);
+  },
 };
