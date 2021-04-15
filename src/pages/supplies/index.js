@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import { useGlobal } from "reactn";
+import { get } from "lodash";
+import moment from "moment";
 import { Modal, notification, Table } from "antd";
 import {
   faCalendarAlt,
@@ -9,11 +11,12 @@ import {
   faEye,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import moment from "moment";
+
 import { clientDateFormat, serverDateFormat } from "../../util";
 import { getSupplies, putSupplyStatus } from "../../providers";
-import { useGlobal } from "reactn";
-import { get } from "lodash";
+
+import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import { ModalProviders } from "../../components/supplies/ModalProviders";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
@@ -125,17 +128,17 @@ export default ({ setPageTitle }) => {
   const [pagination, setPagination] = useState(null);
 
   const [supplies, setSupplies] = useState([]);
-
   const [from, setFrom] = useState(moment().subtract(7, "days"));
   const [to, setTo] = useState(moment());
-
   const [page, setPage] = useState(1);
-
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
   const [globalAuthUser] = useGlobal("authUser");
 
   const router = useRouter();
+
+  // modal proveedores
+  const [isVisibleProvidersModal, setIsVisibleProvidersModal] = useState(false);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -193,8 +196,27 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
-      <Container height="10%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="2rem">
+      <Modal
+        visible={isVisibleProvidersModal}
+        title="Gestión de proveedores"
+        width="800px"
+        onCancel={() => setIsVisibleProvidersModal(false)}
+        footer={null}
+      >
+        <ModalProviders
+          setIsVisibleProvidersModal={setIsVisibleProvidersModal}
+        />
+      </Modal>
+      <Container
+        flexDirection="column"
+        height="auto"
+        padding=" 1rem 1rem 0rem 1rem"
+      >
+        <Grid
+          gridTemplateColumns="repeat(3, 1fr)"
+          gridGap="2rem"
+          marginBottom="1rem"
+        >
           <DatePicker
             value={from}
             onChange={(value) => setFrom(value)}
@@ -226,6 +248,22 @@ export default ({ setPageTitle }) => {
             Nuevo abastecimiento
           </Button>
         </Grid>
+        {globalAuthUser && globalAuthUser.user.role === "superuser" && (
+          <Grid
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="2rem"
+            marginBottom="1rem"
+          >
+            <p></p>
+            <p></p>
+            <Button
+              type="primary"
+              onClick={() => setIsVisibleProvidersModal(true)}
+            >
+              Proveedores
+            </Button>
+          </Grid>
+        )}
       </Container>
       <Table
         columns={columns}
