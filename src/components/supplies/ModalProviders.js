@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, notification, Table } from "antd";
+import { Modal, notification, Table, Input } from "antd";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
 import { getProviders } from "../../providers";
@@ -9,6 +9,12 @@ import { Button, Container, Grid, Icon } from "../../components";
 export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
   const [providers, setProviders] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+
+  // Crear nuevo proveedor
+  const [isVisibleNewProviderModal, setIsVisibleNewProviderModal] = useState(
+    false
+  );
 
   const columns = [
     {
@@ -54,31 +60,84 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
       setProviders(_providers);
     };
     fetchProviders();
-  }, []);
+  }, [toggleUpdateTable]);
+
+  const createNewProvider = () => {
+    console.log("new");
+  };
 
   return (
-    <Container height="fit-content" flexDirection="column" alignItems="center">
-      <Table
-        columns={columns}
-        bordered
-        scrollToFirstRowOnChange
-        pagination={{ position: ["bottomCenter"] }}
-        scroll={{ y: windowHeight * 0.5 - 48 }}
-        dataSource={providers}
-      />
-      <br />
-      <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-        <Button margin="auto" type="primary">
-          Crear nuevo proveedor
-        </Button>
-        <Button
-          onClick={() => setIsVisibleProvidersModal(false)}
-          margin="auto"
-          type="primary"
+    <>
+      <Modal
+        visible={isVisibleNewProviderModal}
+        title="Crear nuevo proveedor"
+        centered
+        /* width="800px" */
+        onCancel={() => setIsVisibleNewProviderModal(false)}
+        footer={null}
+      >
+        <Container
+          flexDirection="column"
+          height="auto"
+          padding=" 0rem 1rem 1rem 1rem"
         >
-          Cancelar
-        </Button>
-      </Grid>
-    </Container>
+          <Input
+            /* value={code}
+          onChange={(event) => setCode(event.target.value)} */
+            addonBefore="Nombre"
+          />
+          <br />
+          <Input
+            /* value={code}
+          onChange={(event) => setCode(event.target.value)} */
+            addonBefore="Código"
+          />
+        </Container>
+        <br />
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+          <Button onClick={createNewProvider} margin="auto" type="primary">
+            Guardar
+          </Button>
+          <Button
+            onClick={() => setIsVisibleNewProviderModal(false)}
+            margin="auto"
+            type="primary"
+          >
+            Cancelar
+          </Button>
+        </Grid>
+      </Modal>
+      <Container
+        height="fit-content"
+        flexDirection="column"
+        alignItems="center"
+      >
+        <Table
+          columns={columns}
+          bordered
+          scrollToFirstRowOnChange
+          pagination={{ position: ["bottomCenter"] }}
+          scroll={{ y: windowHeight * 0.5 - 48 }}
+          dataSource={providers}
+        />
+        <br />
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+          <Button
+            onClick={() => setIsVisibleNewProviderModal(true)}
+            margin="auto"
+            type="primary"
+          >
+            Crear nuevo proveedor
+          </Button>
+          <Button
+            onClick={() => setIsVisibleProvidersModal(false)}
+            margin="auto"
+            type="primary"
+          >
+            Cancelar
+          </Button>
+        </Grid>
+      </Container>
+    </>
   );
 };
