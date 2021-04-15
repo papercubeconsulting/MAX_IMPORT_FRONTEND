@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Modal, notification, Table } from "antd";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
-import { Button, Container, Grid } from "../../components";
+import { getProviders } from "../../providers";
+
+import { Button, Container, Grid, Icon } from "../../components";
 
 export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
   const [providers, setProviders] = useState([]);
@@ -11,9 +13,8 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
   const columns = [
     {
       title: "Proveedor",
-      dataIndex: "provider",
+      dataIndex: "name",
       align: "center",
-      render: (provider) => provider.name,
     },
     {
       title: "Código",
@@ -22,16 +23,16 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
     },
     {
       title: "Status",
-      dataIndex: "warehouse",
+      dataIndex: "active",
       align: "center",
-      render: (warehouse) => warehouse.name,
+      render: (active) => (active ? "Activo" : "Inactivo"),
     },
     {
       title: "",
-      dataIndex: "status",
+      dataIndex: "id",
       width: "150px",
       align: "center",
-      render: (status, supply) => (
+      render: (id, record) => (
         <Button
           width="fit-content"
           /* onClick={async () => router.push(`/supplies/${supply.id}`)} */
@@ -47,17 +48,25 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
+  useEffect(() => {
+    const fetchProviders = async () => {
+      const _providers = await getProviders();
+      setProviders(_providers);
+    };
+    fetchProviders();
+  }, []);
+
   return (
     <Container height="fit-content" flexDirection="column" alignItems="center">
       <Table
         columns={columns}
         bordered
         scrollToFirstRowOnChange
-        /* pagination={pagination} */
-        scroll={{ y: windowHeight * 0.7 - 16 }}
-        /* onChange={(pagination) => setPage(pagination.current)} */
+        pagination={{ position: ["bottomCenter"] }}
+        scroll={{ y: windowHeight * 0.5 - 48 }}
         dataSource={providers}
       />
+      <br />
       <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
         <Button margin="auto" type="primary">
           Crear nuevo proveedor

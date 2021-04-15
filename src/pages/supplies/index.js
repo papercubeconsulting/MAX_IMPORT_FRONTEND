@@ -199,6 +199,7 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleProvidersModal}
         title="Gestión de proveedores"
+        centered
         width="800px"
         onCancel={() => setIsVisibleProvidersModal(false)}
         footer={null}
