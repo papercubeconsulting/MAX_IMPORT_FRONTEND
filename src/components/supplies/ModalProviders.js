@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, notification, Table, Input } from "antd";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
-import { getProviders } from "../../providers";
+import { getProviders, postProvider } from "../../providers";
 
 import { Button, Container, Grid, Icon } from "../../components";
 
@@ -15,6 +15,8 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
   const [isVisibleNewProviderModal, setIsVisibleNewProviderModal] = useState(
     false
   );
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
 
   const columns = [
     {
@@ -62,15 +64,28 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
     fetchProviders();
   }, [toggleUpdateTable]);
 
-  const createNewProvider = () => {
-    console.log("new");
+  const createNewProvider = async () => {
+    try {
+      const response = await postProvider({ name, code });
+      if (response.id) {
+        setToggleUpdateTable((prev) => !prev);
+        notification.success({
+          message: "El proveedor se ha creado correctamente",
+        });
+        setIsVisibleNewProviderModal(false);
+      }
+    } catch (error) {
+      notification.error({
+        message: "Ocurrió un error. Por favor vuelva a intentarlo",
+      });
+    }
   };
 
   return (
     <>
       <Modal
         visible={isVisibleNewProviderModal}
-        title="Crear nuevo proveedor"
+        title="Crear proveedor"
         centered
         /* width="800px" */
         onCancel={() => setIsVisibleNewProviderModal(false)}
@@ -82,20 +97,25 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
           padding=" 0rem 1rem 1rem 1rem"
         >
           <Input
-            /* value={code}
-          onChange={(event) => setCode(event.target.value)} */
+            value={name}
+            onChange={(event) => setName(event.target.value)}
             addonBefore="Nombre"
           />
           <br />
           <Input
-            /* value={code}
-          onChange={(event) => setCode(event.target.value)} */
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
             addonBefore="Código"
           />
         </Container>
         <br />
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
-          <Button onClick={createNewProvider} margin="auto" type="primary">
+          <Button
+            onClick={createNewProvider}
+            disabled={!name || !code}
+            margin="auto"
+            type="primary"
+          >
             Guardar
           </Button>
           <Button
