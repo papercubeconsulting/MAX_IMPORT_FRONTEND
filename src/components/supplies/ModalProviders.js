@@ -2,21 +2,35 @@ import React, { useState, useEffect } from "react";
 import { Modal, notification, Table, Input } from "antd";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
 
-import { getProviders, postProvider } from "../../providers";
+import { getProviders, postProvider, putProvider } from "../../providers";
 
-import { Button, Container, Grid, Icon } from "../../components";
+import { Button, Container, Grid, Icon, Select } from "../../components";
 
 export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
   const [providers, setProviders] = useState([]);
   const [windowHeight, setWindowHeight] = useState(0);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
-  // Crear nuevo proveedor
+  // Crear/editar nuevo proveedor
   const [isVisibleNewProviderModal, setIsVisibleNewProviderModal] = useState(
     false
   );
+  const [titleModal, setTitleModal] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [active, setActive] = useState(true);
+  const [id, setId] = useState("");
+
+  const statusOptions = [
+    {
+      value: true,
+      label: "Activo",
+    },
+    {
+      value: false,
+      label: "Inactivo",
+    },
+  ];
 
   const columns = [
     {
@@ -43,7 +57,14 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
       render: (id, record) => (
         <Button
           width="fit-content"
-          /* onClick={async () => router.push(`/supplies/${supply.id}`)} */
+          onClick={() => {
+            setActive(record.active);
+            setName(record.name);
+            setCode(record.code);
+            setId(id);
+            setTitleModal("Editar");
+            setIsVisibleNewProviderModal(true);
+          }}
         >
           <Icon icon={faEdit} />
           Editar
@@ -64,13 +85,21 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
     fetchProviders();
   }, [toggleUpdateTable]);
 
-  const createNewProvider = async () => {
+  const createOrUpdateProvider = async () => {
+    const isCreate = titleModal === "Crear";
     try {
-      const response = await postProvider({ name, code });
+      let response;
+      if (isCreate) {
+        response = await postProvider({ name, code });
+      } else {
+        response = await putProvider(id, { name, active });
+      }
       if (response.id) {
         setToggleUpdateTable((prev) => !prev);
         notification.success({
-          message: "El proveedor se ha creado correctamente",
+          message: `El proveedor se ha ${
+            isCreate ? "creado" : "actualizado"
+          } correctamente`,
         });
         setIsVisibleNewProviderModal(false);
       }
@@ -85,7 +114,7 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
     <>
       <Modal
         visible={isVisibleNewProviderModal}
-        title="Crear proveedor"
+        title={`${titleModal} proveedor`}
         centered
         /* width="800px" */
         onCancel={() => setIsVisibleNewProviderModal(false)}
@@ -105,13 +134,22 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
           <Input
             value={code}
             onChange={(event) => setCode(event.target.value)}
+            disabled={titleModal !== "Crear"}
             addonBefore="Código"
+          />
+          <br />
+          <Select
+            value={active}
+            onChange={(value) => setActive(value)}
+            disabled={titleModal === "Crear"}
+            options={statusOptions}
+            label="Estado"
           />
         </Container>
         <br />
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
           <Button
-            onClick={createNewProvider}
+            onClick={createOrUpdateProvider}
             disabled={!name || !code}
             margin="auto"
             type="primary"
@@ -143,7 +181,13 @@ export const ModalProviders = ({ setIsVisibleProvidersModal }) => {
         <br />
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
           <Button
-            onClick={() => setIsVisibleNewProviderModal(true)}
+            onClick={() => {
+              setTitleModal("Crear");
+              setActive(true);
+              setName("");
+              setCode("");
+              setIsVisibleNewProviderModal(true);
+            }}
             margin="auto"
             type="primary"
           >
