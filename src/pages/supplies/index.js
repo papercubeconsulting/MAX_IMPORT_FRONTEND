@@ -27,24 +27,23 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       /* width: "120px", */
       align: "center",
-      render: (supplyId, supply) =>
-        supply.status === "Pendiente" && (
-          <Container justifyContent="space-between" padding="0px">
-            <Button
-              padding="0 0.5rem"
-              onClick={async () => router.push(`/supplies/${supplyId}`)}
-            >
-              <Icon marginRight="0px" fontSize="0.8rem" icon={faEdit} />
-            </Button>
-            <Button
-              padding="0 0.5rem"
-              onClick={() => confirmCancelSupply(supplyId)}
-              type="primary"
-            >
-              <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-            </Button>
-          </Container>
-        ),
+      render: (supplyId, supply) => (
+        <Container justifyContent="space-between" padding="0px">
+          <Button
+            padding="0 0.5rem"
+            onClick={async () => router.push(`/supplies/${supplyId}`)}
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faEdit} />
+          </Button>
+          <Button
+            padding="0 0.5rem"
+            onClick={() => confirmCancelSupply(supplyId)}
+            type="primary"
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+          </Button>
+        </Container>
+      ),
     },
     {
       title: "Proveedor",
