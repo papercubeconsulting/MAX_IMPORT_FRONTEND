@@ -20,7 +20,6 @@ export const Attend = (props) => {
     if (!/^(?!([ \d]*-){2})\d+(?: *[-,] *\d+)*$/.test(boxesText)) return false;
 
     const ranges = boxesText.replace(/ /g, "").split(",");
-
     const _boxes = uniq(
       ranges.flatMap((range) => {
         if (range.includes("-")) {
@@ -165,7 +164,14 @@ export const Attend = (props) => {
               return (
                 <Box
                   attended={!!product}
-                  onClick={() => product && setCode(product.trackingCode)}
+                  /* onClick={() => product && setCode(product.trackingCode)} */
+                  onClick={() => {
+                    product &&
+                      (() => {
+                        setCode(product.trackingCode);
+                        setBoxesText(String(product.indexFromSupliedProduct));
+                      })();
+                  }}
                   selected={!!boxes.find((box) => box === value + 1)}
                 >
                   {value + 1}
@@ -180,7 +186,8 @@ export const Attend = (props) => {
           </BarcodeContainer>
         )}
         <Button
-          disabled={!boxesText || !validInput}
+          /* disabled={!boxesText || !validInput} */
+          disabled={!boxesText}
           loading={loadingAttend}
           onClick={onSubmit}
           width="100%"
