@@ -299,9 +299,13 @@ export default ({ setPageTitle }) => {
       render: (quantity, suppliedProduct) => (
         <Input
           key={suppliedProducts.length}
-          defaultValue={quantity}
+          value={quantity}
           disabled={disabled}
           onChange={(event) => {
+            let number = event.nativeEvent.target.value;
+            if (number < 0) {
+              number = 0;
+            }
             setSuppliedProducts((prevState) => {
               const remainingSuppliedProducts = prevState.filter(
                 (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
@@ -311,13 +315,15 @@ export default ({ setPageTitle }) => {
                 ...remainingSuppliedProducts,
                 {
                   ...suppliedProduct,
-                  quantity: parseFloat(event.nativeEvent.target.value || "0"),
+                  /*  quantity: parseFloat(number || "0"), */
+                  quantity: parseFloat(number || ""),
                 },
               ];
             });
             event.persist();
           }}
           type="number"
+          min="0"
         />
       ),
     },
