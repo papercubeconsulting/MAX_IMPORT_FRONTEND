@@ -334,9 +334,8 @@ export default ({ setPageTitle }) => {
   const [selectionType, setSelectionType] = useState("checkbox");
 
   // archivo SIGO
-
   const [ids, setIds] = useState([]);
-  const prueba = async () => {
+  const downloadFileSiigo = async () => {
     try {
       const _response = await getSalesSigo(ids);
       _response.blob().then((res) => {
@@ -478,7 +477,11 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container height="15%">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="8rem">
-          <Button onClick={prueba} type="primary" gridColumnStart="2">
+          <Button
+            onClick={downloadFileSiigo}
+            type="primary"
+            gridColumnStart="2"
+          >
             Crear Archivo SIIGO
           </Button>
           <Button

@@ -15,6 +15,9 @@ const getTradenames = async () => baseProvider.httpGet(`products/tradename`);
 const deleteProduct = async (productId) =>
   baseProvider.httpDelete(`products/${productId}`);
 
+const getFileXlsx = async () =>
+  baseProvider.httpGetFile(`productboxes/availableReport`);
+
 export {
   getProducts,
   getProduct,
@@ -22,4 +25,5 @@ export {
   updateProduct,
   getTradenames,
   deleteProduct,
+  getFileXlsx,
 };

@@ -3,6 +3,7 @@ import { useGlobal } from "reactn";
 import { useRouter } from "next/router";
 import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
+import * as FileSaver from "file-saver";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import {
@@ -13,6 +14,7 @@ import {
   getSubfamilies,
   getTradenames,
   deleteProduct,
+  getFileXlsx,
 } from "../../providers";
 import { urlQueryParams } from "../../util";
 
@@ -367,6 +369,17 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  const downloadXlsx = async () => {
+    try {
+      const _response = await getFileXlsx();
+      _response.blob().then((res) => {
+        FileSaver.saveAs(res, "Report.xlsx");
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <Modal
@@ -519,23 +532,38 @@ export default ({ setPageTitle }) => {
         }
         dataSource={products}
       />
-      <Container height="15%" justifyContent="space-around">
-        <Button
-          onClick={() => setIsModalAddProductVisible(true)}
-          size="large"
-          width="30%"
-          type="primary"
+      <br />
+      <Container height="15%">
+        <Grid
+          gridTemplateColumns="repeat(3, 1fr)"
+          gridGap="2rem"
+          justifyItems="center"
         >
-          Nuevo ítem Inventario
-        </Button>
-        <Button
-          onClick={() => setIsModalReadProductBoxCodeVisible(true)}
-          size="large"
-          width="30%"
-          type="primary"
-        >
-          Mover Caja(s)
-        </Button>
+          <Button
+            onClick={downloadXlsx}
+            size="large"
+            width="240px"
+            type="primary"
+          >
+            Descargar Archivo Excel
+          </Button>
+          <Button
+            onClick={() => setIsModalAddProductVisible(true)}
+            size="large"
+            width="230px"
+            type="primary"
+          >
+            Nuevo ítem Inventario
+          </Button>
+          <Button
+            onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+            size="large"
+            width="200px"
+            type="primary"
+          >
+            Mover Caja(s)
+          </Button>
+        </Grid>
       </Container>
     </>
   );
