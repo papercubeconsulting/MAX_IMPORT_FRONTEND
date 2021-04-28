@@ -145,6 +145,7 @@ export default ({ setPageTitle }) => {
 
   const [windowHeight, setWindowHeight] = useState(0);
   const [pagination, setPagination] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -164,7 +165,7 @@ export default ({ setPageTitle }) => {
   const [tradename, setTradename] = useState(null);
 
   // Actualiza nombre de la página
-  setPageTitle(`Inventario - ${products.length} ítem(s)`);
+  setPageTitle(`Inventario - ${totalItems} ítem(s)`);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -189,6 +190,7 @@ export default ({ setPageTitle }) => {
     const fetchProducts = async () => {
       try {
         const _products = await getProducts(queryParams);
+        setTotalItems(_products.length);
         setPagination({
           position: ["bottomCenter"],
           total: _products.pageSize * _products.pages,
