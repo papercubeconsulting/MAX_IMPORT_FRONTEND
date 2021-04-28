@@ -38,11 +38,9 @@ export const AddProduct = (props) => {
     const initialize = async () => {
       try {
         const _families = await getFamilies();
-
         setFamilies(_families);
 
-        const _providers = await getProviders();
-
+        const _providers = await getProviders({ active: true });
         setProviders(_providers);
       } catch (error) {
         notification.error({

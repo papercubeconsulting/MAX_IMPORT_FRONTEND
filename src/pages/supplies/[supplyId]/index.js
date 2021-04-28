@@ -389,7 +389,7 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     const fetchProviders = async () => {
-      const _providers = await getProviders();
+      const _providers = await getProviders({ active: true });
       setProviders(_providers);
     };
     fetchProviders();
