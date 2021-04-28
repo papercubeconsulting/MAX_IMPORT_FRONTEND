@@ -356,15 +356,15 @@ export default ({ setPageTitle }) => {
   const deleteProductById = async () => {
     try {
       const response = await deleteProduct(productId);
-      // console.log("elimina", response);
       setToggleUpdateTable((prev) => !prev);
       setIsVisibleModalDelete(false);
       notification.success({
         message: "Producto eliminado correctamente",
       });
     } catch (error) {
+      setIsVisibleModalDelete(false);
       notification.error({
-        message: "Ocurrió un error. Vuelva a intentarlo",
+        message: `No se pudo eliminar el producto. ${error.userMessage}`,
       });
     }
   };
