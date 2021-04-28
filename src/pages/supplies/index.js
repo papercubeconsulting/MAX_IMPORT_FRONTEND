@@ -127,8 +127,8 @@ export default ({ setPageTitle }) => {
   const [pagination, setPagination] = useState(null);
 
   const [supplies, setSupplies] = useState([]);
-  const [from, setFrom] = useState(moment().subtract(7, "days"));
-  const [to, setTo] = useState(moment());
+  const [from, setFrom] = useState(moment().subtract(6, "months"));
+  const [to, setTo] = useState(moment().add(6, "M"));
   const [page, setPage] = useState(1);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
