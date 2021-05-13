@@ -44,6 +44,7 @@ export default ({ setPageTitle }) => {
 
   const columns = [
     {
+      title: "Movimiento",
       dataIndex: "id",
       width: "120px",
       align: "center",
@@ -492,14 +493,8 @@ export default ({ setPageTitle }) => {
     if (!suppliedProducts.length) return false;
 
     return suppliedProducts.reduce((accumulator, suppliedProduct) => {
-      const {
-        familyId,
-        subfamilyId,
-        elementId,
-        modelId,
-        boxSize,
-        quantity,
-      } = suppliedProduct;
+      const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
+        suppliedProduct;
 
       return (
         accumulator &&
@@ -563,14 +558,8 @@ export default ({ setPageTitle }) => {
     if (products.length === index) return mappedSuppliedProducts;
 
     const currentProduct = products[index];
-    const {
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-      boxSize,
-      quantity,
-    } = currentProduct;
+    const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
+      currentProduct;
 
     const productsResult = await getProducts({
       familyId,
@@ -621,7 +610,7 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
-      <Container height="10%">
+      <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
             value={providerId}
@@ -646,7 +635,7 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Container>
 
-      <Container height="10%">
+      <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <DatePicker
             value={arrivalDate}
