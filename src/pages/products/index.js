@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useGlobal } from "reactn";
 import { useRouter } from "next/router";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
+import * as FileSaver from "file-saver";
+import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import {
   getElements,
@@ -11,6 +13,8 @@ import {
   getProducts,
   getSubfamilies,
   getTradenames,
+  deleteProduct,
+  getFileXlsx,
 } from "../../providers";
 import { urlQueryParams } from "../../util";
 
@@ -26,68 +30,81 @@ import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
 
 export default ({ setPageTitle }) => {
+  const [globalAuthUser] = useGlobal("authUser");
+
+  //modal eliminar inventario
+  const [isVisibleModalDelete, setIsVisibleModalDelete] = useState(false);
+  const [productId, setProductId] = useState(null);
+
   const columns = [
     {
       title: "Cod.",
       dataIndex: "code",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Familia",
       dataIndex: "familyName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Sub-Familia",
       dataIndex: "subfamilyName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Elemento",
       dataIndex: "elementName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Modelo",
       dataIndex: "modelName",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Nom.",
       dataIndex: "tradename",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "Stock",
       dataIndex: "totalStock",
-      width: "fit-content",
       align: "center",
     },
     {
       title: "",
       dataIndex: "id",
-      width: "fit-content",
       align: "center",
+      width: "90px",
       render: (productId) => (
-        <Button
-          onClick={async () => router.push(`/products/${productId}`)}
-          type="primary"
-        >
-          <Icon icon={faEye} />
-          Ver
-        </Button>
+        <>
+          <Button
+            padding="0 0.25rem"
+            onClick={async () => router.push(`/products/${productId}`)}
+            type="primary"
+          >
+            <Icon marginRight="0px" icon={faEye} />
+          </Button>
+          {globalAuthUser && globalAuthUser.user.role === "superuser" && (
+            <Button
+              onClick={() => {
+                setProductId(productId);
+                setIsVisibleModalDelete(true);
+              }}
+              padding="0 0.25rem"
+              margin="0 0 0 0.25rem"
+              type="danger"
+            >
+              <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+            </Button>
+          )}
+        </>
       ),
     },
     {
       title: "En Tienda",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -101,7 +118,6 @@ export default ({ setPageTitle }) => {
     {
       title: "En Almacén",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -115,7 +131,6 @@ export default ({ setPageTitle }) => {
     {
       title: "En Techo",
       dataIndex: "stockByWarehouseType",
-      width: "fit-content",
       align: "center",
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
@@ -130,6 +145,7 @@ export default ({ setPageTitle }) => {
 
   const [windowHeight, setWindowHeight] = useState(0);
   const [pagination, setPagination] = useState(null);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
@@ -149,7 +165,7 @@ export default ({ setPageTitle }) => {
   const [tradename, setTradename] = useState(null);
 
   // Actualiza nombre de la página
-  setPageTitle(`Inventario - ${products.length} ítem(s)`);
+  setPageTitle(`Inventario - ${totalItems} ítem(s)`);
 
   const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
     false
@@ -174,6 +190,7 @@ export default ({ setPageTitle }) => {
     const fetchProducts = async () => {
       try {
         const _products = await getProducts(queryParams);
+        setTotalItems(_products.length);
         setPagination({
           position: ["bottomCenter"],
           total: _products.pageSize * _products.pages,
@@ -338,8 +355,63 @@ export default ({ setPageTitle }) => {
     !isPagination && setPage(undefined);
   };
 
+  const deleteProductById = async () => {
+    try {
+      const response = await deleteProduct(productId);
+      setToggleUpdateTable((prev) => !prev);
+      setIsVisibleModalDelete(false);
+      notification.success({
+        message: "Producto eliminado correctamente",
+      });
+    } catch (error) {
+      setIsVisibleModalDelete(false);
+      notification.error({
+        message: `No se pudo eliminar el producto. ${error.userMessage}`,
+      });
+    }
+  };
+
+  const downloadXlsx = async () => {
+    try {
+      const _response = await getFileXlsx();
+      _response.blob().then((res) => {
+        FileSaver.saveAs(res, "Report.xlsx");
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
+      <Modal
+        visible={isVisibleModalDelete}
+        width="40%"
+        onCancel={() => setIsVisibleModalDelete(false)}
+        footer={null}
+      >
+        <Container
+          height="fit-content"
+          flexDirection="column"
+          alignItems="center"
+        >
+          <p style={{ fontWeight: "bold" }}>
+            ¿Está seguro que desea eliminar este producto?
+          </p>
+          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+            <Button onClick={deleteProductById} margin="auto" type="primary">
+              Si, ejecutar
+            </Button>
+            <Button
+              onClick={() => setIsVisibleModalDelete(false)}
+              margin="auto"
+              type="primary"
+            >
+              No, regresar
+            </Button>
+          </Grid>
+        </Container>
+      </Modal>
       {isModalAddProductVisible && (
         <AddProduct
           visible={isModalAddProductVisible}
@@ -412,22 +484,11 @@ export default ({ setPageTitle }) => {
             }}
             onSearch={(value) => {
               updateState(setTradename, value);
-              /* setTradename(value); */
             }}
             _options={tradenames.map((trade) => ({
               value: trade.tradename,
               label: trade.tradename,
             }))}
-            /*  _options={[
-              {
-                value: null,
-                label: "Todos",
-              },
-              ...tradenames.map((trade) => ({
-                value: trade.tradename,
-                label: trade.tradename,
-              })),
-            ]} */
             filterOption={(input, option) => {
               return option.children
                 .toLowerCase()
@@ -473,23 +534,38 @@ export default ({ setPageTitle }) => {
         }
         dataSource={products}
       />
-      <Container height="15%" justifyContent="space-around">
-        <Button
-          onClick={() => setIsModalAddProductVisible(true)}
-          size="large"
-          width="30%"
-          type="primary"
+      <br />
+      <Container height="15%">
+        <Grid
+          gridTemplateColumns="repeat(3, 1fr)"
+          gridGap="2rem"
+          justifyItems="center"
         >
-          Nuevo ítem Inventario
-        </Button>
-        <Button
-          onClick={() => setIsModalReadProductBoxCodeVisible(true)}
-          size="large"
-          width="30%"
-          type="primary"
-        >
-          Mover Caja(s)
-        </Button>
+          <Button
+            onClick={downloadXlsx}
+            size="large"
+            width="240px"
+            type="primary"
+          >
+            Descargar Archivo Excel
+          </Button>
+          <Button
+            onClick={() => setIsModalAddProductVisible(true)}
+            size="large"
+            width="230px"
+            type="primary"
+          >
+            Nuevo ítem Inventario
+          </Button>
+          <Button
+            onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+            size="large"
+            width="200px"
+            type="primary"
+          >
+            Mover Caja(s)
+          </Button>
+        </Grid>
       </Container>
     </>
   );

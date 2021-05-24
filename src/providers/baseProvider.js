@@ -81,7 +81,7 @@ export const baseProvider = {
 
     return validate(responseJson);
   },
-  httpGetPrueba: async (url, params = {}) => {
+  httpGetSiigo: async (url, params = {}) => {
     const token = await getToken();
 
     /* console.log(params); */
@@ -107,7 +107,37 @@ export const baseProvider = {
     /* const responseText = await response.text();
     console.log("response", responseText);
     return validate(responseText); */
-    console.log("response", response);
     return validate(response);
+  },
+  httpGetFile: async (url, params = {}) => {
+    const token = await getToken();
+
+    const response = await fetch(buildUrl(url, params), {
+      method: "GET",
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        accept: " */*",
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: "blob",
+    });
+    return validate(response);
+  },
+  httpDelete: async (url) => {
+    const token = await getToken();
+
+    const response = await fetch(buildUrl(url), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        accept: " */*",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const responseJson = await response.json();
+
+    return validate(responseJson);
   },
 };

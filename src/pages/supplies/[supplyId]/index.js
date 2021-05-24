@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import moment from "moment";
-import {
-  Button,
-  Container,
-  Grid,
-  Icon,
-  Select,
-  AutoComplete,
-  DatePicker,
-} from "../../../components";
 import { useRouter } from "next/router";
+import { get, orderBy } from "lodash";
+import { Input, notification, Table, Popconfirm } from "antd";
+import {
+  faCalendarAlt,
+  faPlus,
+  faPrint,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+
 import {
   getElements,
   getFamilies,
@@ -23,65 +23,83 @@ import {
   postSupply,
   putSupply,
   putSupplyStatus,
+  deleteSupplyProduct,
   userProvider,
 } from "../../../providers";
-import { get, orderBy } from "lodash";
-import { Input, notification, Table } from "antd";
 import { clientDateFormat, serverDateFormat } from "../../../util";
-import {
-  faCalendarAlt,
-  faPlus,
-  faPrint,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
+
 import { Attend } from "../../../components/supplies/[supplyId]";
+import {
+  Button,
+  Container,
+  Grid,
+  Icon,
+  Select,
+  AutoComplete,
+  DatePicker,
+} from "../../../components";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
 
   const columns = [
     {
+      title: "Movimiento",
       dataIndex: "id",
-      width: "fit-content",
+      width: "120px",
       align: "center",
       render: (id, suppliedProduct) => (
-        <Button
-          padding="0 0.5rem"
-          onClick={() => {
-            if (disabled) {
-              setAttendedProduct(suppliedProduct);
-              return setVisibleAttendModal(true);
-            }
+        <>
+          <Button
+            padding="0 0.5rem"
+            onClick={() => {
+              if (disabled) {
+                setAttendedProduct(suppliedProduct);
+                return setVisibleAttendModal(true);
+              }
 
-            setSuppliedProducts((prevState) =>
-              prevState
-                .filter((suppliedProduct) => suppliedProduct.id !== id)
-                .map((suppliedProduct, index) => ({
-                  ...suppliedProduct,
-                  id: index + 1,
-                }))
-            );
-          }}
-          type="primary"
-        >
-          <Icon
-            marginRight="0px"
-            fontSize="0.8rem"
-            icon={disabled ? faPrint : faTrash}
-          />
-        </Button>
+              setSuppliedProducts((prevState) =>
+                prevState
+                  .filter((suppliedProduct) => suppliedProduct.id !== id)
+                  .map((suppliedProduct, index) => ({
+                    ...suppliedProduct,
+                    id: index + 1,
+                  }))
+              );
+            }}
+            type="primary"
+          >
+            <Icon
+              marginRight="0px"
+              fontSize="0.8rem"
+              icon={disabled ? faPrint : faTrash}
+            />
+          </Button>
+          {!isNew && (
+            <Popconfirm
+              title="¿Esta seguro de desea eliminar este ítem?"
+              onConfirm={() => deleteProduct(suppliedProduct.dbId)}
+              onCancel={() => {}}
+              okText="Si"
+              cancelText="No"
+            >
+              <Button padding="0 0.5rem" margin="0 0 0 0.5rem" type="danger">
+                <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+              </Button>
+            </Popconfirm>
+          )}
+        </>
       ),
     },
     {
       dataIndex: "id",
       title: "Ítem",
-      width: "fit-content",
+      width: "40px",
       align: "center",
     },
     {
       title: "Familia",
       dataIndex: "familyId",
-      width: "fit-content",
       align: "center",
       render: (familyId, suppliedProduct) => (
         <Select
@@ -113,7 +131,6 @@ export default ({ setPageTitle }) => {
     {
       title: "Sub-Familia",
       dataIndex: "subfamilyId",
-      width: "fit-content",
       align: "center",
       render: (subfamilyId, suppliedProduct) => {
         if (suppliedProduct.familyId && !subfamilyId) {
@@ -163,7 +180,6 @@ export default ({ setPageTitle }) => {
     {
       title: "Elemento",
       dataIndex: "elementId",
-      width: "fit-content",
       align: "center",
       render: (elementId, suppliedProduct) => {
         if (suppliedProduct.subfamilyId && !elementId) {
@@ -214,7 +230,6 @@ export default ({ setPageTitle }) => {
     {
       title: "Modelo",
       dataIndex: "modelId",
-      width: "fit-content",
       align: "center",
       render: (modelId, suppliedProduct) => {
         const [model, setModel] = useState({
@@ -287,21 +302,25 @@ export default ({ setPageTitle }) => {
     {
       title: "Código de producto",
       dataIndex: "product",
-      width: "fit-content",
+      width: "190px",
       align: "center",
       render: (product) => get(product, "code", null),
     },
     {
       title: "Cantidad Cajas",
       dataIndex: "quantity",
-      width: "fit-content",
+      width: "140px",
       align: "center",
       render: (quantity, suppliedProduct) => (
         <Input
           key={suppliedProducts.length}
-          defaultValue={quantity}
+          value={quantity}
           disabled={disabled}
           onChange={(event) => {
+            let number = event.nativeEvent.target.value;
+            if (number < 0) {
+              number = 0;
+            }
             setSuppliedProducts((prevState) => {
               const remainingSuppliedProducts = prevState.filter(
                 (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
@@ -311,20 +330,22 @@ export default ({ setPageTitle }) => {
                 ...remainingSuppliedProducts,
                 {
                   ...suppliedProduct,
-                  quantity: parseFloat(event.nativeEvent.target.value || "0"),
+                  /*  quantity: parseFloat(number || "0"), */
+                  quantity: parseFloat(number || ""),
                 },
               ];
             });
             event.persist();
           }}
           type="number"
+          min="0"
         />
       ),
     },
     {
       title: "Unidades por caja",
       dataIndex: "boxSize",
-      width: "fit-content",
+      width: "150px",
       align: "center",
       render: (boxSize, suppliedProduct) => (
         <Input
@@ -362,6 +383,7 @@ export default ({ setPageTitle }) => {
   const [code, setCode] = useState(null);
   const [arrivalDate, setArrivalDate] = useState(moment());
   const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [me, setMe] = useState({ name: null });
 
   const [families, setFamilies] = useState([]);
@@ -383,7 +405,7 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     const fetchProviders = async () => {
-      const _providers = await getProviders();
+      const _providers = await getProviders({ active: true });
       setProviders(_providers);
     };
     fetchProviders();
@@ -461,7 +483,7 @@ export default ({ setPageTitle }) => {
     };
 
     if (supplyId) fetchSupply(supplyId);
-  }, [supplyId]);
+  }, [supplyId, toggleUpdateTable]);
 
   useEffect(() => {
     console.log(suppliedProducts);
@@ -471,14 +493,8 @@ export default ({ setPageTitle }) => {
     if (!suppliedProducts.length) return false;
 
     return suppliedProducts.reduce((accumulator, suppliedProduct) => {
-      const {
-        familyId,
-        subfamilyId,
-        elementId,
-        modelId,
-        boxSize,
-        quantity,
-      } = suppliedProduct;
+      const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
+        suppliedProduct;
 
       return (
         accumulator &&
@@ -542,14 +558,8 @@ export default ({ setPageTitle }) => {
     if (products.length === index) return mappedSuppliedProducts;
 
     const currentProduct = products[index];
-    const {
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-      boxSize,
-      quantity,
-    } = currentProduct;
+    const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
+      currentProduct;
 
     const productsResult = await getProducts({
       familyId,
@@ -584,9 +594,23 @@ export default ({ setPageTitle }) => {
       });
     }
   };
+
+  const deleteProduct = async (id) => {
+    try {
+      const response = await deleteSupplyProduct(supplyId, id);
+      console.log(id, "eliminado", response);
+      setToggleUpdateTable((prev) => !prev);
+      notification.success({
+        message: "Producto eliminado exitosamente ",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
-      <Container height="10%">
+      <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
             value={providerId}
@@ -611,7 +635,7 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Container>
 
-      <Container height="10%">
+      <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <DatePicker
             value={arrivalDate}
