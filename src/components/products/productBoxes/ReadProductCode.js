@@ -136,6 +136,8 @@ export const ReadProductCode = (props) => {
   };
 
   const scanBarcode = () => {
+    navigator.getWebcam = (navigator.getUserMedia || navigator.webKitGetUserMedia || navigator.moxGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    if (navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices
       .getUserMedia({ video: true })
       .then((stream) => {
@@ -148,6 +150,21 @@ export const ReadProductCode = (props) => {
           description: e.message,
         });
       });
+    }else{
+    
+        navigator.getWebcam({video:true})
+          .then((stream)=>{
+            console.log("success!");
+          })
+          .catch((e) => {
+            console.log("e: ", e);
+            notification.error({
+              message: "Ocurrió un error",
+              description: e.message,
+            });
+          });
+      
+    }
     initQuagga();
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
