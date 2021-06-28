@@ -121,6 +121,7 @@ export const ReadProductCode = (props) => {
         },
       },
       (error) => {
+        console.log("Error de quoga");
         if (error) {
           console.log(error);
           notification.error({
@@ -137,13 +138,18 @@ export const ReadProductCode = (props) => {
 
   const scanBarcode = () => {
     navigator.getWebcam = (navigator.getUserMedia || navigator.webKitGetUserMedia || navigator.moxGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    console.log('navigator.mediaDevices...');
+    console.log(navigator.mediaDevices);
     if (navigator.mediaDevices.getUserMedia) {
+      console.log("Into getUserMedia");
     navigator.mediaDevices
       .getUserMedia({ video: true })
       .then((stream) => {
         console.log("success!");
       })
       .catch((e) => {
+        console.log("Error de scanBarcode getUserMedia");
+
         console.log("e: ", e);
         notification.error({
           message: "Ocurrió un error",
@@ -151,7 +157,9 @@ export const ReadProductCode = (props) => {
         });
       });
     }else{
-    
+      console.log("Not into getUserMedia");
+      console.log("Error de scanBarcode Not into getUserMedia");
+
         navigator.getWebcam({video:true})
           .then((stream)=>{
             console.log("success!");
