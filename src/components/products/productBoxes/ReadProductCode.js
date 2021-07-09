@@ -19,6 +19,19 @@ import { Select } from "../../Select";
 import { Button } from "../../Button";
 import { Icon } from "../../Icon";
 
+const Form = styled(Grid)`
+  grid-template-columns: 1fr 1fr;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const DivInfo = styled(Grid)`
+  @media (max-width: 768px) {
+    display: inherit;
+  }
+`;
+
 export const ReadProductCode = (props) => {
   const router = useRouter();
 
@@ -256,7 +269,7 @@ export const ReadProductCode = (props) => {
         width="90%"
         title="Escanear o ingresar código de caja"
       >
-        <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
+        <Form gridGap="2rem" marginBottom="1rem">
           <Container padding="0rem">
             <Input
               justify="center"
@@ -276,8 +289,12 @@ export const ReadProductCode = (props) => {
             </Button>
           </Container>
           <Button onClick={scanBarcode}>Leer Código de barras</Button>
-        </Grid>
-        <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem" marginBottom="1rem">
+        </Form>
+        <DivInfo
+          gridTemplateColumns="1fr 1fr"
+          gridGap="2rem"
+          marginBottom="1rem"
+        >
           <Container padding="1rem 0rem">
             <Table
               columns={columns}
@@ -294,7 +311,7 @@ export const ReadProductCode = (props) => {
             </div>
             <canvas className="drawingBuffer"></canvas>
           </QRScanner>
-        </Grid>
+        </DivInfo>
       </Modal>
     </>
   );
