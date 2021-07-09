@@ -137,41 +137,46 @@ export const ReadProductCode = (props) => {
   };
 
   const scanBarcode = () => {
-    navigator.getWebcam = (navigator.getUserMedia || navigator.webKitGetUserMedia || navigator.moxGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-    console.log('navigator.mediaDevices...');
+    navigator.getWebcam =
+      navigator.getUserMedia ||
+      navigator.webKitGetUserMedia ||
+      navigator.moxGetUserMedia ||
+      navigator.mozGetUserMedia ||
+      navigator.msGetUserMedia;
+    console.log("navigator.mediaDevices...");
     console.log(navigator.mediaDevices);
     if (navigator.mediaDevices.getUserMedia) {
       console.log("Into getUserMedia");
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        console.log("success!");
-      })
-      .catch((e) => {
-        console.log("Error de scanBarcode getUserMedia");
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          console.log("success!");
+        })
+        .catch((e) => {
+          console.log("Error de scanBarcode getUserMedia");
 
-        console.log("e: ", e);
-        notification.error({
-          message: "Ocurrió un error",
-          description: e.message,
+          console.log("e: ", e);
+          notification.error({
+            message: "Ocurrió un error",
+            description: e.message,
+          });
         });
-      });
-    }else{
+    } else {
       console.log("Not into getUserMedia");
       console.log("Error de scanBarcode Not into getUserMedia");
 
-        navigator.getWebcam({video:true})
-          .then((stream)=>{
-            console.log("success!");
-          })
-          .catch((e) => {
-            console.log("e: ", e);
-            notification.error({
-              message: "Ocurrió un error",
-              description: e.message,
-            });
+      navigator
+        .getWebcam({ video: true })
+        .then((stream) => {
+          console.log("success!");
+        })
+        .catch((e) => {
+          console.log("e: ", e);
+          notification.error({
+            message: "Ocurrió un error",
+            description: e.message,
           });
-      
+        });
     }
     initQuagga();
     Quagga.onProcessed((data) => {
@@ -242,7 +247,7 @@ export const ReadProductCode = (props) => {
         visible={props.visible}
         onOk={async () => {
           if (dataCodes.length === 1) {
-            router.push(`/products/productBoxes/${dataCodes[0].code}`);
+            router.push(`/products/productBoxes/${dataCodes[0].trackingCode}`);
           } else {
             setModalConfirm(true);
           }
