@@ -45,6 +45,7 @@ export const ReadProductCode = (props) => {
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
+    window.localStream = null;
   }, []);
 
   useEffect(() => {
@@ -161,8 +162,9 @@ export const ReadProductCode = (props) => {
     if (navigator.mediaDevices.getUserMedia) {
       console.log("Into getUserMedia");
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({ video: true, audio: false })
         .then((stream) => {
+          window.localStream = stream;
           console.log("success!");
         })
         .catch((e) => {
@@ -204,6 +206,18 @@ export const ReadProductCode = (props) => {
     });
   };
 
+  const stopWebcam = () => {
+    if (localStream) {
+      window.location.reload();
+    }
+    //console.log("localStream", localStream);
+    //console.log("getTracks", localStream.getTracks());
+    /* localStream.getTracks().forEach((track) => {
+      console.log(track);
+      track.stop();
+    }); */
+  };
+
   const moveBoxes = async () => {
     const data = dataCodes.map((elem) => ({
       id: elem.id,
@@ -218,6 +232,7 @@ export const ReadProductCode = (props) => {
       setModalConfirm(false);
       setDataCodes([]);
       props.trigger(false);
+      stopWebcam();
     } catch (error) {
       console.log("error", error);
       notification.error({
@@ -265,7 +280,10 @@ export const ReadProductCode = (props) => {
             setModalConfirm(true);
           }
         }}
-        onCancel={() => props.trigger && props.trigger(false)}
+        onCancel={() => {
+          props.trigger && props.trigger(false);
+          stopWebcam();
+        }}
         width="90%"
         title="Escanear o ingresar código de caja"
       >
