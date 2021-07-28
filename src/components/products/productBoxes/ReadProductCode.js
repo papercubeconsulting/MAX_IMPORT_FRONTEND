@@ -163,7 +163,6 @@ export const ReadProductCode = (props) => {
     console.log(navigator.mediaDevices);
     if (navigator.mediaDevices.getUserMedia) {
       console.log('Into getUserMedia');
-
       (async () => {
         const devices = await navigator.mediaDevices.enumerateDevices();
         console.log('Devices', devices);
@@ -178,9 +177,7 @@ export const ReadProductCode = (props) => {
           audio: false,
         })
         .then((stream) => {
-          console.log('Videotrack', stream.getVideoTracks());
           videoRef.current.localStream = stream;
-          // window.localStream = stream;
           console.log('success!');
         })
         .catch((e) => {
