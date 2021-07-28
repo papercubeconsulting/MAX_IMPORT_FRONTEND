@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { Input, Modal, notification, Table } from "antd";
-import styled from "styled-components";
-import Quagga from "quagga";
-import { get } from "lodash";
-import { faTrash, faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Input, Modal, notification, Table } from 'antd';
+import styled from 'styled-components';
+import Quagga from 'quagga';
+import { get } from 'lodash';
+import { faTrash, faPeopleCarry } from '@fortawesome/free-solid-svg-icons';
 
 import {
   getProductBox,
   getWarehouses,
   putProductBoxes,
-} from "../../../providers";
-import { selectOptions } from "../../../util";
+} from '../../../providers';
+import { selectOptions } from '../../../util';
 
-import { Container } from "../../Container";
-import { Grid } from "../../Grid";
-import { Select } from "../../Select";
-import { Button } from "../../Button";
-import { Icon } from "../../Icon";
+import { Container } from '../../Container';
+import { Grid } from '../../Grid';
+import { Select } from '../../Select';
+import { Button } from '../../Button';
+import { Icon } from '../../Icon';
 
 const Form = styled(Grid)`
   grid-template-columns: 1fr 1fr;
@@ -34,9 +34,10 @@ const DivInfo = styled(Grid)`
 
 export const ReadProductCode = (props) => {
   const router = useRouter();
-
+  const videoRef = React.useRef();
+  const videoooRef = React.useRef();
   const [dataCodes, setDataCodes] = useState([]);
-  const [productBoxCode, setProductBoxCode] = useState("");
+  const [productBoxCode, setProductBoxCode] = useState('');
   const [warehouses, setWarehouses] = useState([]);
   const [newWarehouse, setNewWarehouse] = useState({});
   const [modalConfirm, setModalConfirm] = useState(false);
@@ -58,26 +59,26 @@ export const ReadProductCode = (props) => {
 
   const columns = [
     {
-      title: "N°",
-      dataIndex: "key",
-      align: "center",
-      width: "38px",
+      title: 'N°',
+      dataIndex: 'key',
+      align: 'center',
+      width: '38px',
     },
     {
-      title: "Código",
-      dataIndex: "trackingCode",
-      align: "center",
+      title: 'Código',
+      dataIndex: 'trackingCode',
+      align: 'center',
     },
     {
-      title: "Almacén",
-      dataIndex: "warehouse",
-      align: "center",
+      title: 'Almacén',
+      dataIndex: 'warehouse',
+      align: 'center',
       render: (warehouse) => warehouse.name,
     },
     {
-      dataIndex: "trackingCode",
-      align: "center",
-      width: "42px",
+      dataIndex: 'trackingCode',
+      align: 'center',
+      width: '42px',
       render: (trackingCode) => (
         <>
           <Button
@@ -109,7 +110,7 @@ export const ReadProductCode = (props) => {
         if (prev.some((code) => code.trackingCode == newCode)) {
           showNotification &&
             notification.info({
-              message: "El código ingresado ya existe en la tabla",
+              message: 'El código ingresado ya existe en la tabla',
             });
           return [...prev];
         } else {
@@ -118,7 +119,7 @@ export const ReadProductCode = (props) => {
       });
     } catch (error) {
       notification.error({
-        message: "El código ingresado no fue encontrado",
+        message: 'El código ingresado no fue encontrado',
       });
     }
   };
@@ -127,24 +128,25 @@ export const ReadProductCode = (props) => {
     Quagga.init(
       {
         inputStream: {
-          name: "Live",
-          type: "LiveStream",
+          name: 'Live',
+          type: 'LiveStream',
+          target: videoRef.current,
         },
         decoder: {
-          readers: ["code_128_reader"],
+          readers: ['code_128_reader'],
         },
       },
       (error) => {
-        console.log("Error de quoga");
+        console.log('Error de quoga', error);
         if (error) {
           console.log(error);
           notification.error({
-            message: "Ocurrió un error",
+            message: 'Ocurrió un error',
             description: error.message,
           });
           return;
         }
-        console.log("Initialization finished. Ready to start");
+        console.log('Initialization finished. Ready to start');
         Quagga.start();
       }
     );
@@ -157,45 +159,59 @@ export const ReadProductCode = (props) => {
       navigator.moxGetUserMedia ||
       navigator.mozGetUserMedia ||
       navigator.msGetUserMedia;
-    console.log("navigator.mediaDevices...");
+    console.log('navigator.mediaDevices...');
     console.log(navigator.mediaDevices);
     if (navigator.mediaDevices.getUserMedia) {
-      console.log("Into getUserMedia");
+      console.log('Into getUserMedia');
+
+      (async () => {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log('Devices', devices);
+      })();
       navigator.mediaDevices
-        .getUserMedia({ video: true, audio: false })
+        .getUserMedia({
+          video: {
+            facingMode: {
+              exact: 'environment',
+            },
+          },
+          audio: false,
+        })
         .then((stream) => {
-          window.localStream = stream;
-          console.log("success!");
+          console.log('Videotrack', stream.getVideoTracks());
+          videoRef.current.localStream = stream;
+          // window.localStream = stream;
+          console.log('success!');
         })
         .catch((e) => {
-          console.log("Error de scanBarcode getUserMedia");
+          console.log('Error de scanBarcode getUserMedia');
 
-          console.log("e: ", e);
+          console.log('e: ', e);
           notification.error({
-            message: "Ocurrió un error",
+            message: 'Ocurrió un error',
             description: e.message,
           });
         });
     } else {
-      console.log("Not into getUserMedia");
-      console.log("Error de scanBarcode Not into getUserMedia");
+      console.log('Not into getUserMedia');
+      console.log('Error de scanBarcode Not into getUserMedia');
 
       navigator
         .getWebcam({ video: true })
         .then((stream) => {
-          console.log("success!");
+          console.log('success!');
         })
         .catch((e) => {
-          console.log("e: ", e);
+          console.log('e: ', e);
           notification.error({
-            message: "Ocurrió un error",
+            message: 'Ocurrió un error',
             description: e.message,
           });
         });
     }
     initQuagga();
     Quagga.onProcessed((data) => {
-      if (get(data, "codeResult", null)) {
+      if (get(data, 'codeResult', null)) {
         const _code = data.codeResult.code;
         addCode(_code);
         Quagga.stop();
@@ -227,16 +243,16 @@ export const ReadProductCode = (props) => {
     try {
       const response = await putProductBoxes({ boxes: data });
       notification.success({
-        message: "Las cajas han sido movidas correctamente",
+        message: 'Las cajas han sido movidas correctamente',
       });
       setModalConfirm(false);
       setDataCodes([]);
       props.trigger(false);
       stopWebcam();
     } catch (error) {
-      console.log("error", error);
+      console.log('error', error);
       notification.error({
-        message: "Ocurrió un error. Vuelva a intentarlo por favor",
+        message: 'Ocurrió un error. Vuelva a intentarlo por favor',
       });
     }
   };
@@ -300,7 +316,7 @@ export const ReadProductCode = (props) => {
               disabled={!productBoxCode}
               onClick={() => {
                 addCode(productBoxCode, true);
-                setProductBoxCode("");
+                setProductBoxCode('');
               }}
             >
               Agregar
@@ -324,9 +340,13 @@ export const ReadProductCode = (props) => {
             />
           </Container>
           <QRScanner>
-            <div id="interactive" className="viewport">
+            <div ref={videoRef} className="viewport">
               <video autoPlay="true" preload="auto" />
             </div>
+            <canvas className="drawingBuffer"></canvas>
+          </QRScanner>
+          <QRScanner>
+            <div ref={videoooRef} id="videooo"></div>
             <canvas className="drawingBuffer"></canvas>
           </QRScanner>
         </DivInfo>
