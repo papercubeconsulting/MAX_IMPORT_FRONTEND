@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Button, DatePicker, Alert } from "antd";
 import styled from "styled-components";
-import { getFileXlsxMovimientoCajas } from "../../providers";
+import { getFileXlsxMovimientoCajas } from "../../providers/products";
 import * as FileSaver from "file-saver";
 import moment from "moment";
 const DownloadFilesModal = ({
