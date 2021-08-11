@@ -5,6 +5,7 @@ import { Input, notification, Table, Modal } from "antd";
 import { get } from "lodash";
 import * as FileSaver from "file-saver";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
+import DownloadFilesModal from "../../components/products/DownloadFilesModal.js";
 
 import {
   getElements,
@@ -167,14 +168,14 @@ export default ({ setPageTitle }) => {
   // Actualiza nombre de la página
   setPageTitle(`Inventario - ${totalItems} ítem(s)`);
 
-  const [isModalAddProductVisible, setIsModalAddProductVisible] = useState(
-    false
-  );
+  const [isModalAddProductVisible, setIsModalAddProductVisible] =
+    useState(false);
   const [
     isModalReadProductBoxCodeVisible,
     setIsModalReadProductBoxCodeVisible,
   ] = useState(false);
 
+  const [isDownloadFilesVisible, setIsDownloadFilesVisible] = useState(false);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
   const stateUpdateOrigin = useRef("url");
@@ -419,6 +420,11 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalAddProductVisible}
         />
       )}
+      <DownloadFilesModal
+        isModalVisible={isDownloadFilesVisible}
+        setIsModalVisible={setIsDownloadFilesVisible}
+        downloadInventario={downloadXlsx}
+      />
       <ReadProductCode
         visible={isModalReadProductBoxCodeVisible}
         toggleUpdateTable={setToggleUpdateTable}
@@ -542,12 +548,14 @@ export default ({ setPageTitle }) => {
           justifyItems="center"
         >
           <Button
-            onClick={downloadXlsx}
+            onClick={() => {
+              setIsDownloadFilesVisible(true);
+            }}
             size="large"
             width="240px"
             type="primary"
           >
-            Descargar Archivo Excel
+            Descargar Archivos
           </Button>
           <Button
             onClick={() => setIsModalAddProductVisible(true)}

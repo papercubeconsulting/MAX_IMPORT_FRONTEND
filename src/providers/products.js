@@ -18,6 +18,8 @@ const deleteProduct = async (productId) =>
 const getFileXlsx = async () =>
   baseProvider.httpGetFile(`productboxes/availableReport`);
 
+const getFileXlsxMovimientoCajas = async (params) =>
+  baseProvider.httpGetFile(`productboxes/availableReport`, params);
 export {
   getProducts,
   getProduct,
@@ -26,4 +28,5 @@ export {
   getTradenames,
   deleteProduct,
   getFileXlsx,
+  getFileXlsxMovimientoCajas,
 };
