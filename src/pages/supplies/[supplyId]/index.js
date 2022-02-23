@@ -40,6 +40,34 @@ import {
 } from "../../../components";
 
 export default ({ setPageTitle }) => {
+  const [providers, setProviders] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+
+  const [supply, setSupply] = useState(null);
+  const [providerId, setProviderId] = useState(null);
+  const [warehouseId, setWarehouseId] = useState(null);
+  const [code, setCode] = useState(null);
+  const [arrivalDate, setArrivalDate] = useState(moment());
+  const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [me, setMe] = useState({ name: null });
+
+  const [families, setFamilies] = useState([]);
+  const [subfamilies, setSubfamilies] = useState([]);
+  const [elements, setElements] = useState([]);
+  const [models, setModels] = useState([]);
+
+  const [loadingSupply, setLoadingSupply] = useState(false);
+
+  const [attendedProduct, setAttendedProduct] = useState(null);
+  const [visibleAttendModal, setVisibleAttendModal] = useState(false);
+
+  const router = useRouter();
+  const { supplyId, operation } = router.query;
+  const isNew = supplyId === "new";
+  const isAttend = operation === "attend";
+  const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
+  const disabled = !isEdit && !isNew;
   setPageTitle("Abastecimiento");
 
   const columns = [
@@ -79,7 +107,7 @@ export default ({ setPageTitle }) => {
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => {}}
+              onCancel={() => { }}
               okText="Si"
               cancelText="No"
             >
@@ -374,34 +402,6 @@ export default ({ setPageTitle }) => {
     },
   ];
 
-  const [providers, setProviders] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-
-  const [supply, setSupply] = useState(null);
-  const [providerId, setProviderId] = useState(null);
-  const [warehouseId, setWarehouseId] = useState(null);
-  const [code, setCode] = useState(null);
-  const [arrivalDate, setArrivalDate] = useState(moment());
-  const [suppliedProducts, setSuppliedProducts] = useState([]);
-  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
-  const [me, setMe] = useState({ name: null });
-
-  const [families, setFamilies] = useState([]);
-  const [subfamilies, setSubfamilies] = useState([]);
-  const [elements, setElements] = useState([]);
-  const [models, setModels] = useState([]);
-
-  const [loadingSupply, setLoadingSupply] = useState(false);
-
-  const [attendedProduct, setAttendedProduct] = useState(null);
-  const [visibleAttendModal, setVisibleAttendModal] = useState(false);
-
-  const router = useRouter();
-  const { supplyId, operation } = router.query;
-  const isNew = supplyId === "new";
-  const isAttend = operation === "attend";
-  const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
-  const disabled = !isEdit && !isNew;
 
   useEffect(() => {
     const fetchProviders = async () => {
