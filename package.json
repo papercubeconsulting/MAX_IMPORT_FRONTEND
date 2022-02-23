@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "next ./src",
     "build": "next build ./src",
-    "start": "set NODE_ENV=development && next start ./src -p 8080",
+    "start": "next start ./src -p 8080",
     "export": "next export ./src",
     "ngrok": "ngrok http 3000"
   },
@@ -42,5 +42,18 @@
   },
   "browser": {
     "html-pdf": false
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "not ie 11"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
