@@ -261,7 +261,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "modelId",
       align: "center",
       render: (modelId, suppliedProduct) => {
-        <RenderColumn modelId={modelId} suppliedProduct={suppliedProduct} models={models} />
+        return <RenderColumn modelId={modelId} selectOptions={selectOptions} disabled={disabled} suppliedProduct={suppliedProduct} models={models} />
       },
     },
     {
@@ -653,7 +653,7 @@ export default ({ setPageTitle }) => {
 };
 
 
-const RenderColumn = ({ models, modelId, suppliedProduct }) => {
+const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOptions }) => {
 
   const [model, setModel] = useState({
     name: suppliedProduct?.product?.modelName,
