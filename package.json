@@ -20,7 +20,7 @@
     "antd": "^4.0.3",
     "file-saver": "^2.0.2",
     "html-pdf": "^2.2.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.31",
     "next": "^9.3.6",
