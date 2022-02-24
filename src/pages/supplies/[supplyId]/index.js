@@ -656,10 +656,7 @@ export default ({ setPageTitle }) => {
       <Table
         columns={columns}
         bordered
-        pagination={{ pageSize: 50 }}
         rowKey={record => record.id}
-        scroll={{ y: 240 }}
-
         dataSource={orderBy(suppliedProducts, "id", "asc")}
       />
       {!disabled && (
