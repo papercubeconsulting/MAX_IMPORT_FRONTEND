@@ -69,338 +69,339 @@ export default ({ setPageTitle }) => {
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
   setPageTitle("Abastecimiento");
+  console.log("suplied", suppliedProducts)
 
-  // const columns = [
-  //   {
-  //     title: "Movimiento",
-  //     dataIndex: "id",
-  //     width: "120px",
-  //     align: "center",
-  //     render: (id, suppliedProduct) => (
-  //       <>
-  //         <Button
-  //           padding="0 0.5rem"
-  //           onClick={() => {
-  //             if (disabled) {
-  //               setAttendedProduct(suppliedProduct);
-  //               return setVisibleAttendModal(true);
-  //             }
+  const columns = [
+    {
+      title: "Movimiento",
+      dataIndex: "id",
+      width: "120px",
+      align: "center",
+      render: (id, suppliedProduct) => (
+        <>
+          <Button
+            padding="0 0.5rem"
+            onClick={() => {
+              if (disabled) {
+                setAttendedProduct(suppliedProduct);
+                return setVisibleAttendModal(true);
+              }
 
-  //             setSuppliedProducts((prevState) =>
-  //               prevState
-  //                 .filter((suppliedProduct) => suppliedProduct.id !== id)
-  //                 .map((suppliedProduct, index) => ({
-  //                   ...suppliedProduct,
-  //                   id: index + 1,
-  //                 }))
-  //             );
-  //           }}
-  //           type="primary"
-  //         >
-  //           <Icon
-  //             marginRight="0px"
-  //             fontSize="0.8rem"
-  //             icon={disabled ? faPrint : faTrash}
-  //           />
-  //         </Button>
-  //         {!isNew && (
-  //           <Popconfirm
-  //             title="¿Esta seguro de desea eliminar este ítem?"
-  //             onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-  //             onCancel={() => { }}
-  //             okText="Si"
-  //             cancelText="No"
-  //           >
-  //             <Button padding="0 0.5rem" margin="0 0 0 0.5rem" type="danger">
-  //               <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-  //             </Button>
-  //           </Popconfirm>
-  //         )}
-  //       </>
-  //     ),
-  //   },
-  //   {
-  //     dataIndex: "id",
-  //     title: "Ítem",
-  //     width: "40px",
-  //     align: "center",
-  //   },
-  //   {
-  //     title: "Familia",
-  //     dataIndex: "familyId",
-  //     align: "center",
-  //     render: (familyId, suppliedProduct) => (
-  //       <Select
-  //         value={familyId}
-  //         disabled={disabled}
-  //         onChange={(value) =>
-  //           setSuppliedProducts((prevState) => {
-  //             const remainingSuppliedProducts = prevState.filter(
-  //               (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-  //             );
+              setSuppliedProducts((prevState) =>
+                prevState
+                  .filter((suppliedProduct) => suppliedProduct.id !== id)
+                  .map((suppliedProduct, index) => ({
+                    ...suppliedProduct,
+                    id: index + 1,
+                  }))
+              );
+            }}
+            type="primary"
+          >
+            <Icon
+              marginRight="0px"
+              fontSize="0.8rem"
+              icon={disabled ? faPrint : faTrash}
+            />
+          </Button>
+          {!isNew && (
+            <Popconfirm
+              title="¿Esta seguro de desea eliminar este ítem?"
+              onConfirm={() => deleteProduct(suppliedProduct.dbId)}
+              onCancel={() => { }}
+              okText="Si"
+              cancelText="No"
+            >
+              <Button padding="0 0.5rem" margin="0 0 0 0.5rem" type="danger">
+                <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+              </Button>
+            </Popconfirm>
+          )}
+        </>
+      ),
+    },
+    {
+      dataIndex: "id",
+      title: "Ítem",
+      width: "40px",
+      align: "center",
+    },
+    {
+      title: "Familia",
+      dataIndex: "familyId",
+      align: "center",
+      render: (familyId, suppliedProduct) => (
+        <Select
+          value={familyId}
+          disabled={disabled}
+          onChange={(value) =>
+            setSuppliedProducts((prevState) => {
+              const remainingSuppliedProducts = prevState.filter(
+                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+              );
 
-  //             return [
-  //               ...remainingSuppliedProducts,
-  //               {
-  //                 id: suppliedProduct.id,
-  //                 dbId: suppliedProduct.dbId,
-  //                 productBoxes: suppliedProduct.productBoxes,
-  //                 quantity: suppliedProduct.quantity,
-  //                 boxSize: suppliedProduct.boxSize,
-  //                 familyId: value,
-  //               },
-  //             ];
-  //           })
-  //         }
-  //         options={selectOptions(families)}
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     title: "Sub-Familia",
-  //     dataIndex: "subfamilyId",
-  //     align: "center",
-  //     render: (subfamilyId, suppliedProduct) => {
-  //       if (suppliedProduct.familyId && !subfamilyId) {
-  //         const _subfamily = subfamilies.filter(
-  //           (subFamily) => subFamily.familyId === suppliedProduct.familyId
-  //         );
-  //         const _chosenSubFamily = _subfamily.find((elem) => elem.name === "-");
-  //         if (_chosenSubFamily) {
-  //           subfamilyId = _chosenSubFamily.id;
-  //           suppliedProduct.subfamilyId = _chosenSubFamily.id;
-  //         }
-  //       }
-  //       return (
-  //         <Select
-  //           value={subfamilyId}
-  //           disabled={disabled}
-  //           onChange={(value) => {
-  //             setSuppliedProducts((prevState) => {
-  //               const remainingSuppliedProducts = prevState.filter(
-  //                 (_suppliedProduct) =>
-  //                   _suppliedProduct.id !== suppliedProduct.id
-  //               );
+              return [
+                ...remainingSuppliedProducts,
+                {
+                  id: suppliedProduct.id,
+                  dbId: suppliedProduct.dbId,
+                  productBoxes: suppliedProduct.productBoxes,
+                  quantity: suppliedProduct.quantity,
+                  boxSize: suppliedProduct.boxSize,
+                  familyId: value,
+                },
+              ];
+            })
+          }
+          options={selectOptions(families)}
+        />
+      ),
+    },
+    {
+      title: "Sub-Familia",
+      dataIndex: "subfamilyId",
+      align: "center",
+      render: (subfamilyId, suppliedProduct) => {
+        if (suppliedProduct.familyId && !subfamilyId) {
+          const _subfamily = subfamilies.filter(
+            (subFamily) => subFamily.familyId === suppliedProduct.familyId
+          );
+          const _chosenSubFamily = _subfamily.find((elem) => elem.name === "-");
+          if (_chosenSubFamily) {
+            subfamilyId = _chosenSubFamily.id;
+            suppliedProduct.subfamilyId = _chosenSubFamily.id;
+          }
+        }
+        return (
+          <Select
+            value={subfamilyId}
+            disabled={disabled}
+            onChange={(value) => {
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
 
-  //               return [
-  //                 ...remainingSuppliedProducts,
-  //                 {
-  //                   id: suppliedProduct.id,
-  //                   dbId: suppliedProduct.dbId,
-  //                   productBoxes: suppliedProduct.productBoxes,
-  //                   quantity: suppliedProduct.quantity,
-  //                   boxSize: suppliedProduct.boxSize,
-  //                   familyId: suppliedProduct.familyId,
-  //                   subfamilyId: value,
-  //                 },
-  //               ];
-  //             });
-  //           }}
-  //           options={selectOptions(
-  //             subfamilies.filter(
-  //               (subFamily) => subFamily.familyId === suppliedProduct.familyId
-  //             )
-  //           )}
-  //         />
-  //       );
-  //     },
-  //   },
-  //   {
-  //     title: "Elemento",
-  //     dataIndex: "elementId",
-  //     align: "center",
-  //     render: (elementId, suppliedProduct) => {
-  //       if (suppliedProduct.subfamilyId && !elementId) {
-  //         const _element = elements.filter(
-  //           (element) => element.subfamilyId === suppliedProduct.subfamilyId
-  //         );
-  //         const _chosenElement = _element.find((elem) => elem.name === "-");
-  //         if (_chosenElement) {
-  //           elementId = _chosenElement.id;
-  //           suppliedProduct.elementId = _chosenElement.id;
-  //         }
-  //       }
-  //       return (
-  //         <Select
-  //           value={elementId}
-  //           disabled={disabled}
-  //           onChange={(value) =>
-  //             setSuppliedProducts((prevState) => {
-  //               const remainingSuppliedProducts = prevState.filter(
-  //                 (_suppliedProduct) =>
-  //                   _suppliedProduct.id !== suppliedProduct.id
-  //               );
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: value,
+                  },
+                ];
+              });
+            }}
+            options={selectOptions(
+              subfamilies.filter(
+                (subFamily) => subFamily.familyId === suppliedProduct.familyId
+              )
+            )}
+          />
+        );
+      },
+    },
+    {
+      title: "Elemento",
+      dataIndex: "elementId",
+      align: "center",
+      render: (elementId, suppliedProduct) => {
+        if (suppliedProduct.subfamilyId && !elementId) {
+          const _element = elements.filter(
+            (element) => element.subfamilyId === suppliedProduct.subfamilyId
+          );
+          const _chosenElement = _element.find((elem) => elem.name === "-");
+          if (_chosenElement) {
+            elementId = _chosenElement.id;
+            suppliedProduct.elementId = _chosenElement.id;
+          }
+        }
+        return (
+          <Select
+            value={elementId}
+            disabled={disabled}
+            onChange={(value) =>
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
 
-  //               return [
-  //                 ...remainingSuppliedProducts,
-  //                 {
-  //                   id: suppliedProduct.id,
-  //                   dbId: suppliedProduct.dbId,
-  //                   productBoxes: suppliedProduct.productBoxes,
-  //                   quantity: suppliedProduct.quantity,
-  //                   boxSize: suppliedProduct.boxSize,
-  //                   familyId: suppliedProduct.familyId,
-  //                   subfamilyId: suppliedProduct.subfamilyId,
-  //                   elementId: value,
-  //                 },
-  //               ];
-  //             })
-  //           }
-  //           options={selectOptions(
-  //             elements.filter(
-  //               (element) => element.subfamilyId === suppliedProduct.subfamilyId
-  //             )
-  //           )}
-  //         />
-  //       );
-  //     },
-  //   },
-  //   {
-  //     title: "Modelo",
-  //     dataIndex: "modelId",
-  //     align: "center",
-  //     render: (modelId, suppliedProduct) => {
-  //       const [model, setModel] = useState({
-  //         name: suppliedProduct?.product?.modelName,
-  //       });
-  //       const _models = models.filter(
-  //         (model) => model.elementId === suppliedProduct.elementId
-  //       );
-  //       /* console.log("check", suppliedProduct); */
-  //       useEffect(() => {
-  //         if (!modelId) {
-  //           setModel(null);
-  //         }
-  //       }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
-  //       return (
-  //         <AutoComplete
-  //           color={"white"}
-  //           colorFont={"#5F5F7F"}
-  //           disabled={disabled}
-  //           /* value={model && modelId ? model.name : ""} */
-  //           value={model && model.name}
-  //           onSelect={async (value) => {
-  //             /* console.log("value en onselect", value); */
-  //             let selectedModel = models.find((model) => model.id === value);
-  //             setModel(selectedModel);
-  //             const product = await getProduct(value, { noStock: true });
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: suppliedProduct.subfamilyId,
+                    elementId: value,
+                  },
+                ];
+              })
+            }
+            options={selectOptions(
+              elements.filter(
+                (element) => element.subfamilyId === suppliedProduct.subfamilyId
+              )
+            )}
+          />
+        );
+      },
+    },
+    {
+      title: "Modelo",
+      dataIndex: "modelId",
+      align: "center",
+      render: (modelId, suppliedProduct) => {
+        const [model, setModel] = useState({
+          name: suppliedProduct?.product?.modelName,
+        });
+        const _models = models.filter(
+          (model) => model.elementId === suppliedProduct.elementId
+        );
+        /* console.log("check", suppliedProduct); */
+        useEffect(() => {
+          if (!modelId) {
+            setModel(null);
+          }
+        }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
+        return (
+          <AutoComplete
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            disabled={disabled}
+            /* value={model && modelId ? model.name : ""} */
+            value={model && model.name}
+            onSelect={async (value) => {
+              /* console.log("value en onselect", value); */
+              let selectedModel = models.find((model) => model.id === value);
+              setModel(selectedModel);
+              const product = await getProduct(value, { noStock: true });
 
-  //             setSuppliedProducts((prevState) => {
-  //               const remainingSuppliedProducts = prevState.filter(
-  //                 (_suppliedProduct) =>
-  //                   _suppliedProduct.id !== suppliedProduct.id
-  //               );
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
 
-  //               return [
-  //                 ...remainingSuppliedProducts,
-  //                 {
-  //                   id: suppliedProduct.id,
-  //                   dbId: suppliedProduct.dbId,
-  //                   productBoxes: suppliedProduct.productBoxes,
-  //                   quantity: suppliedProduct.quantity,
-  //                   boxSize: suppliedProduct.boxSize,
-  //                   familyId: suppliedProduct.familyId,
-  //                   subfamilyId: suppliedProduct.subfamilyId,
-  //                   elementId: suppliedProduct.elementId,
-  //                   modelId: value,
-  //                   product,
-  //                 },
-  //               ];
-  //             });
-  //           }}
-  //           onSearch={(value) => {
-  //             setModel((prevValue) => ({
-  //               name: value,
-  //               code: prevValue?.id ? "" : prevValue?.code,
-  //             }));
-  //           }}
-  //           _options={selectOptions(_models)}
-  //           filterOption={(input, option) => {
-  //             if (typeof input === "number") {
-  //               return;
-  //             }
-  //             return option.children
-  //               .toLowerCase()
-  //               .includes(input.toLowerCase());
-  //           }}
-  //         />
-  //       );
-  //     },
-  //   },
-  //   {
-  //     title: "Código de producto",
-  //     dataIndex: "product",
-  //     width: "190px",
-  //     align: "center",
-  //     render: (product) => get(product, "code", null),
-  //   },
-  //   {
-  //     title: "Cantidad Cajas",
-  //     dataIndex: "quantity",
-  //     width: "140px",
-  //     align: "center",
-  //     render: (quantity, suppliedProduct) => (
-  //       <Input
-  //         key={suppliedProducts.length}
-  //         value={quantity}
-  //         disabled={disabled}
-  //         onChange={(event) => {
-  //           let number = event.nativeEvent.target.value;
-  //           if (number < 0) {
-  //             number = 0;
-  //           }
-  //           setSuppliedProducts((prevState) => {
-  //             const remainingSuppliedProducts = prevState.filter(
-  //               (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-  //             );
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: suppliedProduct.subfamilyId,
+                    elementId: suppliedProduct.elementId,
+                    modelId: value,
+                    product,
+                  },
+                ];
+              });
+            }}
+            onSearch={(value) => {
+              setModel((prevValue) => ({
+                name: value,
+                code: prevValue?.id ? "" : prevValue?.code,
+              }));
+            }}
+            _options={selectOptions(_models)}
+            filterOption={(input, option) => {
+              if (typeof input === "number") {
+                return;
+              }
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
+          />
+        );
+      },
+    },
+    {
+      title: "Código de producto",
+      dataIndex: "product",
+      width: "190px",
+      align: "center",
+      render: (product) => get(product, "code", null),
+    },
+    {
+      title: "Cantidad Cajas",
+      dataIndex: "quantity",
+      width: "140px",
+      align: "center",
+      render: (quantity, suppliedProduct) => (
+        <Input
+          key={suppliedProducts.length}
+          value={quantity}
+          disabled={disabled}
+          onChange={(event) => {
+            let number = event.nativeEvent.target.value;
+            if (number < 0) {
+              number = 0;
+            }
+            setSuppliedProducts((prevState) => {
+              const remainingSuppliedProducts = prevState.filter(
+                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+              );
 
-  //             return [
-  //               ...remainingSuppliedProducts,
-  //               {
-  //                 ...suppliedProduct,
-  //                 /*  quantity: parseFloat(number || "0"), */
-  //                 quantity: parseFloat(number || ""),
-  //               },
-  //             ];
-  //           });
-  //           event.persist();
-  //         }}
-  //         type="number"
-  //         min="0"
-  //       />
-  //     ),
-  //   },
-  //   {
-  //     title: "Unidades por caja",
-  //     dataIndex: "boxSize",
-  //     width: "150px",
-  //     align: "center",
-  //     render: (boxSize, suppliedProduct) => (
-  //       <Input
-  //         key={suppliedProducts.length}
-  //         defaultValue={boxSize}
-  //         disabled={disabled}
-  //         onChange={(event) => {
-  //           setSuppliedProducts((prevState) => {
-  //             const remainingSuppliedProducts = prevState.filter(
-  //               (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-  //             );
+              return [
+                ...remainingSuppliedProducts,
+                {
+                  ...suppliedProduct,
+                  /*  quantity: parseFloat(number || "0"), */
+                  quantity: parseFloat(number || ""),
+                },
+              ];
+            });
+            event.persist();
+          }}
+          type="number"
+          min="0"
+        />
+      ),
+    },
+    {
+      title: "Unidades por caja",
+      dataIndex: "boxSize",
+      width: "150px",
+      align: "center",
+      render: (boxSize, suppliedProduct) => (
+        <Input
+          key={suppliedProducts.length}
+          defaultValue={boxSize}
+          disabled={disabled}
+          onChange={(event) => {
+            setSuppliedProducts((prevState) => {
+              const remainingSuppliedProducts = prevState.filter(
+                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+              );
 
-  //             return [
-  //               ...remainingSuppliedProducts,
-  //               {
-  //                 ...suppliedProduct,
-  //                 boxSize: parseFloat(event.nativeEvent.target.value || "0"),
-  //               },
-  //             ];
-  //           });
-  //           event.persist();
-  //         }}
-  //         type="number"
-  //       />
-  //     ),
-  //   },
-  // ];
+              return [
+                ...remainingSuppliedProducts,
+                {
+                  ...suppliedProduct,
+                  boxSize: parseFloat(event.nativeEvent.target.value || "0"),
+                },
+              ];
+            });
+            event.persist();
+          }}
+          type="number"
+        />
+      ),
+    },
+  ];
 
 
   useEffect(() => {
@@ -652,12 +653,13 @@ export default ({ setPageTitle }) => {
           <Input value={me.name} disabled addonBefore="Usuario" />
         </Grid>
       </Container>
-      {/* <Table
+      <Table
         columns={columns}
         bordered
         pagination={false}
+        rowKey={record => record.id}
         dataSource={orderBy(suppliedProducts, "id", "asc")}
-      /> */}
+      />
       {!disabled && (
         <Container height="5rem">
           <Button
