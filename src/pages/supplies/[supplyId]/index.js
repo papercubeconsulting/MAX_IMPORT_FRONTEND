@@ -592,6 +592,7 @@ export default ({ setPageTitle }) => {
       <Table
         columns={columns}
         bordered
+        pagination={false}
         rowKey={record => record.id}
         dataSource={orderBy(suppliedProducts, "id", "asc")}
       />
