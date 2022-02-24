@@ -206,6 +206,135 @@ export default ({ setPageTitle }) => {
         );
       },
     },
+    {
+      title: "Elemento",
+      dataIndex: "elementId",
+      align: "center",
+      render: (elementId, suppliedProduct) => {
+        if (suppliedProduct.subfamilyId && !elementId) {
+          const _element = elements.filter(
+            (element) => element.subfamilyId === suppliedProduct.subfamilyId
+          );
+          const _chosenElement = _element.find((elem) => elem.name === "-");
+          if (_chosenElement) {
+            elementId = _chosenElement.id;
+            suppliedProduct.elementId = _chosenElement.id;
+          }
+        }
+        return (
+          <Select
+            value={elementId}
+            disabled={disabled}
+            onChange={(value) =>
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
+
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: suppliedProduct.subfamilyId,
+                    elementId: value,
+                  },
+                ];
+              })
+            }
+            options={selectOptions(
+              elements.filter(
+                (element) => element.subfamilyId === suppliedProduct.subfamilyId
+              )
+            )}
+          />
+        );
+      },
+    },
+    {
+      title: "Modelo",
+      dataIndex: "modelId",
+      align: "center",
+      render: (modelId, suppliedProduct) => {
+        const [model, setModel] = useState({
+          name: suppliedProduct?.product?.modelName,
+        });
+        const _models = models.filter(
+          (model) => model.elementId === suppliedProduct.elementId
+        );
+        /* console.log("check", suppliedProduct); */
+        useEffect(() => {
+          if (!modelId) {
+            setModel(null);
+          }
+        }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
+        return (
+          <AutoComplete
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            disabled={disabled}
+            /* value={model && modelId ? model.name : ""} */
+            value={model && model.name}
+            onSelect={async (value) => {
+              /* console.log("value en onselect", value); */
+              let selectedModel = models.find((model) => model.id === value);
+              setModel(selectedModel);
+              const product = await getProduct(value, { noStock: true });
+
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
+
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: suppliedProduct.subfamilyId,
+                    elementId: suppliedProduct.elementId,
+                    modelId: value,
+                    product,
+                  },
+                ];
+              });
+            }}
+            onSearch={(value) => {
+              setModel((prevValue) => ({
+                name: value,
+                code: prevValue?.id ? "" : prevValue?.code,
+              }));
+            }}
+            _options={selectOptions(_models)}
+            filterOption={(input, option) => {
+              if (typeof input === "number") {
+                return;
+              }
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
+          />
+        );
+      },
+    },
+    {
+      title: "Código de producto",
+      dataIndex: "product",
+      width: "190px",
+      align: "center",
+      render: (product) => get(product, "code", null),
+    },
   ];
 
 
