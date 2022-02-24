@@ -119,7 +119,93 @@ export default ({ setPageTitle }) => {
           )}
         </>
       ),
-    }
+    },
+    {
+      dataIndex: "id",
+      title: "Ítem",
+      width: "40px",
+      align: "center",
+    },
+    {
+      title: "Familia",
+      dataIndex: "familyId",
+      align: "center",
+      render: (familyId, suppliedProduct) => (
+        <Select
+          value={familyId}
+          disabled={disabled}
+          onChange={(value) =>
+            setSuppliedProducts((prevState) => {
+              const remainingSuppliedProducts = prevState.filter(
+                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+              );
+
+              return [
+                ...remainingSuppliedProducts,
+                {
+                  id: suppliedProduct.id,
+                  dbId: suppliedProduct.dbId,
+                  productBoxes: suppliedProduct.productBoxes,
+                  quantity: suppliedProduct.quantity,
+                  boxSize: suppliedProduct.boxSize,
+                  familyId: value,
+                },
+              ];
+            })
+          }
+          options={selectOptions(families)}
+        />
+      ),
+    },
+    {
+      title: "Sub-Familia",
+      dataIndex: "subfamilyId",
+      align: "center",
+      render: (subfamilyId, suppliedProduct) => {
+        if (suppliedProduct.familyId && !subfamilyId) {
+          const _subfamily = subfamilies.filter(
+            (subFamily) => subFamily.familyId === suppliedProduct.familyId
+          );
+          const _chosenSubFamily = _subfamily.find((elem) => elem.name === "-");
+          if (_chosenSubFamily) {
+            subfamilyId = _chosenSubFamily.id;
+            suppliedProduct.subfamilyId = _chosenSubFamily.id;
+          }
+        }
+        return (
+          <Select
+            value={subfamilyId}
+            disabled={disabled}
+            onChange={(value) => {
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
+
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    id: suppliedProduct.id,
+                    dbId: suppliedProduct.dbId,
+                    productBoxes: suppliedProduct.productBoxes,
+                    quantity: suppliedProduct.quantity,
+                    boxSize: suppliedProduct.boxSize,
+                    familyId: suppliedProduct.familyId,
+                    subfamilyId: value,
+                  },
+                ];
+              });
+            }}
+            options={selectOptions(
+              subfamilies.filter(
+                (subFamily) => subFamily.familyId === suppliedProduct.familyId
+              )
+            )}
+          />
+        );
+      },
+    },
   ];
 
 
