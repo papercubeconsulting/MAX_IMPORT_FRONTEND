@@ -40,6 +40,7 @@ import {
 } from "../../../components";
 
 export default ({ setPageTitle }) => {
+  setPageTitle("Abastecimiento");
   const [providers, setProviders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
 
@@ -68,7 +69,6 @@ export default ({ setPageTitle }) => {
   const isAttend = operation === "attend";
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
-  setPageTitle("Abastecimiento");
   // console.log("suplied", suppliedProducts)
 
   const columns = [
@@ -544,6 +544,8 @@ export default ({ setPageTitle }) => {
       console.log(error);
     }
   };
+
+  console.log("disabled", disabled)
 
   return (
     <>
