@@ -21,7 +21,7 @@
     "file-saver": "^2.0.2",
     "html-pdf": "^2.2.0",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.31",
     "next": "^9.3.6",
     "quagga": "^0.12.1",
