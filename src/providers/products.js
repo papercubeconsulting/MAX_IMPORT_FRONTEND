@@ -1,11 +1,11 @@
-import { baseProvider } from './baseProvider';
+import { baseProvider } from "./baseProvider";
 
 const getProducts = async (params) => baseProvider.httpGet(`products`, params);
 
 const getProduct = async (productId, params) =>
   baseProvider.httpGet(`products/${productId}`, params);
 
-const postProduct = async (body) => baseProvider.httpPost('products', body);
+const postProduct = async (body) => baseProvider.httpPost("products", body);
 
 const updateProduct = async (productId, body) =>
   baseProvider.httpPut(`products/${productId}`, body);
@@ -20,8 +20,12 @@ const getFileXlsx = async () =>
 
 const getFileXlsxMovimientoCajas = async (params) =>
   baseProvider.httpGetFile(`productboxes/movementreport`, params);
+
+const getFileXlsxInventarioTotal = async () =>
+  baseProvider.httpGetFile(`products/inventoryReport`);
 export {
   getProducts,
+  getFileXlsxInventarioTotal,
   getProduct,
   postProduct,
   updateProduct,
