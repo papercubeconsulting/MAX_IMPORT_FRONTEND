@@ -8,7 +8,8 @@ RUN npm install phantomjs-prebuilt
 
 COPY . .
 
-
+ENV NODE_OPTIONS=--max_old_space_size=4096
+ENV GENERATE_SOURCEMAP=false
 # Building app
 RUN npm run build
 # COPY . .
