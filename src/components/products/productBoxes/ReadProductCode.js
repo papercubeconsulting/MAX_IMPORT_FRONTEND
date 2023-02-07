@@ -309,7 +309,7 @@ export const ReadProductCode = (props) => {
             <Input
               justify="center"
               value={productBoxCode}
-              onChange={(event) => { console.log('on change',event.target.value.length); if ( !isScanned && event.target.value.length === 16) { addCode(event.target.value, true); setProductBoxCode('') }; setProductBoxCode(event.target.value) }}
+              onChange={(event) => { console.log('on change',event.target.value.length); if ( !isScanned && event.target.value.length === 16) { addCode(event.target.value, true); setProductBoxCode('') }; setProductBoxCode(event.target.value); this.value='' }}
               // onPaste={(event) => { console.log('on paste',event.target.value.length); if (isScanned && event.target.value.length === 16) { addCode(event.target.value, true); setProductBoxCode('') }; }}
               addonBefore="Código de caja"
             // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
