@@ -41,6 +41,7 @@ export const ReadProductCode = (props) => {
   const [warehouses, setWarehouses] = useState([]);
   const [newWarehouse, setNewWarehouse] = useState({});
   const [modalConfirm, setModalConfirm] = useState(false);
+  const [isScanned, setIsScanned] = useState(false)
 
   const [windowHeight, setWindowHeight] = useState(0);
 
@@ -105,6 +106,7 @@ export const ReadProductCode = (props) => {
 
   const addCode = async (newCode, showNotification) => {
     try {
+      setIsScanned(true)
       const _productBox = await getProductBox(newCode);
       setDataCodes((prev) => {
         if (prev.some((code) => code.trackingCode == newCode)) {
@@ -117,7 +119,9 @@ export const ReadProductCode = (props) => {
           return [...prev, { key: prev.length + 1, ..._productBox }];
         }
       });
+      setIsScanned(false)
     } catch (error) {
+      setIsScanned(false)
       notification.error({
         message: 'El código ingresado no fue encontrado',
       });
@@ -305,8 +309,10 @@ export const ReadProductCode = (props) => {
             <Input
               justify="center"
               value={productBoxCode}
-              onChange={(event) => setProductBoxCode(event.target.value)}
+              onChange={(event) => { console.log('on change',event.target.value.length); if (isScanned && event.target.value.length === 16) { addCode(event.target.value, true); setProductBoxCode('') }; setProductBoxCode(event.target.value) }}
+              // onPaste={(event) => { console.log('on paste',event.target.value.length); if (isScanned && event.target.value.length === 16) { addCode(event.target.value, true); setProductBoxCode('') }; }}
               addonBefore="Código de caja"
+            // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
             />
             <Button
               type="primary"
