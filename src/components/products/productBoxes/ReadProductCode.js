@@ -309,8 +309,8 @@ export const ReadProductCode = (props) => {
             <Input
               justify="center"
               value={productBoxCode}
-              onChange={(event) => { setProductBoxCode(event.target.value) }}
-              onPaste={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } }}
+              //onChange={(event) => { setProductBoxCode(event.target.value) }}
+              onChange={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } }}
               addonBefore="Código de caja"
             // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
             />
