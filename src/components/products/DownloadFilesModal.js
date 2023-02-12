@@ -1,7 +1,10 @@
 import React from "react";
 import { Modal, Button, DatePicker, Alert } from "antd";
 import styled from "styled-components";
-import { getFileXlsxMovimientoCajas } from "../../providers/products";
+import {
+  getFileXlsxMovimientoCajas,
+  getFileXlsxInventarioTotal,
+} from "../../providers/products";
 import * as FileSaver from "file-saver";
 import moment from "moment";
 const DownloadFilesModal = ({
@@ -45,6 +48,20 @@ const DownloadFilesModal = ({
     }
   };
 
+  const downloadInventarioTotal = React.useCallback(async () => {
+    // setIsValid(moment(date).isBefore(moment(now), "day"));
+
+    try {
+      // only selected for one day
+      const _response = await getFileXlsxInventarioTotal();
+
+      _response.blob().then((res) => {
+        FileSaver.saveAs(res, "InventarioTotal.xlsx");
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
   return (
     <Modal
       title="Descarga de archivos"
@@ -54,8 +71,11 @@ const DownloadFilesModal = ({
       closable={false}
     >
       <MainWrapper>
+        <Button type="primary" onClick={downloadInventarioTotal}>
+          Inventario Total
+        </Button>
         <Button type="primary" onClick={downloadExcel}>
-          Inventario
+          Inventario Cajas
         </Button>
 
         <MovimientoCajasWrapper>

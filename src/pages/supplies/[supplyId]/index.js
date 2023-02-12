@@ -69,6 +69,35 @@ export default ({ setPageTitle }) => {
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
   setPageTitle("Abastecimiento");
+  const [providers, setProviders] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+
+  const [supply, setSupply] = useState(null);
+  const [providerId, setProviderId] = useState(null);
+  const [warehouseId, setWarehouseId] = useState(null);
+  const [code, setCode] = useState(null);
+  const [arrivalDate, setArrivalDate] = useState(moment());
+  const [suppliedProducts, setSuppliedProducts] = useState([]);
+  const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
+  const [me, setMe] = useState({ name: null });
+
+  const [families, setFamilies] = useState([]);
+  const [subfamilies, setSubfamilies] = useState([]);
+  const [elements, setElements] = useState([]);
+  const [models, setModels] = useState([]);
+
+  const [loadingSupply, setLoadingSupply] = useState(false);
+
+  const [attendedProduct, setAttendedProduct] = useState(null);
+  const [visibleAttendModal, setVisibleAttendModal] = useState(false);
+
+  const router = useRouter();
+  const { supplyId, operation } = router.query;
+  const isNew = supplyId === "new";
+  const isAttend = operation === "attend";
+  const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
+  const disabled = !isEdit && !isNew;
+  // console.log("suplied", suppliedProducts)
 
   const columns = [
     {
@@ -260,71 +289,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "modelId",
       align: "center",
       render: (modelId, suppliedProduct) => {
-        const [model, setModel] = useState({
-          name: suppliedProduct?.product?.modelName,
-        });
-        const _models = models.filter(
-          (model) => model.elementId === suppliedProduct.elementId
-        );
-        /* console.log("check", suppliedProduct); */
-        useEffect(() => {
-          if (!modelId) {
-            setModel(null);
-          }
-        }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
-        return (
-          <AutoComplete
-            color={"white"}
-            colorFont={"#5F5F7F"}
-            disabled={disabled}
-            /* value={model && modelId ? model.name : ""} */
-            value={model && model.name}
-            onSelect={async (value) => {
-              /* console.log("value en onselect", value); */
-              let selectedModel = models.find((model) => model.id === value);
-              setModel(selectedModel);
-              const product = await getProduct(value, { noStock: true });
-
-              setSuppliedProducts((prevState) => {
-                const remainingSuppliedProducts = prevState.filter(
-                  (_suppliedProduct) =>
-                    _suppliedProduct.id !== suppliedProduct.id
-                );
-
-                return [
-                  ...remainingSuppliedProducts,
-                  {
-                    id: suppliedProduct.id,
-                    dbId: suppliedProduct.dbId,
-                    productBoxes: suppliedProduct.productBoxes,
-                    quantity: suppliedProduct.quantity,
-                    boxSize: suppliedProduct.boxSize,
-                    familyId: suppliedProduct.familyId,
-                    subfamilyId: suppliedProduct.subfamilyId,
-                    elementId: suppliedProduct.elementId,
-                    modelId: value,
-                    product,
-                  },
-                ];
-              });
-            }}
-            onSearch={(value) => {
-              setModel((prevValue) => ({
-                name: value,
-                code: prevValue?.id ? "" : prevValue?.code,
-              }));
-            }}
-            _options={selectOptions(_models)}
-            filterOption={(input, option) => {
-              if (typeof input === "number") {
-                return;
-              }
-              return option.children
-                .toLowerCase()
-                .includes(input.toLowerCase());
-            }}
-          />
-        );
+        return <RenderColumn modelId={modelId} selectOptions={selectOptions} setSuppliedProducts={setSuppliedProducts} disabled={disabled} suppliedProduct={suppliedProduct} models={models} />
       },
     },
     {
@@ -608,6 +573,8 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  console.log("disabled", disabled)
+
   return (
     <>
       <Container height="auto">
@@ -656,6 +623,7 @@ export default ({ setPageTitle }) => {
         columns={columns}
         bordered
         pagination={false}
+        rowKey={record => record.id}
         dataSource={orderBy(suppliedProducts, "id", "asc")}
       />
       {!disabled && (
@@ -713,3 +681,74 @@ export default ({ setPageTitle }) => {
     </>
   );
 };
+
+
+const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOptions,setSuppliedProducts }) => {
+
+  const [model, setModel] = useState({
+    name: suppliedProduct?.product?.modelName,
+  });
+  const _models = models.filter(
+    (model) => model.elementId === suppliedProduct.elementId
+  );
+  /* console.log("check", suppliedProduct); */
+  useEffect(() => {
+    if (!modelId) {
+      setModel(null);
+    }
+  }, [suppliedProduct.familyId, suppliedProduct.subfamilyId]);
+  return (
+    <AutoComplete
+      color={"white"}
+      colorFont={"#5F5F7F"}
+      disabled={disabled}
+      /* value={model && modelId ? model.name : ""} */
+      value={model && model.name}
+      onSelect={async (value) => {
+        /* console.log("value en onselect", value); */
+        let selectedModel = models.find((model) => model.id === value);
+        setModel(selectedModel);
+        const product = await getProduct(value, { noStock: true });
+
+        setSuppliedProducts((prevState) => {
+          const remainingSuppliedProducts = prevState.filter(
+            (_suppliedProduct) =>
+              _suppliedProduct.id !== suppliedProduct.id
+          );
+
+          return [
+            ...remainingSuppliedProducts,
+            {
+              id: suppliedProduct.id,
+              dbId: suppliedProduct.dbId,
+              productBoxes: suppliedProduct.productBoxes,
+              quantity: suppliedProduct.quantity,
+              boxSize: suppliedProduct.boxSize,
+              familyId: suppliedProduct.familyId,
+              subfamilyId: suppliedProduct.subfamilyId,
+              elementId: suppliedProduct.elementId,
+              modelId: value,
+              product,
+            },
+          ];
+        });
+      }}
+      onSearch={(value) => {
+        setModel((prevValue) => ({
+          name: value,
+          code: prevValue?.id ? "" : prevValue?.code,
+        }));
+      }}
+      _options={selectOptions(_models)}
+      filterOption={(input, option) => {
+        if (typeof input === "number") {
+          return;
+        }
+        return option.children
+          .toLowerCase()
+          .includes(input.toLowerCase());
+      }}
+    />
+  );
+
+}

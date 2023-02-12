@@ -57,7 +57,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                         width: "310px",
                         height: "190px",
                       }}
-                      src="https://i.postimg.cc/hvk7K3W0/max-import.jpg"
+                      src="https://maximportassets.s3.amazonaws.com/max-import.jpg"
                     />
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>

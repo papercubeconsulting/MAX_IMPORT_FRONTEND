@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:12
 
 #data
 WORKDIR '/app'
@@ -8,7 +8,8 @@ RUN npm install phantomjs-prebuilt
 
 COPY . .
 
-
+ENV NODE_OPTIONS=--max_old_space_size=2048
+ENV GENERATE_SOURCEMAP=false
 # Building app
 RUN npm run build
 # COPY . .
