@@ -303,7 +303,7 @@ export default ({ setPageTitle }) => {
             event.persist();
           }}
           type="number"
-          min="0"
+          min="1"
         />
       ),
     },
@@ -317,6 +317,7 @@ export default ({ setPageTitle }) => {
           key={suppliedProducts.length}
           defaultValue={boxSize}
           disabled={disabled}
+          min="1"
           onChange={(event) => {
             setSuppliedProducts((prevState) => {
               const remainingSuppliedProducts = prevState.filter(
