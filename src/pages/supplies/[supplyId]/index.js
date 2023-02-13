@@ -281,6 +281,18 @@ export default ({ setPageTitle }) => {
           key={suppliedProducts.length}
           value={quantity}
           disabled={disabled}
+          onKeyPress={(e) => {
+            if (e.key === '-' || e.key === '0') {
+              e.preventDefault()
+            }
+          }}
+          onPaste={(e) => {
+            const value = parseFloat(e.clipboardData.getData('text'))
+            if (value <= 0) {
+              e.preventDefault()
+            }
+          }
+          }
           onChange={(event) => {
             let number = event.nativeEvent.target.value;
             if (number < 0) {
@@ -318,6 +330,19 @@ export default ({ setPageTitle }) => {
           defaultValue={boxSize}
           disabled={disabled}
           min="1"
+          onKeyPress={(e) => {
+            if (e.key === '-' || e.key === '0') {
+              e.preventDefault()
+            }
+          }
+          }
+          onPaste={(e) => {
+            const value = parseFloat(e.clipboardData.getData('text'))
+            if (value <= 0) {
+              e.preventDefault()
+            }
+          }
+          }
           onChange={(event) => {
             setSuppliedProducts((prevState) => {
               const remainingSuppliedProducts = prevState.filter(
@@ -656,7 +681,7 @@ export default ({ setPageTitle }) => {
 };
 
 
-const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOptions,setSuppliedProducts }) => {
+const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOptions, setSuppliedProducts }) => {
 
   const [model, setModel] = useState({
     name: suppliedProduct?.product?.modelName,
