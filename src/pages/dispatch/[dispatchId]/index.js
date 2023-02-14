@@ -80,6 +80,7 @@ export default ({ setPageTitle }) => {
       title: "Ctd. a Despachar",
       dataIndex: "quantity",
       align: "center",
+      render: (id,record) => record.quantity - record.dispatched
     },
     {
       title: "Cantidad despachada",
