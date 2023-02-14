@@ -311,7 +311,8 @@ export default ({ setPageTitle }) => {
                 _proforma.subtotal
               ).toFixed(2)
             );
-            setDue(_proforma.total / 100);
+            // this part will cause thtat the credit equals total
+            // setDue(_proforma.total / 100);
           } else {
             //Lo expulsa por que esa proforma esta cerrada
             router.push(`/proformas`);
@@ -427,6 +428,7 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     // setDue((finalPrice - paid).toFixed(2));
     setPaid(finalPrice)
+    // console.log('finalPrices',finalPrice)
   }, [finalPrice]);
 
   useEffect(() => {
