@@ -221,6 +221,8 @@ export default ({ setPageTitle }) => {
             <br />
             <Input
               value={
+                proforma.efectivo 
+                  ? `S/.${(proforma.efectivo / 100).toFixed(2)}`:
                 proforma.sale?.due
                   ? `S/.${(proforma.sale.due / 100).toFixed(2)}`
                   : `-`
@@ -232,6 +234,8 @@ export default ({ setPageTitle }) => {
 
             <Input
               value={
+                proforma.credit 
+                  ? `S/.${(proforma.credit / 100).toFixed(2)}`:
                 proforma.sale?.credit
                   ? `S/.${(proforma.sale.credit / 100).toFixed(2)}`
                   : `-`
