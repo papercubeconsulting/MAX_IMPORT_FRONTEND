@@ -99,10 +99,11 @@ export default ({ setPageTitle }) => {
                   }))
               );
             }}
-            type={suppliedProduct.quantity === suppliedProduct.productBoxes.length ? "ghost" : "primary"}
+            className="ant_green_color"
+            type={suppliedProduct.quantity === suppliedProduct.productBoxes?.length && disabled ? "ghost" : "primary"}
           >
           <Icon
-            color={suppliedProduct.quantity === suppliedProduct.productBoxes.length ? "green" : undefined}
+            color={suppliedProduct.quantity === suppliedProduct.productBoxes?.length && disabled ? "green" : undefined}
             marginRight="0px"
             fontSize="0.8rem"
             icon={disabled ? faPrint : faTrash}
