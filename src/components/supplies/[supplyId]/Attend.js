@@ -13,7 +13,7 @@ export const Attend = (props) => {
   const [boxes, setBoxes] = useState([]);
   const [loadingAttend, setLoadingAttend] = useState(false);
   const [code, setCode] = useState(null);
-
+  const inputRefCaja = React.useRef(null) 
   const router = useRouter();
 
   const validInput = useMemo(() => {
@@ -44,7 +44,7 @@ export const Attend = (props) => {
   }, [boxesText]);
 
   const [pruebaUrl, setPruebaUrl] = useState("");
-
+  console.log('')
   const onSubmit = async () => {
     try {
       /* setLoadingAttend(true); */
@@ -113,6 +113,12 @@ export const Attend = (props) => {
         `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
       );
 
+      setBoxesText("")
+      setBoxes([])
+      setCode(null)
+      inputRefCaja.current.focus()
+      props.setUpdate()
+
       /* console.log(
         `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
       ); */
@@ -153,16 +159,19 @@ export const Attend = (props) => {
       >
         <Input
           placeholder="Cajas"
+          ref={inputRefCaja}
           onChange={(event) => setBoxesText(event.target.value)}
+          value={boxesText}
         />
         <BoxContainer>
           {Array.from(Array(get(props, "product.quantity", 0)).keys()).map(
-            (value) => {
+            (value, i) => {
               const product = get(props, "product.productBoxes", []).find(
                 (productBox) => productBox.indexFromSupliedProduct === value + 1
               );
               return (
                 <Box
+                  key={product && product.trackingCode || i}
                   attended={!!product}
                   /* onClick={() => product && setCode(product.trackingCode)} */
                   onClick={() => {

@@ -158,6 +158,7 @@ export default ({ setPageTitle }) => {
   const [page, setPage] = useState(null);
   const [stock, setStock] = useState(null);
   const [code, setCode] = useState(null);
+  const [codes, setCodes] = useState([]);
   const [familyId, setFamilyId] = useState(null);
   const [subfamilyId, setSubfamilyId] = useState(null);
   const [elementId, setElementId] = useState(null);
@@ -201,6 +202,7 @@ export default ({ setPageTitle }) => {
           showQuickJumper: true,
         });
         setProducts(_products.rows);
+        setCodes(_products.rows.map((r) => {return {code: r.code} }))
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -520,12 +522,33 @@ export default ({ setPageTitle }) => {
               },
             ]}
           />
-          <Input
+          <AutoComplete
+            label="Codigo Inventario"
+            color={"white"}
+            colorFont={"#5F5F7F"}
             value={code}
-            type="text"
-            onChange={(event) => updateState(setCode, event.target.value)}
-            addonBefore="Código de inventario"
+            onSelect={(value) => {
+              updateState(setCode, value);
+            }}
+            onSearch={(value) => {
+              updateState(setCode, value);
+            }}
+            _options={codes.map((code) => ({
+              value: code.code,
+              label: code.code,
+            }))}
+            filterOption={(input, option) => {
+              return option.children
+                .toLowerCase()
+                .includes(input.toLowerCase());
+            }}
           />
+          {/* <Input */}
+          {/*   value={code} */}
+          {/*   type="text" */}
+          {/*   onChange={(event) => updateState(setCode, event.target.value)} */}
+          {/*   addonBefore="Código de inventario" */}
+          {/* /> */}
         </Grid>
       </Container>
       <br />

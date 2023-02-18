@@ -99,4 +99,7 @@ const GlobalStyle = createGlobalStyle`
     font-size: 16px;
     margin-right: 30px !important;
   }
+  .ant_green_color {
+    background-color: green
+  }
 `;

@@ -287,7 +287,8 @@ export default ({ setPageTitle }) => {
             setProvinceId(_proforma.client.provinceId);
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
-
+            setPaid((_proforma.efectivo / 100).toFixed(2))
+            // setDue(_proforma.credit/100)
             setproformaProducts(
               _proforma.proformaProducts.map((proformaProduct) => {
                 return {
@@ -311,7 +312,8 @@ export default ({ setPageTitle }) => {
                 _proforma.subtotal
               ).toFixed(2)
             );
-            setDue(_proforma.total / 100);
+            // this part will cause thtat the credit equals total
+            // setDue(_proforma.total / 100);
           } else {
             //Lo expulsa por que esa proforma esta cerrada
             router.push(`/proformas`);
@@ -426,8 +428,11 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     // setDue((finalPrice - paid).toFixed(2));
-    setPaid(finalPrice)
+    // setPaid(finalPrice)
+    setDue((finalPrice - paid).toFixed(2))
+    // console.log('finalPrices',finalPrice)
   }, [finalPrice]);
+
 
   useEffect(() => {
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
@@ -534,6 +539,7 @@ export default ({ setPageTitle }) => {
         const _response = await putProforma(proforma.id, {
           clientId,
           discount: Math.round(totalPrice * discountPercentage),
+          efectivo: paid,
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
             unitPrice: Math.round(
@@ -551,6 +557,7 @@ export default ({ setPageTitle }) => {
         console.log("a ver que se envia", proformaProducts);
         const _response = await postProforma({
           clientId,
+          efectivo: paid,
           discount: Math.round(totalPrice * discountPercentage),
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
@@ -621,9 +628,48 @@ export default ({ setPageTitle }) => {
       setClientId(response.id);
     } catch (error) {
       console.log(error);
+      if (error.message.includes('idNumber')) {
+        notification.error({
+          message: 'Debe ingresar un número de DNI o RUC valido. '
+        });
+        notification.info({
+          message: 'Se considera un cliente con RUC, si el campo "Apellidos" se encuentra vacia'
+        });
+        return;
+      }
+
+      if (error.message.includes('email')) {
+        notification.error({
+          message: 'Ingresar un email valido'
+        });
+        return;
+      }
+
+      if (error.message.includes('phoneNumber')) {
+        notification.error({
+          message: 'Ingresar un numero de telefono valido'
+        });
+        return;
+      }
+
+      if (error.message.includes('address')) {
+        notification.error({
+          message: 'Ingresar una direccion valida'
+        });
+        return;
+      }
+
+      if (error.message.includes('regionId') || error.message.includes('provinceId') || error.message.includes('districtId')) {
+        notification.error({
+          message: 'Informacion pendiente por completar (Departamento , Provicincia o Distrito)'
+        });
+        return;
+      }
+
       notification.error({
         message: error.message,
       });
+
     }
   };
 
@@ -951,6 +997,7 @@ export default ({ setPageTitle }) => {
                   );
                 }}
                 onBlur={(event) => {
+                  if (Math.abs(event.target.value) + Math.abs(due) > Math.abs(finalPrice)){ setPaid(proforma.efectivo); setDue(proforma.credit); return}
                   setPaid(parseFloat(event.target.value || "0").toFixed(2));
                   //TODO: Credit no puede ser negativo
                   setDue(
