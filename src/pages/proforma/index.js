@@ -997,7 +997,7 @@ export default ({ setPageTitle }) => {
                   );
                 }}
                 onBlur={(event) => {
-                  if (Math.abs(event.target.value) + Math.abs(due) > Math.abs(finalPrice)){ setPaid(proforma.efectivo); setDue(proforma.credit); return}
+                  if (Math.abs(event.target.value) + Math.abs(due) > Math.abs(finalPrice)){ setPaid(finalPrice); setDue('0'); return}
                   setPaid(parseFloat(event.target.value || "0").toFixed(2));
                   //TODO: Credit no puede ser negativo
                   setDue(
