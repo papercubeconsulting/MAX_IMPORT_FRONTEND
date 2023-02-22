@@ -244,7 +244,6 @@ export const ReadProductCode = (props) => {
     }));
     try {
       setLoading(true) 
-      await new Promise((resolve)=>setTimeout(resolve,5000))
       const response = await putProductBoxes({ boxes: data });
       notification.success({
         message: 'Las cajas han sido movidas correctamente',
