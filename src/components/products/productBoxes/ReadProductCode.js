@@ -42,6 +42,7 @@ export const ReadProductCode = (props) => {
   const [newWarehouse, setNewWarehouse] = useState({});
   const [modalConfirm, setModalConfirm] = useState(false);
   const [isScanned, setIsScanned] = useState(false)
+  const [isLoading,setLoading] = useState(false)
 
   const [windowHeight, setWindowHeight] = useState(0);
 
@@ -242,6 +243,8 @@ export const ReadProductCode = (props) => {
       previousWarehouseId: elem.warehouseId,
     }));
     try {
+      setLoading(true) 
+      await new Promise((resolve)=>setTimeout(resolve,5000))
       const response = await putProductBoxes({ boxes: data });
       notification.success({
         message: 'Las cajas han sido movidas correctamente',
@@ -250,7 +253,9 @@ export const ReadProductCode = (props) => {
       setDataCodes([]);
       props.trigger(false);
       stopWebcam();
+      setLoading(false)
     } catch (error) {
+      setLoading(false)
       console.log('error', error);
       notification.error({
         message: 'Ocurrió un error. Vuelva a intentarlo por favor',
@@ -263,6 +268,7 @@ export const ReadProductCode = (props) => {
       <Modal
         visible={modalConfirm}
         onOk={() => moveBoxes()}
+        confirmLoading={isLoading}
         okText={
           <>
             <Icon icon={faPeopleCarry} />
@@ -286,6 +292,7 @@ export const ReadProductCode = (props) => {
             }}
             options={selectOptions(warehouses)}
           />
+          {isLoading && <div style={{marginTop:'12px'}}>Procesando movimiento...</div>}
         </>
       </Modal>
       <Modal
