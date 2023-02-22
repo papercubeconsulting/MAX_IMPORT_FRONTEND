@@ -287,7 +287,7 @@ export default ({ setPageTitle }) => {
           value={quantity}
           disabled={disabled}
           onKeyPress={(e) => {
-            if (e.key === '-' || (e.key === '0' && boxSize === 0  )) {
+            if (e.key === '-' || (e.key === '0' && quantity === 0  )) {
               e.preventDefault()
             }
           }}
