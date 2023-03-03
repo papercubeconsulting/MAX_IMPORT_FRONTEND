@@ -1,7 +1,9 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# Dependency directories & files
+node_modules/
+jspm_packages/
+package-lock.json
 
 # testing
 /coverage
@@ -23,3 +25,6 @@ src/.next/
 
 /.vscode
 .vercel
+.vscode
+.history
+playground/
