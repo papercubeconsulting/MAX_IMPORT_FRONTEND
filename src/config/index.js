@@ -1,3 +1,2 @@
-const serverUrl = process.env.REACT_APP_ARIANE_BFF_URL;
-
+const serverUrl = process.env.NEXT_PUBLIC_MAXIMPORT_BFF_URL;
 export { serverUrl };

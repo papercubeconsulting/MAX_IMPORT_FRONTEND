@@ -4,10 +4,10 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "next ./src",
     "build": "next build ./src",
-    "start": "env-cmd -f .development.env next start ./src -p 8080",
-    "start:local": "env-cmd -f .local.env next start ./src -p 8080",
+    "start": "next start ./src -p 8080",
+    "start:dev": "env-cmd -f .development.env next ./src",
+    "start:local": "env-cmd -f .local.env next ./src",
     "export": "next export ./src",
     "ngrok": "ngrok http 3000"
   },
