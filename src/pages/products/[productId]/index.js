@@ -65,19 +65,24 @@ export default () => {
   ];
 
   const [product, setProduct] = useState(null);
-  const [showImagePreview, setShowImagePreview] = useState(false);
 
   // campos editables de producto
   const [suggestedPrice, setSuggestedPrice] = useState("");
   const [compatibility, setCompatibility] = useState("");
   const [tradename, setTradename] = useState("");
-  const [imageBase64, setImageBase64] = useState(null);
+  //images
+  const [imagesList, setImageList] = useState([]);
+
+  // preview
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+
+  //disabled
   const [disabled, setDisabled] = useState(true);
 
   // modal código de caja
-  const [isModalBoxesDetailVisible, setIsModalBoxesDetailVisible] = useState(
-    false
-  );
+  const [isModalBoxesDetailVisible, setIsModalBoxesDetailVisible] =
+    useState(false);
 
   // modal código de caja
   const [
@@ -88,6 +93,25 @@ export default () => {
   const router = useRouter();
   const { productId } = router.query;
 
+  // Product info getting
+  const setImagesFromProduct = async (product) => {
+    let _images = ["imageBase64", "secondImageBase64", "thirdImageBase64"]
+      .filter((field) => product[field])
+      .map((field, index) => {
+        let _src = product[field];
+        let image = {
+          uid: index,
+          name: `image_p${productId}_n${index}.${
+            _src.split("data:image/").pop().split(";base64")[0]
+          }`,
+          status: "done",
+          url: _src,
+        };
+        return image;
+      });
+    setImageList(_images);
+  };
+
   useMemo(() => {
     const fetchProduct = async () => {
       try {
@@ -96,6 +120,7 @@ export default () => {
         setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
         setCompatibility(_product.compatibility);
         setTradename(_product.tradename);
+        await setImagesFromProduct(_product);
       } catch (error) {
         router.back();
       }
@@ -115,30 +140,50 @@ export default () => {
   };
 
   // Actualiza campos del producto
+  const getImagesBody = async () => {
+    switch (imagesList.length) {
+      case 1:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64: null,
+          thirdImageBase64: null,
+        };
+      case 2:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64:
+            imagesList[1].url || (await toBase64(imagesList[1].originFileObj)),
+          thirdImageBase64: null,
+        };
+      case 3:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64:
+            imagesList[1].url || (await toBase64(imagesList[1].originFileObj)),
+          thirdImageBase64:
+            imagesList[2].url || (await toBase64(imagesList[2].originFileObj)),
+        };
+      default:
+        return {};
+    }
+  };
 
   const updateProductFields = async () => {
     try {
       let body;
-      if (imageBase64) {
-        body = {
-          suggestedPrice: parseFloat(suggestedPrice) * 100,
-          compatibility,
-          tradename,
-          imageBase64,
-        };
-        console.log("si hay img");
-      } else {
-        body = {
-          suggestedPrice: parseFloat(suggestedPrice) * 100,
-          compatibility,
-          tradename,
-        };
-        console.log("no hay imagen subida");
-      }
-      console.log("campos", body);
+      let imagesBodySection = await getImagesBody();
+
+      body = {
+        suggestedPrice: parseFloat(suggestedPrice) * 100,
+        compatibility,
+        tradename,
+        ...imagesBodySection,
+      };
       const _response = await updateProduct(productId, body);
-      console.log("resp", _response);
-      if (imageBase64) {
+      if (imagesList.length > 0) {
         window.location.reload();
       }
       notification.success({
@@ -151,20 +196,32 @@ export default () => {
     }
   };
 
-  // habilitar o deshabilitar boton de actualizar
+  // Upload component handlers
+
+  const handleChange = ({ fileList: newFileList }) => setImageList(newFileList);
+
+  const handlePreview = async (file) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setPreviewImage(file.url || file.preview);
+    setShowImagePreview(true);
+  };
+
+  // habilitar o deshabilitar botón de actualizar
   useEffect(() => {
     if (
       (suggestedPrice === (product?.suggestedPrice / 100).toFixed(2) ||
         suggestedPrice === "") &&
       (compatibility === product?.compatibility || compatibility === "") &&
       (tradename === product?.tradename || tradename === "") &&
-      imageBase64 === null
+      imagesList.length === 0
     ) {
       setDisabled(true);
     } else {
       setDisabled(false);
     }
-  }, [suggestedPrice, compatibility, tradename, imageBase64]);
+  }, [suggestedPrice, compatibility, tradename, imagesList]);
 
   return (
     <>
@@ -175,17 +232,17 @@ export default () => {
         />
       )}
       <Modal
-        visible={showImagePreview}
+        open={showImagePreview}
         width="90%"
         footer={null}
         onCancel={() => setShowImagePreview(false)}
       >
         <ImagePreviewContainer justifyContent="center">
-          <img src={get(product, "imageBase64", null)} alt="image" />
+          <img src={previewImage} alt="image" />
         </ImagePreviewContainer>
       </Modal>
       <Modal
-        visible={isModalBoxesDetailVisible}
+        open={isModalBoxesDetailVisible}
         centered
         width="80%"
         footer={null}
@@ -300,40 +357,20 @@ export default () => {
                 alignItems="center"
                 padding="0px"
               >
-                {get(product, "imageBase64", false) ? (
-                  <img
-                    src={get(product, "imageBase64", null)}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setShowImagePreview(true)}
-                    width="300px"
-                    alt="product-image"
-                  />
-                ) : (
-                  <img
-                    src="/imagePlaceholder.png"
-                    width="300px"
-                    alt="product-image"
-                  />
-                )}
                 <Upload
                   className="ant-upload-wrapper"
-                  onChange={async (info) => {
-                    /* console.log("entender", info); */
-                    if (info.file.status === "done") {
-                      const encodedImage = await toBase64(
-                        info.file.originFileObj
-                      );
-                      setImageBase64(encodedImage);
-                    } else {
-                      setImageBase64(null);
-                    }
-                  }}
+                  listType="picture-card"
+                  fileList={imagesList}
+                  onPreview={handlePreview}
+                  onChange={handleChange}
                   accept="image/png, image/jpeg"
                 >
-                  <Button>
-                    <Icon icon={faUpload} />
-                    Imagen
-                  </Button>
+                  {imagesList.length >= 3 || disabled ? null : (
+                    <Button>
+                      <Icon icon={faUpload} />
+                      Imagen
+                    </Button>
+                  )}
                 </Upload>
               </Container>
             </Grid>
