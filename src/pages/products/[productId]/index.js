@@ -384,12 +384,8 @@ export default () => {
                 padding="0px"
                 flexDirection="row"
               >
-                <Container
-                  display="block"
-                  width="350px"
-                  height="250px"
-                >
-                  <Carousel>
+                <Container display="block" width="350px" height="250px">
+                  <StyledCarousel>
                     {imagesPreview.map((file) => (
                       <CarouselImageContainer key={file.uid}>
                         <CarouselImagePanel>
@@ -410,7 +406,7 @@ export default () => {
                         <CarouselImage src={file.image} alt={file.uid} />
                       </CarouselImageContainer>
                     ))}
-                  </Carousel>
+                  </StyledCarousel>
                 </Container>
                 <Container width="200px">
                   <Upload
@@ -467,9 +463,20 @@ export default () => {
   );
 };
 
+const StyledCarousel = styled(Carousel)`
+  .slick-dots {
+    li {
+      button {
+        border: 2px solid #1890ff !important;
+        height: 6px !important;
+      }
+    }
+  }
+`;
+
 const CarouselImage = styled.img`
   max-width: 100%;
-  max-height: 200px;
+  max-height: 160px;
 `;
 
 const CarouselImageContainer = styled.div`
