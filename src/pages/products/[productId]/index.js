@@ -12,7 +12,7 @@ import {
 } from "antd";
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
-
+import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getProduct, updateProduct } from "../../../providers";
 import { toBase64 } from "../../../util";
 
@@ -84,6 +84,7 @@ export default () => {
   // preview
   const [previewImage, setPreviewImage] = useState(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [imagesPreview, setImagesPreview] = useState([]);
 
   //disabled
   const [disabled, setDisabled] = useState(true);
@@ -118,6 +119,7 @@ export default () => {
         return image;
       });
     setImageList(_images);
+    await getPreviews(_images);
   };
 
   useMemo(() => {
@@ -205,14 +207,31 @@ export default () => {
   };
 
   // Upload component handlers
+  const getPreviews = async (images = imagesList) => {
+    const _imagesPreviews = images.map(async (file) => {
+      let filePreview = "";
+      if (!file.url && !file.preview) {
+        filePreview = await toBase64(file.originFileObj);
+      }
+      return { image: file.url || file.preview || filePreview, uid: file.uid };
+    });
+    const _values = await Promise.all(_imagesPreviews);
+    setImagesPreview(_values);
+  };
 
-  const handleChange = ({ fileList: newFileList }) => setImageList(newFileList);
+  const handleChange = async ({ fileList: newFileList }) => {
+    await getPreviews(newFileList);
+    setImageList(newFileList);
+  };
 
-  const handlePreview = async (file) => {
-    if (!file.url && !file.preview) {
-      file.preview = await toBase64(file.originFileObj);
-    }
-    setPreviewImage(file.url || file.preview);
+  const handleRemove = async (uid) => {
+    const files = (imagesList || []).filter((v) => v.uid !== uid);
+    setImageList(files);
+    await getPreviews(files);
+  };
+
+  const handlePreview = async (image) => {
+    setPreviewImage(image);
     setShowImagePreview(true);
   };
 
@@ -362,37 +381,54 @@ export default () => {
               />
               <Container
                 justifyContent="center"
-                alignItems="center"
                 padding="0px"
                 flexDirection="row"
               >
-                {/* <Container display="block" width="200px">
+                <Container
+                  display="block"
+                  width="350px"
+                  height="250px"
+                >
                   <Carousel>
-                    {imagesList.map((file) => (
-                      <div key={file.uid}>
-                        <img src={file.url||file.preview} alt={file.name} />
-                      </div>
+                    {imagesPreview.map((file) => (
+                      <CarouselImageContainer key={file.uid}>
+                        <CarouselImagePanel>
+                          <Button
+                            type="primary"
+                            shape="circle"
+                            onClick={() => handlePreview(file.image)}
+                            icon={<EyeOutlined />}
+                          />
+                          <Button
+                            type="primary"
+                            shape="circle"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemove(file.uid)}
+                          />
+                        </CarouselImagePanel>
+
+                        <CarouselImage src={file.image} alt={file.uid} />
+                      </CarouselImageContainer>
                     ))}
                   </Carousel>
-                </Container> */}
-
-                <Upload
-                  className="ant-upload-wrapper"
-                  listType="picture-card"
-                  fileList={imagesList}
-                  onPreview={handlePreview}
-                  onChange={handleChange}
-                  accept="image/png, image/jpeg"
-                  //showUploadList={false}
-                >
-                  {imagesList.length >= 3 ||
-                  (disabled && imagesList.length !== 0) ? null : (
-                    <Button>
-                      <Icon icon={faUpload} />
-                      Imagen
-                    </Button>
-                  )}
-                </Upload>
+                </Container>
+                <Container width="200px">
+                  <Upload
+                    className="ant-upload-wrapper"
+                    fileList={imagesList}
+                    onChange={handleChange}
+                    accept="image/png, image/jpeg"
+                    showUploadList={false}
+                  >
+                    {imagesList.length >= 3 ||
+                    (disabled && imagesList.length !== 0) ? null : (
+                      <Button>
+                        <Icon icon={faUpload} />
+                        Imagen
+                      </Button>
+                    )}
+                  </Upload>
+                </Container>
               </Container>
             </Grid>
           </div>
@@ -430,6 +466,26 @@ export default () => {
     </>
   );
 };
+
+const CarouselImage = styled.img`
+  max-width: 100%;
+  max-height: 200px;
+`;
+
+const CarouselImageContainer = styled.div`
+  display: flex !important;
+  justify-content: center;
+`;
+
+const CarouselImagePanel = styled.div`
+  top: 0;
+  z-index: 10;
+  padding: 0.5rem;
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  width: 318px;
+`;
 
 const ImagePreviewContainer = styled(Container)`
   img {
