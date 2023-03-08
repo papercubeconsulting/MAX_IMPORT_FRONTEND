@@ -1,7 +1,15 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
-import { Input, Modal, Table, Button, notification, Upload } from "antd";
+import {
+  Input,
+  Modal,
+  Table,
+  Button,
+  notification,
+  Upload,
+  Carousel,
+} from "antd";
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
@@ -202,7 +210,7 @@ export default () => {
 
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
+      file.preview = await toBase64(file.originFileObj);
     }
     setPreviewImage(file.url || file.preview);
     setShowImagePreview(true);
@@ -356,7 +364,18 @@ export default () => {
                 justifyContent="center"
                 alignItems="center"
                 padding="0px"
+                flexDirection="row"
               >
+                {/* <Container display="block" width="200px">
+                  <Carousel>
+                    {imagesList.map((file) => (
+                      <div key={file.uid}>
+                        <img src={file.url||file.preview} alt={file.name} />
+                      </div>
+                    ))}
+                  </Carousel>
+                </Container> */}
+
                 <Upload
                   className="ant-upload-wrapper"
                   listType="picture-card"
@@ -364,8 +383,10 @@ export default () => {
                   onPreview={handlePreview}
                   onChange={handleChange}
                   accept="image/png, image/jpeg"
+                  //showUploadList={false}
                 >
-                  {imagesList.length >= 3 || disabled ? null : (
+                  {imagesList.length >= 3 ||
+                  (disabled && imagesList.length !== 0) ? null : (
                     <Button>
                       <Icon icon={faUpload} />
                       Imagen
