@@ -384,10 +384,14 @@ export default () => {
                 padding="0px"
                 flexDirection="row"
               >
-                <Container display="block" width="350px" height="250px">
+                <Container
+                  display="block"
+                  width="350px"
+                  height="250px"
+                >
                   <Carousel>
                     {imagesPreview.map((file) => (
-                      <div key={file.uid}>
+                      <CarouselImageContainer key={file.uid}>
                         <CarouselImagePanel>
                           <Button
                             type="primary"
@@ -404,7 +408,7 @@ export default () => {
                         </CarouselImagePanel>
 
                         <CarouselImage src={file.image} alt={file.uid} />
-                      </div>
+                      </CarouselImageContainer>
                     ))}
                   </Carousel>
                 </Container>
@@ -464,7 +468,13 @@ export default () => {
 };
 
 const CarouselImage = styled.img`
-  width: 100%;
+  max-width: 100%;
+  max-height: 200px;
+`;
+
+const CarouselImageContainer = styled.div`
+  display: flex !important;
+  justify-content: center;
 `;
 
 const CarouselImagePanel = styled.div`
