@@ -5,6 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "next build ./src",
+    "build:dev": "env-cmd -f .development.env next build ./src",
     "start": "next start ./src -p 8080",
     "start:dev": "env-cmd -f .development.env next ./src",
     "start:local": "env-cmd -f .local.env next ./src",
