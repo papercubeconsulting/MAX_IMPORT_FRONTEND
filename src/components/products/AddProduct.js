@@ -32,7 +32,10 @@ export const AddProduct = (props) => {
   const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [compatibility, setCompatibility] = useState(null);
   const [tradename, setTradename] = useState("-");
-  const [imageBase64, setImageBase64] = useState(null);
+
+  //images
+  const [imagesList, setImageList] = useState([]);
+  const [imagesPreview, setImagesPreview] = useState([]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -118,6 +121,30 @@ export const AddProduct = (props) => {
     fetchModels();
   }, [element]);
 
+  // Upload handlers
+  const getPreviews = async (images = imagesList) => {
+    const _imagesPreviews = images.map(async (file) => {
+      let filePreview = "";
+      if (!file.url && !file.preview) {
+        filePreview = await toBase64(file.originFileObj);
+      }
+      return file.url || file.preview || filePreview;
+    });
+    const _values = await Promise.all(_imagesPreviews);
+    setImagesPreview(_values);
+  };
+
+  const handleChange = async ({ fileList: newFileList }) => {
+    await getPreviews(newFileList);
+    setImageList(newFileList);
+  };
+
+  const handleRemove = async (file) => {
+    const files = (imagesList || []).filter((v) => v.url !== file.url);
+    setImageList(files);
+    await getPreviews(files);
+  };
+
   const selectOptions = (collection) =>
     collection.map((document) => ({
       label: document.name,
@@ -186,7 +213,6 @@ export const AddProduct = (props) => {
         description: "Ingrese un modelo",
       });
     }
-
     Modal.confirm({
       width: "90%",
       title: "¿Está seguro de que desea crear este ítem en el inventario?",
@@ -229,12 +255,21 @@ export const AddProduct = (props) => {
               {tradename}
             </h3>
           </Container>
-          {imageBase64 && (
+          {imagesPreview && (
             <Container padding="0px" alignItems="center" flexDirection="column">
               <h3>
-                <b>Vista previa imagen:</b>
+                <b>Vista previa de imágenes:</b>
               </h3>
-              <img src={imageBase64} height="120px" alt="uploaded-image" />
+              <Container
+                padding="0px"
+                alignItems="center"
+                flexDirection="row"
+                justifyContent="space-around"
+              >
+                {imagesPreview.map((image) => (
+                  <img src={image} height="120px" alt="uploaded-image" />
+                ))}
+              </Container>
             </Container>
           )}
         </ModalConfirmContainer>
@@ -242,8 +277,41 @@ export const AddProduct = (props) => {
     });
   };
 
+  // Crea producto
+  const getImagesBody = async () => {
+    switch (imagesList.length) {
+      case 1:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64: null,
+          thirdImageBase64: null,
+        };
+      case 2:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64:
+            imagesList[1].url || (await toBase64(imagesList[1].originFileObj)),
+          thirdImageBase64: null,
+        };
+      case 3:
+        return {
+          imageBase64:
+            imagesList[0].url || (await toBase64(imagesList[0].originFileObj)),
+          secondImageBase64:
+            imagesList[1].url || (await toBase64(imagesList[1].originFileObj)),
+          thirdImageBase64:
+            imagesList[2].url || (await toBase64(imagesList[2].originFileObj)),
+        };
+      default:
+        return {};
+    }
+  };
+
   const submitProduct = async () => {
     try {
+      let imagesBodySection = await getImagesBody();
       const body = {
         familyId: family.id,
         subfamilyId: subfamily.id,
@@ -260,7 +328,7 @@ export const AddProduct = (props) => {
         tradename,
         suggestedPrice: Math.round(suggestedPrice * 100),
         compatibility: compatibility || undefined,
-        imageBase64: imageBase64 || undefined,
+        ...imagesBodySection,
       };
 
       props.trigger(false);
@@ -436,16 +504,17 @@ export const AddProduct = (props) => {
           />
           <Upload
             className="ant-upload-wrapper"
-            beforeUpload={async (file) => {
-              const encodedImage = await toBase64(file);
-              setImageBase64(encodedImage);
-            }}
+            fileList={imagesList}
+            onChange={handleChange}
+            onRemove={handleRemove}
             accept="image/png, image/jpeg"
           >
-            <Button>
-              <Icon icon={faUpload} />
-              Imagen
-            </Button>
+            {imagesList.length >= 3 ? null : (
+              <Button>
+                <Icon icon={faUpload} />
+                Imagen
+              </Button>
+            )}
           </Upload>
         </Grid>
         <div>
