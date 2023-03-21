@@ -384,7 +384,7 @@ export default () => {
                 padding="0px"
                 flexDirection="row"
               >
-                <Container display="block" width="350px" height="250px">
+                <Container display="block" width="350px" height="250px" padding="0px">
                   <StyledCarousel>
                     {imagesPreview.map((file) => (
                       <CarouselImageContainer key={file.uid}>
@@ -476,7 +476,10 @@ const StyledCarousel = styled(Carousel)`
 
 const CarouselImage = styled.img`
   max-width: 100%;
-  max-height: 160px;
+  max-height: 230px;
+  @media (max-width: 900px) {
+    max-height: 220px;
+  }
 `;
 
 const CarouselImageContainer = styled.div`
@@ -496,6 +499,6 @@ const CarouselImagePanel = styled.div`
 
 const ImagePreviewContainer = styled(Container)`
   img {
-    height: 70vh;
+    width: 100%;
   }
 `;
