@@ -1,7 +1,7 @@
 import * as config from "../config";
 import { get } from "lodash";
 
-const buildUrl = (url, params = {}) => {
+export const buildUrl = (url, params = {}) => {
   const queries = Object.keys(params)
     .map(
       (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key])
@@ -13,7 +13,7 @@ const buildUrl = (url, params = {}) => {
   return `${config.serverUrl}${url}?${queries}`;
 };
 
-const getToken = async () => {
+export const getToken = async () => {
   try {
     const localAuthUser = localStorage.getItem("authUser") || null;
 
@@ -134,6 +134,25 @@ export const baseProvider = {
         accept: " */*",
         Authorization: `Bearer ${token}`,
       },
+    });
+
+    const responseJson = await response.json();
+
+    return validate(responseJson);
+  },
+
+  httpPostFile: async (url, body = {}) => {
+    const token = await getToken();
+
+    const response = await fetch(buildUrl(url), {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        accept: " */*",
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: "blob"
     });
 
     const responseJson = await response.json();

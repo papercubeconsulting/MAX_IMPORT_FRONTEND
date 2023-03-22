@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useGlobal } from "reactn";
 import { useRouter } from "next/router";
-import { Input, notification, Table, Modal } from "antd";
+import { Input, notification, message, Table, Modal } from "antd";
 import { get } from "lodash";
 import * as FileSaver from "file-saver";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -29,6 +29,8 @@ import {
 } from "../../components";
 import { AddProduct } from "../../components/products";
 import { ReadProductCode } from "../../components/products/productBoxes/ReadProductCode";
+import { ModalCargaMasiva } from "../../components/supplies/[supplyId]/ModalCargaMasiva.js";
+import { buildUrl, getToken } from "../../providers/baseProvider.js";
 
 export default ({ setPageTitle }) => {
   const [globalAuthUser] = useGlobal("authUser");
@@ -176,10 +178,13 @@ export default ({ setPageTitle }) => {
     setIsModalReadProductBoxCodeVisible,
   ] = useState(false);
 
+  const [isCargaMasivaVisible, setIsCargaMasivaVisible] = React.useState(false)
+
   const [isDownloadFilesVisible, setIsDownloadFilesVisible] = useState(false);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
   const stateUpdateOrigin = useRef("url");
+  const token = useRef(null);
 
   const router = useRouter();
   const queryParams = router.query;
@@ -188,29 +193,29 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const _products = await getProducts(queryParams);
-        setTotalItems(_products.length);
-        setPagination({
-          position: ["bottomCenter"],
-          total: _products.pageSize * _products.pages,
-          current: _products.page,
-          pageSize: _products.pageSize,
-          showSizeChanger: false,
-          showQuickJumper: true,
-        });
-        setProducts(_products.rows);
-        setCodes(_products.rows.map((r) => {return {code: r.code} }))
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      const _products = await getProducts(queryParams);
+      setTotalItems(_products.length);
+      setPagination({
+        position: ["bottomCenter"],
+        total: _products.pageSize * _products.pages,
+        current: _products.page,
+        pageSize: _products.pageSize,
+        showSizeChanger: false,
+        showQuickJumper: true,
+      });
+      setProducts(_products.rows);
+      setCodes(_products.rows.map((r) => { return { code: r.code } }))
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
+  };
 
+  useEffect(() => {
     if (stateUpdateOrigin.current === "url") urlToState();
     fetchProducts();
   }, [queryParams, toggleUpdateTable]);
@@ -219,98 +224,99 @@ export default ({ setPageTitle }) => {
     if (stateUpdateOrigin.current === "manual") stateToUrl();
   }, [page, stock, code, familyId, subfamilyId, elementId, modelId, tradename]);
 
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const _families = await getFamilies();
-        const _tradenames = await getTradenames();
-        setTradenames(_tradenames.rows);
-        setFamilies(_families);
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
-
-    initialize();
+  const initialize = React.useCallback(async () => {
+    try {
+      token.current = await getToken()
+      const _families = await getFamilies();
+      const _tradenames = await getTradenames();
+      setTradenames(_tradenames.rows);
+      setFamilies(_families);
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
   }, []);
 
   useEffect(() => {
-    const fetchSubfamilies = async () => {
-      try {
-        if (stateUpdateOrigin.current !== "url") {
-          setSubfamilies([]);
-          setSubfamilyId(null);
-        }
-        if (familyId) {
-          const _subfamilies = await getSubfamilies(familyId);
-          setSubfamilies(_subfamilies);
-          setSubfamilyId(
-            _subfamilies[0] && _subfamilies[0].name === "-"
-              ? _subfamilies[0].id
-              : null
-          );
-        }
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
+    initialize();
+  }, []);
 
+  const fetchSubfamilies = React.useCallback(async () => {
+    try {
+      if (stateUpdateOrigin.current !== "url") {
+        setSubfamilies([]);
+        setSubfamilyId(null);
+      }
+      if (familyId) {
+        const _subfamilies = await getSubfamilies(familyId);
+        setSubfamilies(_subfamilies);
+        setSubfamilyId(
+          _subfamilies[0] && _subfamilies[0].name === "-"
+            ? _subfamilies[0].id
+            : null
+        );
+      }
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
+  }, [stateUpdateOrigin.current, familyId]);
+
+  useEffect(() => {
     fetchSubfamilies();
   }, [familyId]);
 
-  useEffect(() => {
-    const fetchElements = async () => {
-      try {
-        if (stateUpdateOrigin.current !== "url") {
-          setElements([]);
-          setElementId(null);
-        }
-
-        if (subfamilyId) {
-          const _elements = await getElements(subfamilyId);
-          setElements(_elements);
-          setElementId(
-            _elements[0] && _elements[0].name === "-" ? _elements[0].id : null
-          );
-        }
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
+  const fetchElements = async () => {
+    try {
+      if (stateUpdateOrigin.current !== "url") {
+        setElements([]);
+        setElementId(null);
       }
-    };
 
+      if (subfamilyId) {
+        const _elements = await getElements(subfamilyId);
+        setElements(_elements);
+        setElementId(
+          _elements[0] && _elements[0].name === "-" ? _elements[0].id : null
+        );
+      }
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchElements();
   }, [subfamilyId]);
 
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        if (stateUpdateOrigin.current !== "url") {
-          setModels([]);
-          setModelId(null);
-        }
-
-        if (elementId) {
-          const _models = await getModels(elementId);
-          setModels(_models);
-          setModel(null);
-        }
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
+  const fetchModels = async () => {
+    try {
+      if (stateUpdateOrigin.current !== "url") {
+        setModels([]);
+        setModelId(null);
       }
-    };
 
+      if (elementId) {
+        const _models = await getModels(elementId);
+        setModels(_models);
+        setModel(null);
+      }
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchModels();
   }, [elementId]);
 
@@ -385,8 +391,109 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  const propsModal1 = {
+    name: 'csv',
+    multiple: false,
+    customRequest: async (options) => {
+      const { onSuccess, onError, file } = options;
+      const formData = new FormData();
+      formData.append('csv', file);
+      try {
+        const fetched = await fetch(buildUrl('products/csvUpload'), {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token.current}`,
+          },
+        });
+        console.log('fetched', fetched, fetched.ok)
+        if (!fetched.ok) {
+          const body = await fetched.json()
+          throw new Error(body.userMessage || body.message)
+        }
+        const response = await fetched.blob()
+        FileSaver.saveAs(response, 'Inventario.xlsx')
+        onSuccess('ok');
+      } catch (error) {
+        console.log('error', error)
+        notification.error({
+          message: "Error procesando el archivo",
+          description: error.message,
+        });
+        onError(error);
+      }
+    },
+    async onChange(info) {
+      const { status } = info.file;
+      console.log('info')
+      if (status !== 'uploading') {
+        console.log(info.file, info.file.xhr, info.fileList, info.event);
+      }
+      if (status === 'done') {
+        console.log('done', info.file.response)
+        await Promise.all([fetchProducts(), initialize(), fetchElements(), fetchSubfamilies(), fetchModels()])
+      } else if (status === 'error') {
+        console.log('There was an error uploading the file')
+      }
+    },
+    onDrop(e) {
+      console.log('Dropped files', e.dataTransfer.files);
+    },
+  };
+
+  const propsModal2 = {
+    name: 'zip',
+    multiple: false,
+    customRequest: async (options) => {
+      const { onSuccess, onError, file } = options;
+      const formData = new FormData();
+      formData.append('zip', file);
+      try {
+        const fetched = await fetch(buildUrl('products/images/zipUpload'), {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token.current}`,
+          },
+        });
+        console.log('fetched', fetched, fetched.ok)
+        if (!fetched.ok) {
+          const body = await fetched.json()
+          throw new Error(body.userMessage || body.message)
+        }
+        const response = await fetched.blob()
+        FileSaver.saveAs(response, 'Lista_Imagenes.xlsx')
+        onSuccess('ok');
+      } catch (error) {
+        console.log('error', error)
+        notification.error({
+          message: "Error procesando el archivo",
+          description: error.message,
+        });
+        onError(error);
+      }
+    },
+    async onChange(info) {
+      const { status } = info.file;
+      console.log('info')
+      if (status !== 'uploading') {
+        console.log(info.file, info.file.xhr, info.fileList, info.event);
+      }
+      if (status === 'done') {
+        console.log('done', info.file.response)
+        await Promise.all([fetchProducts(), initialize(), fetchElements(), fetchSubfamilies(), fetchModels()])
+      } else if (status === 'error') {
+        console.log('There was an error uploading the file')
+      }
+    },
+    onDrop(e) {
+      console.log('Dropped files', e.dataTransfer.files);
+    },
+  };
+
   return (
     <>
+      <ModalCargaMasiva propsModal1={propsModal1} propsModal2={propsModal2} isVisible={isCargaMasivaVisible} closeModal={() => setIsCargaMasivaVisible(false)} />
       <Modal
         visible={isVisibleModalDelete}
         width="40%"
@@ -566,10 +673,18 @@ export default ({ setPageTitle }) => {
       <br />
       <Container height="15%">
         <Grid
-          gridTemplateColumns="repeat(3, 1fr)"
+          gridTemplateColumns="repeat(4, 1fr)"
           gridGap="2rem"
           justifyItems="center"
         >
+          <Button
+            onClick={() => setIsCargaMasivaVisible(true)}
+            size="large"
+            width="200px"
+            type="primary"
+          >
+            Carga Masiva
+          </Button>
           <Button
             onClick={() => {
               setIsDownloadFilesVisible(true);
@@ -601,3 +716,10 @@ export default ({ setPageTitle }) => {
     </>
   );
 };
+
+function s2ab(s) {
+  const buf = new ArrayBuffer(s.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
+  return buf;
+}
