@@ -1,10 +1,2 @@
-import config from "./config";
-
-const serverUrl = config.serverUrl;
-// const serverUrl = 'http://localhost:3001/';
-if (typeof window === 'undefined') {
-    global.window = {}
-  }
-export {
-    serverUrl
-}
+const serverUrl = process.env.NEXT_PUBLIC_MAXIMPORT_BFF_URL || "/api/";
+export { serverUrl };
