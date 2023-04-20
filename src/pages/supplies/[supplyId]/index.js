@@ -38,6 +38,7 @@ import {
   AutoComplete,
   DatePicker,
 } from "../../../components";
+import { ModalCargaMasiva } from "../../../components/supplies/[supplyId]/ModalCargaMasiva";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
@@ -59,7 +60,7 @@ export default ({ setPageTitle }) => {
   const [models, setModels] = useState([]);
   const [onUpdateBoxes, setUpdateBoxes] = useState(false)
   const [loadingSupply, setLoadingSupply] = useState(false);
-
+  const [isModalCargaVisible,setIsModalCargaVisible] = useState(false)
   const [attendedProduct, setAttendedProduct] = useState(null);
   const [visibleAttendModal, setVisibleAttendModal] = useState(false);
 
@@ -615,6 +616,7 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <ModalCargaMasiva isVisible={isModalCargaVisible} closeModal={()=>setIsModalCargaVisible(false)}/>
       <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
@@ -664,8 +666,9 @@ export default ({ setPageTitle }) => {
         rowKey={record => record.id}
         dataSource={orderBy(suppliedProducts, "id", "asc")}
       />
+      <div style={{display:'flex'}}>
       {!disabled && (
-        <Container height="5rem">
+        <Container width='auto' height="5rem">
           <Button
             padding="0 0.5rem"
             disabled={!providerId}
@@ -682,6 +685,26 @@ export default ({ setPageTitle }) => {
           </Button>
         </Container>
       )}
+      {/* {!disabled && ( */}
+      {/*   <Container width='auto' height="5rem"> */}
+      {/*     <Button */}
+      {/*       padding="0 0.5rem" */}
+      {/*       disabled={!providerId} */}
+      {/*       onClick={()=>setIsModalCargaVisible(true)} */}
+      {/*       // onClick={() => */}
+      {/*       //   setSuppliedProducts((prevState) => [ */}
+      {/*       //     ...prevState, */}
+      {/*       //     { id: suppliedProducts.length + 1 }, */}
+      {/*       //   ]) */}
+      {/*       // } */}
+      {/*       type="primary" */}
+      {/*     > */}
+      {/*       <Icon fontSize="1rem" icon={faPlus} /> */}
+      {/*       Carga Masiva */}
+      {/*     </Button> */}
+      {/*   </Container> */}
+      {/* )} */}
+      </div>
       <Container height="20%" alignItems="center" flexDirection="column">
         {(isEdit || isNew) && (
           <Button

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Input, Modal, notification, Table } from 'antd';
+import { Input, Modal, Alert, notification, Table } from 'antd';
 import styled from 'styled-components';
 import Quagga from 'quagga';
 import { get } from 'lodash';
@@ -291,7 +291,7 @@ export const ReadProductCode = (props) => {
             }}
             options={selectOptions(warehouses)}
           />
-          {isLoading && <div style={{marginTop:'12px'}}>Procesando movimiento...</div>}
+          {isLoading && <div style={{marginTop:'12px'}}><Alert message="Procesando informacion ....." type="info" showIcon /></div>}
         </>
       </Modal>
       <Modal
