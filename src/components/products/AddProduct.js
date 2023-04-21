@@ -32,6 +32,10 @@ export const AddProduct = (props) => {
   const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [compatibility, setCompatibility] = useState(null);
   const [tradename, setTradename] = useState("-");
+  const [cost, setCost] = useState(suggestedPrice);
+  const [margin, setMargin] = useState("");
+
+  // let margin = ((suggestedPrice / cost) * 100).toFixed(2);
 
   //images
   const [imagesList, setImageList] = useState([]);
@@ -158,6 +162,13 @@ export const AddProduct = (props) => {
   };
 
   const confirmAddProduct = () => {
+    if (cost === "" || cost < 0) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "El costo debe ser positvo",
+      });
+    }
+
     if (suggestedPrice < 0) {
       return notification.error({
         message: "Error al intentar subir producto",
@@ -327,6 +338,7 @@ export const AddProduct = (props) => {
         providerId: provider.id,
         tradename,
         suggestedPrice: Math.round(suggestedPrice * 100),
+        cost,
         compatibility: compatibility || undefined,
         ...imagesBodySection,
       };
@@ -348,12 +360,13 @@ export const AddProduct = (props) => {
       });
     }
   };
+
   return (
     <Modal
       visible={props.visible}
       onOk={() => confirmAddProduct()}
       onCancel={() => props.trigger && props.trigger(false)}
-      width="90%"
+      width="95%"
       title="Nuevo ítem inventario"
     >
       <Grid gridTemplateRows="repeat(2, 1fr)" gridGap="1rem">
@@ -488,8 +501,17 @@ export const AddProduct = (props) => {
           />
           <Input
             value={suggestedPrice}
-            onChange={(event) => setSuggestedPrice(event.target.value)}
+            min={0}
+            onChange={(event) => {
+              const price = Number(event.target.value).toFixed(2);
+              const margin = ((price / cost) * 100).toFixed(2);
+              if (!isNaN(margin)) {
+                setMargin((margin - 100).toFixed(2));
+                setSuggestedPrice(event.target.value);
+              }
+            }}
             type="number"
+            step=".01"
             addonBefore="Precio S/"
           />
           <Input
@@ -516,10 +538,48 @@ export const AddProduct = (props) => {
               </Button>
             )}
           </Upload>
+          <Input
+            value={cost}
+            type="number"
+            step=".01"
+            onChange={(event) => {
+              if (margin === 100) {
+                setCost(event.target.value);
+                setSuggestedPrice(event.target.value);
+                return;
+              }
+              const price = Number(event.target.value) / (1 - margin / 100);
+              if (!isNaN(price)) {
+                setSuggestedPrice(price.toFixed(2));
+                setCost(event.target.value);
+              }
+            }}
+            addonBefore="Costo S/"
+          />
+          <Input
+            type="number"
+            step=".01"
+            onChange={(event) => {
+              // setMargin(event.target.value);
+              // return;
+              const margin = Number(event.target.value).toFixed(2);
+              const price = (cost * (margin / 100 + 1)).toFixed(2);
+              if (!isNaN(price)) {
+                setMargin(event.target.value);
+                setSuggestedPrice(price);
+              }
+            }}
+            value={margin}
+            addonBefore="Margen %"
+          />
         </Grid>
         <div>
           <h3>Leyenda:</h3>
-          <LegendsContainer justifyContent="space-around" padding="0px">
+          <LegendsContainer
+            justifyContent="space-around"
+            height="auto"
+            padding="0px"
+          >
             <Tag color={colors[0]}>No seleccionado</Tag>
             <Tag color={colors[1]}>Existente</Tag>
             <Tag color={colors[2]}>Nuevo</Tag>
