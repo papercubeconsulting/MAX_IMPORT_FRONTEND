@@ -33,7 +33,7 @@ export const AddProduct = (props) => {
   const [compatibility, setCompatibility] = useState(null);
   const [tradename, setTradename] = useState("-");
   const [cost, setCost] = useState(suggestedPrice);
-  const [margin, setMargin] = useState("");
+  const [margin, setMargin] = useState(0);
 
   // let margin = ((suggestedPrice / cost) * 100).toFixed(2);
 
@@ -338,7 +338,7 @@ export const AddProduct = (props) => {
         providerId: provider.id,
         tradename,
         suggestedPrice: Math.round(suggestedPrice * 100),
-        cost,
+        cost: Math.round(cost * 100),
         compatibility: compatibility || undefined,
         ...imagesBodySection,
       };
@@ -502,16 +502,28 @@ export const AddProduct = (props) => {
           <Input
             value={suggestedPrice}
             min={0}
+            onBlur={(event) => {
+              // once on focus the
+              if (cost === 0) {
+                setCost(event.target.value);
+              }
+            }}
             onChange={(event) => {
-              const price = Number(event.target.value).toFixed(2);
-              const margin = ((price / cost) * 100).toFixed(2);
+              // in case price is 0 and maargin 0 (initial state)
+              if (cost === 0) {
+                setSuggestedPrice(event.target.value);
+                return;
+              }
+
+              const price = Number(event.target.value).toFixed(4);
+              const margin = ((price / cost) * 100).toFixed(4);
               if (!isNaN(margin)) {
-                setMargin((margin - 100).toFixed(2));
+                setMargin((margin - 100).toFixed(4));
                 setSuggestedPrice(event.target.value);
               }
             }}
             type="number"
-            step=".01"
+            step=".0001"
             addonBefore="Precio S/"
           />
           <Input
@@ -541,8 +553,9 @@ export const AddProduct = (props) => {
           <Input
             value={cost}
             type="number"
-            step=".01"
+            step=".0001"
             onChange={(event) => {
+              console.log();
               if (margin === 100) {
                 setCost(event.target.value);
                 setSuggestedPrice(event.target.value);
@@ -550,7 +563,7 @@ export const AddProduct = (props) => {
               }
               const price = Number(event.target.value) / (1 - margin / 100);
               if (!isNaN(price)) {
-                setSuggestedPrice(price.toFixed(2));
+                setSuggestedPrice(price.toFixed(4));
                 setCost(event.target.value);
               }
             }}
@@ -558,12 +571,13 @@ export const AddProduct = (props) => {
           />
           <Input
             type="number"
-            step=".01"
+            step=".0001"
+            disabled={cost === 0}
             onChange={(event) => {
               // setMargin(event.target.value);
               // return;
-              const margin = Number(event.target.value).toFixed(2);
-              const price = (cost * (margin / 100 + 1)).toFixed(2);
+              const margin = Number(event.target.value).toFixed(4);
+              const price = (cost * (margin / 100 + 1)).toFixed(4);
               if (!isNaN(price)) {
                 setMargin(event.target.value);
                 setSuggestedPrice(price);
