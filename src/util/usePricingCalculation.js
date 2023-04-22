@@ -53,11 +53,16 @@ export const usePricingCalculation = ({
 
   const marginInputProps = {
     type: "number",
+    onBlur: (e) => {
+      const realMargin = (price / cost - 1) * 100;
+      setMargin(Number(realMargin).toFixed(2));
+    },
     onChange: (event) => {
       const margin = handleDecimalsOnValue(event.target.value);
-      const price = (cost * ((margin / 100) + 1)).toFixed(2);
+      const price = (cost * (margin / 100 + 1)).toFixed(2);
       if (!isNaN(price)) {
         setMargin(margin);
+        // setMargin(realMargin);
         setSuggestedPrice(price);
       }
     },

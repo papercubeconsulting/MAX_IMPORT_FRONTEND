@@ -538,9 +538,12 @@ export const AddProduct = (props) => {
             type="number"
             step=".01"
             disabled={cost === 0}
+            onBlur={(e) => {
+              const realMargin = ((suggestedPrice / cost) - 1) * 100;
+              setMargin(Number(realMargin).toFixed(2));
+            }}
             onChange={(event) => {
               const value = handleDecimalsOnValue(event.target.value);
-
               const margin = Number(value).toFixed(2);
               const price = (cost * (margin / 100 + 1)).toFixed(2);
               if (!isNaN(price)) {
