@@ -24,6 +24,7 @@ import {
 } from "../../../components";
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
 import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail";
+import { usePricingCalculation } from "../../../util/usePricingCalculation";
 
 export default () => {
   const stockByWarehouseColumns = [
@@ -75,7 +76,7 @@ export default () => {
   const [product, setProduct] = useState(null);
 
   // campos editables de producto
-  const [suggestedPrice, setSuggestedPrice] = useState("");
+  // const [suggestedPrice, setSuggestedPrice] = useState("");
   const [compatibility, setCompatibility] = useState("");
   const [tradename, setTradename] = useState("");
   //images
@@ -102,6 +103,17 @@ export default () => {
   const router = useRouter();
   const { productId } = router.query;
 
+  const {
+    costInputProps,
+    priceInputProps,
+    marginInputProps,
+    setCost,
+    setSuggestedPrice,
+    setMargin,
+    price: suggestedPrice,
+    cost,
+    margin,
+  } = usePricingCalculation({});
   // Product info getting
   const setImagesFromProduct = async (product) => {
     let _images = ["imageBase64", "secondImageBase64", "thirdImageBase64"]
@@ -122,22 +134,30 @@ export default () => {
     await getPreviews(_images);
   };
 
+  const fetchProduct = async () => {
+    try {
+      const _product = await getProduct(productId);
+      setProduct(_product);
+      setCost((_product.cost / 100).toFixed(2));
+      setMargin(parsedMargin(_product));
+      setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
+      setCompatibility(_product.compatibility);
+      setTradename(_product.tradename);
+      await setImagesFromProduct(_product);
+    } catch (error) {
+      console.log("error", error);
+      router.back();
+    }
+  };
   useMemo(() => {
-    const fetchProduct = async () => {
-      try {
-        const _product = await getProduct(productId);
-        setProduct(_product);
-        setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
-        setCompatibility(_product.compatibility);
-        setTradename(_product.tradename);
-        await setImagesFromProduct(_product);
-      } catch (error) {
-        router.back();
-      }
-    };
-
     productId && fetchProduct();
   }, [router]);
+
+  const parsedMargin = (_product) => {
+    return _product?.margin === 1
+      ? Number(0).toFixed(2)
+      : ((_product?.margin - 1) * 100).toFixed(2);
+  };
 
   const stockByType = (type) => {
     const stockByWarehouseTypeArray = get(product, "stockByWarehouseType", []);
@@ -187,7 +207,8 @@ export default () => {
       let imagesBodySection = await getImagesBody();
 
       body = {
-        suggestedPrice: parseFloat(suggestedPrice) * 100,
+        suggestedPrice: Math.round(parseFloat(suggestedPrice) * 100),
+        cost: Math.round(cost * 100),
         compatibility,
         tradename,
         ...imagesBodySection,
@@ -238,17 +259,22 @@ export default () => {
   // habilitar o deshabilitar botón de actualizar
   useEffect(() => {
     if (
-      (suggestedPrice === (product?.suggestedPrice / 100).toFixed(2) ||
-        suggestedPrice === "") &&
+      (Number(suggestedPrice).toFixed(2) ===
+        (product?.suggestedPrice / 100).toFixed(2) ||
+        Number(suggestedPrice).toFixed(0) === Number(0).toFixed(0)) &&
       (compatibility === product?.compatibility || compatibility === "") &&
       (tradename === product?.tradename || tradename === "") &&
-      imagesList.length === 0
+      imagesList.length === 0 &&
+      (Number(cost * 100).toFixed(2) === Number(product?.cost).toFixed(2) ||
+        cost === "") &&
+      (Number(margin).toFixed(2) === parsedMargin(product) ||
+        Number(margin).toFixed(0) === Number(0).toFixed(0))
     ) {
       setDisabled(true);
     } else {
       setDisabled(false);
     }
-  }, [suggestedPrice, compatibility, tradename, imagesList]);
+  }, [suggestedPrice, compatibility, tradename, imagesList, margin, cost]);
 
   return (
     <>
@@ -338,27 +364,71 @@ export default () => {
                 setTradename(e.target.value);
               }}
             />
-            <Input
-              addonBefore="Precio sugerido S/."
-              value={suggestedPrice}
-              onChange={(e) => {
-                setSuggestedPrice(e.target.value);
-              }}
-              onBlur={(e) => {
-                setSuggestedPrice(parseFloat(e.target.value || "0").toFixed(2));
-              }}
-            />
-            <Button
-              type="primary"
-              gridColumnStart="4"
-              onClick={updateProductFields}
-              disabled={disabled}
-            >
-              Actualizar
-            </Button>
           </Grid>
         </Grid>
+        <Grid
+          style={{ margin: "1rem 0" }}
+          gridTemplateColumns="repeat(3, 1fr)"
+          gridTemplateRows="repeat(1, 2rem)"
+          gridGap="1rem"
+        >
+          <Input
+            addonBefore="Costo"
+            value={cost}
+            {...costInputProps}
+            // onChange={(e) => {
+            //   setTradename(e.target.value);
+            // }}
+          />
+          <Input
+            addonBefore="Margen %"
+            value={margin}
+            {...marginInputProps}
+            // onChange={(e) => {
+            //   setTradename(e.target.value);
+            // }}
+          />
+          <Input
+            addonBefore="Precio sugerido S/."
+            value={suggestedPrice}
+            // onChange={(e) => {
+            //   setSuggestedPrice(e.target.value);
+            // }}
+            {...priceInputProps}
+            onBlur={(e) => {
+              setSuggestedPrice(parseFloat(e.target.value || "0").toFixed(2));
+            }}
+          />
+        </Grid>
       </Container>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          gap: "12px",
+        }}
+      >
+        <Button
+          style={{ width: "30%" }}
+          type="primary"
+          gridColumnStart="4"
+          onClick={updateProductFields}
+          disabled={disabled}
+        >
+          Actualizar
+        </Button>
+        <Button
+          style={{ width: "10%" }}
+          type="dashed"
+          gridColumnStart="4"
+          onClick={() => fetchProduct()}
+          // disabled={disabled}
+        >
+          Reset
+        </Button>
+      </div>
+
       <Container
         height="auto"
         flexDirection="column"
@@ -384,7 +454,12 @@ export default () => {
                 padding="0px"
                 flexDirection="row"
               >
-                <Container display="block" width="350px" height="250px" padding="0px">
+                <Container
+                  display="block"
+                  width="350px"
+                  height="250px"
+                  padding="0px"
+                >
                   <StyledCarousel>
                     {imagesPreview.map((file) => (
                       <CarouselImageContainer key={file.uid}>
