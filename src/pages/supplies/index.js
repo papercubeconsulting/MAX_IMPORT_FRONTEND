@@ -20,7 +20,7 @@ import { ModalProviders } from "../../components/supplies/ModalProviders";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
-
+  console.log('hjo')
   const columns = [
     {
       title: "Movimiento",
