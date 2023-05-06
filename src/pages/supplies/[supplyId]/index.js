@@ -71,7 +71,6 @@ export default ({ setPageTitle }) => {
   const [isModalCargaVisible, setIsModalCargaVisible] = useState(false);
   const [attendedProduct, setAttendedProduct] = useState(null);
   const [visibleAttendModal, setVisibleAttendModal] = useState(false);
-  console.log("hola");
   const router = useRouter();
   const { supplyId, operation } = router.query;
   const isNew = supplyId === "new";
@@ -82,8 +81,9 @@ export default ({ setPageTitle }) => {
 
   const sumQuantity = suppliedProducts?.reduce(
     (prev, curr) => {
-      const totalInitQuantity = prev.totalInitQuantity + curr.initQuantity;
-      const totalQuantity = prev.totalQuantity + curr.quantity;
+      const totalInitQuantity =
+        prev.totalInitQuantity + curr.initQuantity * curr.initBoxSize;
+      const totalQuantity = prev.totalQuantity + curr.quantity * curr.boxSize;
       return { totalQuantity, totalInitQuantity };
     },
     {
@@ -91,8 +91,6 @@ export default ({ setPageTitle }) => {
       totalQuantity: 0,
     }
   );
-
-  console.log("sumQuantity", sumQuantity);
 
   const columns = [
     {
@@ -146,7 +144,7 @@ export default ({ setPageTitle }) => {
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => {}}
+              onCancel={() => { }}
               okText="Si"
               cancelText="No"
             >
@@ -389,40 +387,60 @@ export default ({ setPageTitle }) => {
       width: "150px",
       align: "center",
       render: (boxSize, suppliedProduct) => (
-        <Input
-          key={suppliedProducts.length}
-          defaultValue={boxSize}
-          disabled={disabled}
-          min="1"
-          onKeyPress={(e) => {
-            if (e.key === "-" || (e.key === "0" && boxSize === 0)) {
-              e.preventDefault();
-            }
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "3px",
+            alignItems: "center",
           }}
-          onPaste={(e) => {
-            const value = parseFloat(e.clipboardData.getData("text"));
-            if (value <= 0) {
-              e.preventDefault();
-            }
-          }}
-          onChange={(event) => {
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
+        >
+          {suppliedProduct.boxSize !== suppliedProduct.initBoxSize && (
+            <Popover
+              content={() => (
+                <div>{`Valor Previo: ${suppliedProduct.initBoxSize}`}</div>
+              )}
+            >
+              <Badge color="magenta" />
+            </Popover>
+          )}
 
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  ...suppliedProduct,
-                  boxSize: parseFloat(event.nativeEvent.target.value || "0"),
-                },
-              ];
-            });
-            event.persist();
-          }}
-          type="number"
-        />
+          <Input
+            key={suppliedProducts.length}
+            defaultValue={boxSize}
+            disabled={disabled}
+            min="1"
+            onKeyPress={(e) => {
+              if (e.key === "-" || (e.key === "0" && boxSize === 0)) {
+                e.preventDefault();
+              }
+            }}
+            onPaste={(e) => {
+              const value = parseFloat(e.clipboardData.getData("text"));
+              if (value <= 0) {
+                e.preventDefault();
+              }
+            }}
+            onChange={(event) => {
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
+
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    ...suppliedProduct,
+                    boxSize: parseFloat(event.nativeEvent.target.value || "0"),
+                  },
+                ];
+              });
+              event.persist();
+            }}
+            type="number"
+          />
+        </div>
       ),
     },
   ];
@@ -501,6 +519,7 @@ export default ({ setPageTitle }) => {
         quantity: get(suppliedProduct, "quantity", null),
         boxSize: get(suppliedProduct, "boxSize", null),
         initQuantity: get(suppliedProduct, "initQuantity", null),
+        initBoxSize: get(suppliedProduct, "initBoxSize", null),
         product: get(suppliedProduct, "product", null),
       }))
     );
@@ -510,7 +529,7 @@ export default ({ setPageTitle }) => {
     if (supplyId) fetchSupply(supplyId);
   }, [supplyId, toggleUpdateTable]);
 
-  useEffect(() => {}, [suppliedProducts]);
+  useEffect(() => { }, [suppliedProducts]);
 
   useEffect(() => {
     const onUpdate = async () => {
@@ -722,9 +741,8 @@ export default ({ setPageTitle }) => {
                   ? "blue"
                   : "magenta"
               }
-            >{`Cant. Final Unid.: ${
-              isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
-            } `}</Tag>
+            >{`Cant. Final Unid.: ${isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
+              } `}</Tag>
           </div>
         </Grid>
       </Container>
