@@ -163,8 +163,6 @@ export default ({ setPageTitle }) => {
     const fetchProformas = async () => {
       try {
         const _proformas = await getProformas(queryParams);
-        /* console.log('proformas', _proformas); */
-        console.log(_proformas.page);
         setPagination({
           position: ["bottomCenter"],
           total: _proformas.pageSize * _proformas.pages,

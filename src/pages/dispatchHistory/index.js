@@ -184,7 +184,6 @@ export default ({ setPageTitle }) => {
           status: "COMPLETED",
           ...queryParams,
         });
-        console.log("despachos", _dispatches);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,

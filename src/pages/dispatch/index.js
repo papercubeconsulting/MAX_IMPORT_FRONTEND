@@ -163,7 +163,6 @@ export default ({ setPageTitle }) => {
           status: "OPEN",
           ...queryParams,
         });
-        console.log("disp", _dispatches.rows);
         setPagination({
           position: ["bottomCenter"],
           total: _dispatches.pageSize * _dispatches.pages,
@@ -173,7 +172,6 @@ export default ({ setPageTitle }) => {
           showQuickJumper: true,
         });
         setDispatches(_dispatches.rows);
-        console.log("despachos", _dispatches);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",

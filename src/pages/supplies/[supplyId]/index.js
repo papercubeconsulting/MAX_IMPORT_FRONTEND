@@ -10,6 +10,7 @@ import {
   Badge,
   Table,
   Popconfirm,
+  Timeline,
 } from "antd";
 import {
   faCalendarAlt,
@@ -35,7 +36,7 @@ import {
   userProvider,
 } from "../../../providers";
 import { clientDateFormat, serverDateFormat } from "../../../util";
-
+import { FileTextOutlined } from "@ant-design/icons";
 import { Attend } from "../../../components/supplies/[supplyId]";
 import {
   Button,
@@ -47,12 +48,15 @@ import {
   DatePicker,
 } from "../../../components";
 import { ModalCargaMasiva } from "../../../components/supplies/[supplyId]/ModalCargaMasiva";
+import { useLogsSupply } from "../../../util/hooks/useLogsSupply";
+import { FloatButton } from "../../../components/FloatButton";
+import { ModalLogs, TimeLineItem } from "../../../components/ModalLogs";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
   const [providers, setProviders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-
+  const [isVisibleLogs, setVisibleLogs] = useState(false);
   const [supply, setSupply] = useState(null);
   const [providerId, setProviderId] = useState(null);
   const [warehouseId, setWarehouseId] = useState(null);
@@ -104,7 +108,6 @@ export default ({ setPageTitle }) => {
             padding="0 0.5rem"
             background={"red"}
             onClick={() => {
-              console.log("suppliedProdc", suppliedProduct);
               setSelectedRow(suppliedProduct.dbId);
               if (disabled) {
                 setAttendedProduct(suppliedProduct);
@@ -675,7 +678,6 @@ export default ({ setPageTitle }) => {
   const deleteProduct = async (id) => {
     try {
       const response = await deleteSupplyProduct(supplyId, id);
-      console.log(id, "eliminado", response);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
         message: "Producto eliminado exitosamente ",
@@ -687,6 +689,12 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <FloatButton onClick={() => setVisibleLogs(!isVisibleLogs)} />
+      <ModalLogs
+        supplyId={supplyId}
+        visible={isVisibleLogs}
+        onCancel={() => setVisibleLogs(!isVisibleLogs)}
+      />
       <ModalCargaMasiva
         isVisible={isModalCargaVisible}
         closeModal={() => setIsModalCargaVisible(false)}

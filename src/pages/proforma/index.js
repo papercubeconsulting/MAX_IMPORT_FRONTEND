@@ -7,6 +7,7 @@ import {
   Icon,
   Select,
   ModalProduct,
+  AutoComplete,
 } from "../../components";
 import {
   getElements,
@@ -25,9 +26,17 @@ import {
   putProforma,
 } from "../../providers";
 import { get, orderBy } from "lodash";
-import { Input, Table, notification, Modal } from "antd";
+import {
+  Input,
+  Table,
+  notification,
+  Modal,
+  Divider,
+  AutoComplete as AutoCompleteAntd,
+} from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useProducts } from "../../util/hooks/useProducts";
 
 export default ({ setPageTitle }) => {
   const router = useRouter();
@@ -37,6 +46,10 @@ export default ({ setPageTitle }) => {
       ? `Edición de Proforma N° ${queryParams.id}`
       : "Nueva Proforma"
   );
+
+  /*This hooks are for handling the new autoselect property for codigo de invitarion in the modal*/
+  const { products, codes } = useProducts();
+  const [code, setCode] = useState(null);
 
   const columns = [
     {
@@ -256,9 +269,8 @@ export default ({ setPageTitle }) => {
   const [finalPrice, setFinalPrice] = useState(0);
 
   //Estado para modal Add Proforma
-  const [isModalAddProformaVisible, setIsModalAddProformaVisible] = useState(
-    false
-  );
+  const [isModalAddProformaVisible, setIsModalAddProformaVisible] =
+    useState(false);
 
   // Estados para pasar al pago
   const [salesActivated, setSalesActivated] = useState(false);
@@ -287,7 +299,7 @@ export default ({ setPageTitle }) => {
             setProvinceId(_proforma.client.provinceId);
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
-            setPaid((_proforma.efectivo / 100).toFixed(2))
+            setPaid((_proforma.efectivo / 100).toFixed(2));
             // setDue(_proforma.credit/100)
             setproformaProducts(
               _proforma.proformaProducts.map((proformaProduct) => {
@@ -429,10 +441,9 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     // setDue((finalPrice - paid).toFixed(2));
     // setPaid(finalPrice)
-    setDue((finalPrice - paid).toFixed(2))
+    setDue((finalPrice - paid).toFixed(2));
     // console.log('finalPrices',finalPrice)
   }, [finalPrice]);
-
 
   useEffect(() => {
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
@@ -452,14 +463,8 @@ export default ({ setPageTitle }) => {
     if (products.length === index) return mappedproformaProducts;
 
     const currentProduct = products[index];
-    const {
-      familyId,
-      subfamilyId,
-      elementId,
-      modelId,
-      boxSize,
-      quantity,
-    } = currentProduct;
+    const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
+      currentProduct;
 
     const productsResult = await getProducts({
       familyId,
@@ -554,7 +559,6 @@ export default ({ setPageTitle }) => {
         setProforma(_response);
       } else {
         //Guarda la proforma
-        console.log("a ver que se envia", proformaProducts);
         const _response = await postProforma({
           clientId,
           efectivo: paid,
@@ -568,7 +572,6 @@ export default ({ setPageTitle }) => {
             quantity: get(proformaProduct, "quantity", null),
           })),
         });
-        console.log("nueva proforma", _response);
         setProforma(_response);
         success(_response.id);
       }
@@ -596,6 +599,7 @@ export default ({ setPageTitle }) => {
     setElementId("");
     setModelId("");
     setProduct("");
+    setCode(null);
   };
 
   const onCreateClient = async () => {
@@ -628,40 +632,46 @@ export default ({ setPageTitle }) => {
       setClientId(response.id);
     } catch (error) {
       console.log(error);
-      if (error.message.includes('idNumber')) {
+      if (error.message.includes("idNumber")) {
         notification.error({
-          message: 'Debe ingresar un número de DNI o RUC valido. '
+          message: "Debe ingresar un número de DNI o RUC valido. ",
         });
         notification.info({
-          message: 'Se considera un cliente con RUC, si el campo "Apellidos" se encuentra vacia'
+          message:
+            'Se considera un cliente con RUC, si el campo "Apellidos" se encuentra vacia',
         });
         return;
       }
 
-      if (error.message.includes('email')) {
+      if (error.message.includes("email")) {
         notification.error({
-          message: 'Ingresar un email valido'
+          message: "Ingresar un email valido",
         });
         return;
       }
 
-      if (error.message.includes('phoneNumber')) {
+      if (error.message.includes("phoneNumber")) {
         notification.error({
-          message: 'Ingresar un numero de telefono valido'
+          message: "Ingresar un numero de telefono valido",
         });
         return;
       }
 
-      if (error.message.includes('address')) {
+      if (error.message.includes("address")) {
         notification.error({
-          message: 'Ingresar una direccion valida'
+          message: "Ingresar una direccion valida",
         });
         return;
       }
 
-      if (error.message.includes('regionId') || error.message.includes('provinceId') || error.message.includes('districtId')) {
+      if (
+        error.message.includes("regionId") ||
+        error.message.includes("provinceId") ||
+        error.message.includes("districtId")
+      ) {
         notification.error({
-          message: 'Informacion pendiente por completar (Departamento , Provicincia o Distrito)'
+          message:
+            "Informacion pendiente por completar (Departamento , Provicincia o Distrito)",
         });
         return;
       }
@@ -669,7 +679,6 @@ export default ({ setPageTitle }) => {
       notification.error({
         message: error.message,
       });
-
     }
   };
 
@@ -723,6 +732,22 @@ export default ({ setPageTitle }) => {
     }
   };
 
+
+  React.useEffect(() => {
+    /*This effect is for keeping track inf the changes the other options after you search bu cod invetario*/
+
+    if (
+      product.modelId !== modelId ||
+      product.familyId !== familyId ||
+      product.subfamilyId !== subFamilyId
+    ) {
+      /* Means that the user has seleceted one of the dropdown list */
+
+      // reset code
+      setCode(null);
+    }
+  }, [subFamilyId, modelId, elementId, familyId]);
+
   return (
     <>
       <Modal
@@ -746,6 +771,7 @@ export default ({ setPageTitle }) => {
           <Button
             key="submit"
             type="primary"
+            disabled={product === "" || product.modelId === null}
             onClick={() => {
               setproformaProducts((prevState) => {
                 return [
@@ -799,22 +825,103 @@ export default ({ setPageTitle }) => {
             value={modelId}
             label="Modelo"
             onChange={async (value) => {
+              /*Cause in this part we're setting the proudct, if in the secion "Buscar por codigo" has some value
+              /* we need to clean setCode(null)
+              */
               setModelId(value);
               const _product = await getProduct(value, { noStock: true });
+              setCode(null);
               setProduct(_product);
-              console.log("product", _product);
             }}
             options={selectOptions(
               models.filter((model) => model.elementId === elementId)
             )}
           />
-          <Input addonBefore="Cód. Inventario" value={product.code} disabled />
+          {/* <Input addonBefore="Cód. Inventario" value={product.code} disabled /> */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span
+              className="ant-input-group-addon"
+              style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+            >
+              Cód. Inventario
+            </span>
+            <AutoCompleteAntd
+              onFocus={() => resetDataModal()}
+              placeholder="Codigo Inventario"
+              style={{ width: "300px" }}
+              color={"white"}
+              colorFont={"#5F5F7F"}
+              value={code}
+              onSelect={(value, option) => {
+                setCode(value);
+                setProduct(option.product);
+                setFamilyId(option.product.familyId);
+                setElementId(option.product.elementId);
+                setModelId(option.product.modelId);
+                setSubFamilyId(option.product.subfamilyId);
+              }}
+              onSearch={(value, option) => {
+                // console.log({
+                //   value,
+                //   product: option?.product,
+                //   type: "onSearch",
+                // });
+                setCode(value);
+              }}
+              options={products.map((product, index) => ({
+                value: product.code,
+                label: product.code,
+                product,
+              }))}
+              filterOption={(input, option) => {
+                return option.value.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </div>
+
           <Input
             addonBefore="Nombre comercial"
             value={product.tradename}
             disabled
           />
         </Grid>
+        {/* <Divider>Buscar por codigo</Divider> */}
+        {/* <div style={{ display: "flex", alignItems: "center" }}> */}
+        {/*   <span */}
+        {/*     className="ant-input-group-addon" */}
+        {/*     style={{ width: "auto", height: "2rem", lineHeight: "2rem" }} */}
+        {/*   > */}
+        {/*     Cód. Inventario */}
+        {/*   </span> */}
+        {/*   <AutoCompleteAntd */}
+        {/*     onFocus={() => resetDataModal()} */}
+        {/*     placeholder="Codigo Inventario" */}
+        {/*     style={{ width: "300px" }} */}
+        {/*     color={"white"} */}
+        {/*     colorFont={"#5F5F7F"} */}
+        {/*     value={code} */}
+        {/*     onSelect={(value, option) => { */}
+        {/*       setCode(value); */}
+        {/*       setProduct(option.product); */}
+        {/*     }} */}
+        {/*     onSearch={(value, option) => { */}
+        {/*       // console.log({ */}
+        {/*       //   value, */}
+        {/*       //   product: option?.product, */}
+        {/*       //   type: "onSearch", */}
+        {/*       // }); */}
+        {/*       setCode(value); */}
+        {/*     }} */}
+        {/*     options={products.map((product, index) => ({ */}
+        {/*       value: product.code, */}
+        {/*       label: product.code, */}
+        {/*       product, */}
+        {/*     }))} */}
+        {/*     filterOption={(input, option) => { */}
+        {/*       return option.value.toLowerCase().includes(input.toLowerCase()); */}
+        {/*     }} */}
+        {/*   /> */}
+        {/* </div> */}
       </Modal>
       <Modal
         visible={isVisible}
@@ -997,7 +1104,14 @@ export default ({ setPageTitle }) => {
                   );
                 }}
                 onBlur={(event) => {
-                  if (Math.abs(event.target.value) + Math.abs(due) > Math.abs(finalPrice)){ setPaid(finalPrice); setDue('0'); return}
+                  if (
+                    Math.abs(event.target.value) + Math.abs(due) >
+                    Math.abs(finalPrice)
+                  ) {
+                    setPaid(finalPrice);
+                    setDue("0");
+                    return;
+                  }
                   setPaid(parseFloat(event.target.value || "0").toFixed(2));
                   //TODO: Credit no puede ser negativo
                   setDue(
@@ -1075,17 +1189,14 @@ export default ({ setPageTitle }) => {
               type="number"
               min={0}
               onChange={(event) => {
-                console.log('onchange')
+                console.log("onchange");
                 setDiscount(event.target.value);
                 setDiscountPercentage(
                   // (
                   //   (parseFloat(event.target.value || "0") * 100) /
                   //   totalPrice
                   // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value || "0") * 100) /
-                    totalPrice
-                  )
+                  (parseFloat(event.target.value || "0") * 100) / totalPrice
                 );
               }}
             // onBlur={(event) => {
@@ -1111,10 +1222,7 @@ export default ({ setPageTitle }) => {
                   //   (parseFloat(event.target.value || "0") * totalPrice) /
                   //   100
                   // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value || "0") * totalPrice) /
-                    100
-                  )
+                  (parseFloat(event.target.value || "0") * totalPrice) / 100
                 );
                 setDiscountPercentage(event.target.value);
               }}
