@@ -608,8 +608,6 @@ export default ({ setPageTitle }) => {
         warehouseId,
         code,
         arrivalDate,
-        initQuantity: suppliedProducts.initQuantity,
-        initBoxSize: suppliedProducts.initBoxSize,
       };
 
       if (isEdit) {
