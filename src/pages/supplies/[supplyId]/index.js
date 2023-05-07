@@ -147,7 +147,7 @@ export default ({ setPageTitle }) => {
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => {}}
+              onCancel={() => { }}
               okText="Si"
               cancelText="No"
             >
@@ -532,7 +532,7 @@ export default ({ setPageTitle }) => {
     if (supplyId) fetchSupply(supplyId);
   }, [supplyId, toggleUpdateTable]);
 
-  useEffect(() => {}, [suppliedProducts]);
+  useEffect(() => { }, [suppliedProducts]);
 
   useEffect(() => {
     const onUpdate = async () => {
@@ -599,13 +599,15 @@ export default ({ setPageTitle }) => {
       );
 
       const body = {
-        suppliedProducts: mappedSuppliedProducts,
+        suppliedProducts: {
+          ...mappedSuppliedProducts,
+          initQuantity: suppliedProducts.initQuantity,
+          initBoxSize: suppliedProducts.initBoxSize,
+        },
         providerId,
         warehouseId,
         code,
         arrivalDate,
-        initQuantity: suppliedProducts.initQuantity,
-        initBoxSize: suppliedProducts.initBoxSize,
       };
 
       if (isEdit) {
@@ -753,9 +755,8 @@ export default ({ setPageTitle }) => {
               }
             >{`Cant. Final Unid.: ${
               isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
-            } `}</Tag>
-          </div>
-        </Grid>
+            } `}</Tag>v>
+              id>
       </Container>
       <Table
         columns={columns}
