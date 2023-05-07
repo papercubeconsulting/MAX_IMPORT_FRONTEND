@@ -595,7 +595,10 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSupply(true);
       const mappedSuppliedProducts = await mapSuppliedProducts(
-        suppliedProducts
+        suppliedProducts,
+        0,
+        [],
+        isEdit
       );
 
       const body = {
@@ -611,15 +614,7 @@ export default ({ setPageTitle }) => {
       };
 
       if (isEdit) {
-        const { suppliedProducts, ...rest } = body;
-        await putSupply(supplyId, {
-          ...rest,
-          suppliedProducts: {
-            ...suppliedProducts,
-            initQuantity: suppliedProducts.initQuantity,
-            initBoxSize: suppliedProducts.initBoxSize,
-          },
-        });
+        await putSupply(supplyId, body);
       } else {
         await postSupply(body);
       }
@@ -645,13 +640,22 @@ export default ({ setPageTitle }) => {
   const mapSuppliedProducts = async (
     products,
     index = 0,
-    mappedSuppliedProducts = []
+    mappedSuppliedProducts = [],
+    isEdit = false
   ) => {
     if (products.length === index) return mappedSuppliedProducts;
 
     const currentProduct = products[index];
-    const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
-      currentProduct;
+    const {
+      familyId,
+      subfamilyId,
+      elementId,
+      modelId,
+      boxSize,
+      quantity,
+      initQuantity,
+      initBoxSize,
+    } = currentProduct;
 
     const productsResult = await getProducts({
       familyId,
@@ -660,14 +664,20 @@ export default ({ setPageTitle }) => {
       modelId,
     });
 
-    return mapSuppliedProducts(products, index + 1, [
-      ...mappedSuppliedProducts,
-      {
-        productId: productsResult.rows[0].id,
-        boxSize,
-        quantity,
-      },
-    ]);
+    return mapSuppliedProducts(
+      products,
+      index + 1,
+      [
+        ...mappedSuppliedProducts,
+        {
+          productId: productsResult.rows[0].id,
+          boxSize,
+          quantity,
+          ...(isEdit ? { initQuantity, initBoxSize } : {}),
+        },
+      ],
+      isEdit
+    );
   };
 
   const finishAttend = async () => {
