@@ -732,24 +732,21 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  // const [_options, setOptions] = useState();
-  // const onSearch = (val) => {
-  //   let filtered = dataSource.filter(
-  //     (obj) => obj.key !== 0 && obj.value.toString().toLowerCase().includes(val)
-  //   );
-  //   setOptions(filtered);
-  // };
 
-  // console.log({ proformaProducts });
-  // console.log({ products });
+  React.useEffect(() => {
+    /*This effect is for keeping track inf the changes the other options after you search bu cod invetario*/
 
-  // const codeProducts = products?.map((product) => ({
-  //   value: product.code,
-  //   label: product.code,
-  // }));
+    if (
+      product.modelId !== modelId ||
+      product.familyId !== familyId ||
+      product.subfamilyId !== subFamilyId
+    ) {
+      /* Means that the user has seleceted one of the dropdown list */
 
-  // console.log({codeProducts})
-  console.log({ product });
+      // reset code
+      setCode(null);
+    }
+  }, [subFamilyId, modelId, elementId, familyId]);
 
   return (
     <>
@@ -840,50 +837,91 @@ export default ({ setPageTitle }) => {
               models.filter((model) => model.elementId === elementId)
             )}
           />
-          <Input addonBefore="Cód. Inventario" value={product.code} disabled />
+          {/* <Input addonBefore="Cód. Inventario" value={product.code} disabled /> */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span
+              className="ant-input-group-addon"
+              style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+            >
+              Cód. Inventario
+            </span>
+            <AutoCompleteAntd
+              onFocus={() => resetDataModal()}
+              placeholder="Codigo Inventario"
+              style={{ width: "300px" }}
+              color={"white"}
+              colorFont={"#5F5F7F"}
+              value={code}
+              onSelect={(value, option) => {
+                setCode(value);
+                setProduct(option.product);
+                setFamilyId(option.product.familyId);
+                setElementId(option.product.elementId);
+                setModelId(option.product.modelId);
+                setSubFamilyId(option.product.subfamilyId);
+              }}
+              onSearch={(value, option) => {
+                // console.log({
+                //   value,
+                //   product: option?.product,
+                //   type: "onSearch",
+                // });
+                setCode(value);
+              }}
+              options={products.map((product, index) => ({
+                value: product.code,
+                label: product.code,
+                product,
+              }))}
+              filterOption={(input, option) => {
+                return option.value.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </div>
+
           <Input
             addonBefore="Nombre comercial"
             value={product.tradename}
             disabled
           />
         </Grid>
-        <Divider>Buscar por codigo</Divider>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <span
-            className="ant-input-group-addon"
-            style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
-          >
-            Cód. Inventario
-          </span>
-          <AutoCompleteAntd
-            onFocus={() => resetDataModal()}
-            placeholder="Codigo Inventario"
-            style={{ width: "300px" }}
-            color={"white"}
-            colorFont={"#5F5F7F"}
-            value={code}
-            onSelect={(value, option) => {
-              setCode(value);
-              setProduct(option.product);
-            }}
-            onSearch={(value, option) => {
-              // console.log({
-              //   value,
-              //   product: option?.product,
-              //   type: "onSearch",
-              // });
-              setCode(value);
-            }}
-            options={products.map((product, index) => ({
-              value: product.code,
-              label: product.code,
-              product,
-            }))}
-            filterOption={(input, option) => {
-              return option.value.toLowerCase().includes(input.toLowerCase());
-            }}
-          />
-        </div>
+        {/* <Divider>Buscar por codigo</Divider> */}
+        {/* <div style={{ display: "flex", alignItems: "center" }}> */}
+        {/*   <span */}
+        {/*     className="ant-input-group-addon" */}
+        {/*     style={{ width: "auto", height: "2rem", lineHeight: "2rem" }} */}
+        {/*   > */}
+        {/*     Cód. Inventario */}
+        {/*   </span> */}
+        {/*   <AutoCompleteAntd */}
+        {/*     onFocus={() => resetDataModal()} */}
+        {/*     placeholder="Codigo Inventario" */}
+        {/*     style={{ width: "300px" }} */}
+        {/*     color={"white"} */}
+        {/*     colorFont={"#5F5F7F"} */}
+        {/*     value={code} */}
+        {/*     onSelect={(value, option) => { */}
+        {/*       setCode(value); */}
+        {/*       setProduct(option.product); */}
+        {/*     }} */}
+        {/*     onSearch={(value, option) => { */}
+        {/*       // console.log({ */}
+        {/*       //   value, */}
+        {/*       //   product: option?.product, */}
+        {/*       //   type: "onSearch", */}
+        {/*       // }); */}
+        {/*       setCode(value); */}
+        {/*     }} */}
+        {/*     options={products.map((product, index) => ({ */}
+        {/*       value: product.code, */}
+        {/*       label: product.code, */}
+        {/*       product, */}
+        {/*     }))} */}
+        {/*     filterOption={(input, option) => { */}
+        {/*       return option.value.toLowerCase().includes(input.toLowerCase()); */}
+        {/*     }} */}
+        {/*   /> */}
+        {/* </div> */}
       </Modal>
       <Modal
         visible={isVisible}
