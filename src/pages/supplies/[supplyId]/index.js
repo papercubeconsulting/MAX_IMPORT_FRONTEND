@@ -147,7 +147,7 @@ export default ({ setPageTitle }) => {
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => { }}
+              onCancel={() => {}}
               okText="Si"
               cancelText="No"
             >
@@ -532,7 +532,7 @@ export default ({ setPageTitle }) => {
     if (supplyId) fetchSupply(supplyId);
   }, [supplyId, toggleUpdateTable]);
 
-  useEffect(() => { }, [suppliedProducts]);
+  useEffect(() => {}, [suppliedProducts]);
 
   useEffect(() => {
     const onUpdate = async () => {
@@ -604,6 +604,8 @@ export default ({ setPageTitle }) => {
         warehouseId,
         code,
         arrivalDate,
+        initQuantity: suppliedProducts.initQuantity,
+        initBoxSize: suppliedProducts.initBoxSize,
       };
 
       if (isEdit) {
@@ -749,8 +751,9 @@ export default ({ setPageTitle }) => {
                   ? "blue"
                   : "magenta"
               }
-            >{`Cant. Final Unid.: ${isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
-              } `}</Tag>
+            >{`Cant. Final Unid.: ${
+              isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
+            } `}</Tag>
           </div>
         </Grid>
       </Container>
