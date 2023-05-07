@@ -608,10 +608,20 @@ export default ({ setPageTitle }) => {
         warehouseId,
         code,
         arrivalDate,
+        initQuantity: suppliedProducts.initQuantity,
+        initBoxSize: suppliedProducts.initBoxSize,
       };
 
       if (isEdit) {
-        await putSupply(supplyId, body);
+        const { suppliedProducts, ...rest } = body;
+        await putSupply(supplyId, {
+          ...rest,
+          suppliedProducts: {
+            ...suppliedProducts,
+            initQuantity: suppliedProducts.initQuantity,
+            initBoxSize: suppliedProducts.initBoxSize,
+          },
+        });
       } else {
         await postSupply(body);
       }
@@ -753,10 +763,10 @@ export default ({ setPageTitle }) => {
                   ? "blue"
                   : "magenta"
               }
-            >{`Cant. Final Unid.: ${
-              isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
-            } `}</Tag>v>
-              id>
+            >{`Cant. Final Unid.: ${isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
+              } `}</Tag>
+          </div>
+        </Grid>
       </Container>
       <Table
         columns={columns}
