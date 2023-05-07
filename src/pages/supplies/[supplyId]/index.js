@@ -81,13 +81,23 @@ export default ({ setPageTitle }) => {
   const isAttend = operation === "attend";
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
-  // console.log("suplied", suppliedProducts)
-
   const sumQuantity = suppliedProducts?.reduce(
     (prev, curr) => {
-      const totalInitQuantity =
-        prev.totalInitQuantity + curr.initQuantity * curr.initBoxSize;
       const totalQuantity = prev.totalQuantity + curr.quantity * curr.boxSize;
+
+      let totalInitQuantity;
+
+      /*if the product has bot initQuantity and initBoxSize consider thtat to the total*/
+
+      if (curr.initQuantity >= 0 && curr.initBoxSize >= 0) {
+        totalInitQuantity =
+          prev.totalInitQuantity + curr.initQuantity * curr.initBoxSize;
+      } else {
+        totalInitQuantity = totalQuantity;
+      }
+
+      console.log({ totalQuantity, totalInitQuantity });
+
       return { totalQuantity, totalInitQuantity };
     },
     {
@@ -143,7 +153,7 @@ export default ({ setPageTitle }) => {
               icon={disabled ? faPrint : faTrash}
             />
           </Button>
-          {!isNew && (
+          {!isNew && isAttend && (
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
@@ -602,11 +612,7 @@ export default ({ setPageTitle }) => {
       );
 
       const body = {
-        suppliedProducts: {
-          ...mappedSuppliedProducts,
-          initQuantity: suppliedProducts.initQuantity,
-          initBoxSize: suppliedProducts.initBoxSize,
-        },
+        suppliedProducts: mappedSuppliedProducts,
         providerId,
         warehouseId,
         code,
@@ -764,7 +770,10 @@ export default ({ setPageTitle }) => {
           <div
             style={{ display: "flex", flexDirection: "column", gap: "12px" }}
           >
-            <Tag color="blue">{`Cant. Inicial Unid.: ${sumQuantity.totalInitQuantity} `}</Tag>
+            <Tag color="blue">{`Cant. Inicial Unid.: ${isNaN(sumQuantity.totalInitQuantity)
+                ? "-"
+                : sumQuantity.totalInitQuantity
+              }`}</Tag>
             <Tag
               color={
                 sumQuantity.totalInitQuantity === sumQuantity.totalQuantity
