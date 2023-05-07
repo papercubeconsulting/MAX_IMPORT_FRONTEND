@@ -104,7 +104,6 @@ export default ({ setPageTitle }) => {
             padding="0 0.5rem"
             background={"red"}
             onClick={() => {
-              console.log("suppliedProdc", suppliedProduct);
               setSelectedRow(suppliedProduct.dbId);
               if (disabled) {
                 setAttendedProduct(suppliedProduct);
@@ -675,7 +674,6 @@ export default ({ setPageTitle }) => {
   const deleteProduct = async (id) => {
     try {
       const response = await deleteSupplyProduct(supplyId, id);
-      console.log(id, "eliminado", response);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
         message: "Producto eliminado exitosamente ",
