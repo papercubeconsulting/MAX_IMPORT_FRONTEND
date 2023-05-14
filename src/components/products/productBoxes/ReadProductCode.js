@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Input, Modal, Alert, notification, Table } from 'antd';
+import { Input, Modal, Alert, notification, Table, Popover } from 'antd';
 import styled from 'styled-components';
 import Quagga from 'quagga';
 import { get } from 'lodash';
 import { faTrash, faPeopleCarry } from '@fortawesome/free-solid-svg-icons';
-
+import { InboxOutlined, NumberOutlined } from '@ant-design/icons';
 import {
   getProductBox,
   getWarehouses,
@@ -42,8 +42,10 @@ export const ReadProductCode = (props) => {
   const [newWarehouse, setNewWarehouse] = useState({});
   const [modalConfirm, setModalConfirm] = useState(false);
   const [isScanned, setIsScanned] = useState(false)
-  const [isLoading,setLoading] = useState(false)
-
+  const [isLoading, setLoading] = useState(false)
+  const [indicadores, setIndicadores] = useState({
+    'cajas': 0, 'unidades': 0, 'items': []
+  })
   const [windowHeight, setWindowHeight] = useState(0);
 
   useEffect(() => {
@@ -58,6 +60,26 @@ export const ReadProductCode = (props) => {
     };
     fetchWarehouses();
   }, []);
+
+
+  /* Setting up indicadores for modal*/
+  useEffect(() => {
+    if (dataCodes.length >= 0) {
+      const indicadores = dataCodes.reduce((prev, curr, index) => {
+
+        const _uniqueCode = [...prev.uniqueCode];
+
+        if (!_uniqueCode.includes(curr.product.code)) {
+          _uniqueCode.push(curr.product.code)
+        }
+        if (curr?.boxSize) {
+          return { ...prev, boxSize: prev.boxSize + curr.boxSize, uniqueCode: _uniqueCode }
+        }
+
+      }, { boxSize: 0, uniqueCode: [] })
+      setIndicadores({ cajas: dataCodes.length, unidades: indicadores.boxSize, items: indicadores.uniqueCode })
+    }
+  }, [dataCodes.length])
 
   const columns = [
     {
@@ -243,7 +265,7 @@ export const ReadProductCode = (props) => {
       previousWarehouseId: elem.warehouseId,
     }));
     try {
-      setLoading(true) 
+      setLoading(true)
       const response = await putProductBoxes({ boxes: data });
       notification.success({
         message: 'Las cajas han sido movidas correctamente',
@@ -261,6 +283,24 @@ export const ReadProductCode = (props) => {
       });
     }
   };
+
+  const indicadoresTitle = () => {
+    return (<div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+      <div>
+        Escanear o ingresar código de caja
+      </div>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <span><InboxOutlined /> {`Cajas ${indicadores.cajas}`}</span>
+        <span><NumberOutlined /> {`Unidades ${indicadores.unidades}`} </span>
+        <span>
+          {/* <Popover placement="bottom" content={(indicadores.items.length > 0 && <div>{indicadores.items.map((item) => <div>{item}</div>)}</div>)}> */}
+          <Popover placement="bottom" content={<div>{indicadores.items.length > 0 ? indicadores.items.map((item) => <p>{item}</p>) : "No items"}</div>}>
+            <InboxOutlined /> {`Items ${indicadores.items.length}`}
+          </Popover>
+        </span>
+      </div>
+    </div>)
+  }
 
   return (
     <>
@@ -291,7 +331,7 @@ export const ReadProductCode = (props) => {
             }}
             options={selectOptions(warehouses)}
           />
-          {isLoading && <div style={{marginTop:'12px'}}><Alert message="Procesando informacion ....." type="info" showIcon /></div>}
+          {isLoading && <div style={{ marginTop: '12px' }}><Alert message="Procesando informacion ....." type="info" showIcon /></div>}
         </>
       </Modal>
       <Modal
@@ -308,7 +348,9 @@ export const ReadProductCode = (props) => {
           stopWebcam();
         }}
         width="90%"
-        title="Escanear o ingresar código de caja"
+        // title="Escanear o ingresar código de caja"
+        // title={<div>hola</div>}
+        title={indicadoresTitle()}
       >
         <Form gridGap="2rem" marginBottom="1rem">
           <Container padding="0rem">
@@ -316,7 +358,7 @@ export const ReadProductCode = (props) => {
               justify="center"
               value={productBoxCode}
               //onChange={(event) => { setProductBoxCode(event.target.value) }}
-              onChange={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } else {setProductBoxCode(event.target.value)} }}
+              onChange={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } else { setProductBoxCode(event.target.value) } }}
               addonBefore="Código de caja"
             // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
             />
