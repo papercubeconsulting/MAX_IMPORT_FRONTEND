@@ -204,7 +204,7 @@ export default ({ setPageTitle }) => {
       formData.append("csv", file);
       const token = await getToken();
       try {
-        const fetched = await fetch(buildUrl("products/csvUpload"), {
+        const fetched = await fetch(buildUrl("supplies/csvUpload"), {
           method: "POST",
           body: formData,
           headers: {
