@@ -81,6 +81,7 @@ export default ({ setPageTitle }) => {
   const isAttend = operation === "attend";
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
+
   const sumQuantity = suppliedProducts?.reduce(
     (prev, curr) => {
       const totalQuantity = prev.totalQuantity + curr.quantity * curr.boxSize;
@@ -155,7 +156,7 @@ export default ({ setPageTitle }) => {
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => { }}
+              onCancel={() => {}}
               okText="Si"
               cancelText="No"
             >
@@ -540,7 +541,7 @@ export default ({ setPageTitle }) => {
     if (supplyId) fetchSupply(supplyId);
   }, [supplyId, toggleUpdateTable]);
 
-  useEffect(() => { }, [suppliedProducts]);
+  useEffect(() => {}, [suppliedProducts]);
 
   useEffect(() => {
     const onUpdate = async () => {
@@ -559,7 +560,9 @@ export default ({ setPageTitle }) => {
           product: get(suppliedProduct, "product", null),
         })
       );
-      setSuppliedProducts({ ...suppliedProducts });
+      // setSuppliedProducts({ ...suppliedProducts });
+      // fix: 
+      setSuppliedProducts(suppliedProducts);
       setAttendedProduct(suppliedProducts.find((e) => e.dbId === selectedRow));
     };
 
@@ -768,18 +771,20 @@ export default ({ setPageTitle }) => {
           <div
             style={{ display: "flex", flexDirection: "column", gap: "12px" }}
           >
-            <Tag color="blue">{`Cant. Inicial Unid.: ${isNaN(sumQuantity.totalInitQuantity)
+            <Tag color="blue">{`Cant. Inicial Unid.: ${
+              isNaN(sumQuantity.totalInitQuantity)
                 ? "-"
                 : sumQuantity.totalInitQuantity
-              }`}</Tag>
+            }`}</Tag>
             <Tag
               color={
                 sumQuantity.totalInitQuantity === sumQuantity.totalQuantity
                   ? "blue"
                   : "magenta"
               }
-            >{`Cant. Final Unid.: ${isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
-              } `}</Tag>
+            >{`Cant. Final Unid.: ${
+              isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
+            } `}</Tag>
           </div>
         </Grid>
       </Container>
