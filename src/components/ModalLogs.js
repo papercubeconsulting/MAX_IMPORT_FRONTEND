@@ -23,7 +23,6 @@ export const ModalLogs = (props) => {
   const sortedLogs =
     logs && logs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  // console.log(sortedLogs.length);
   return (
     <Modal
       centered
@@ -45,8 +44,8 @@ export const ModalLogs = (props) => {
         // style={{ width: "100%", display: "flex", justifyContent: "center" }}
         // mode="left"
         >
-          {sortedLogs.map((log) => {
-            return <TimeLineItem log={log} />;
+          {sortedLogs.map((log, index) => {
+            return <TimeLineItem key={index} log={log} />;
           })}
         </Timeline>
       ) : !isLoading ? (
@@ -74,7 +73,7 @@ export const TimeLineItem = (props) => {
         {/* </Text> */}
         <span style={{ margin: "2px 0px" }}>
           <UserOutlined style={{ fontSize: "16px", fontWeight: 600 }} />
-          <Text>{`   ${user.name} ${user.lastname || ""}`}</Text>
+          <Text>{user ? `${user.name || ""} ${user.lastname || ""}` : ""}</Text>
         </span>
         <Text strong>{log}</Text>
         <Text keyboard style={{ marginLeft: 0 }}>

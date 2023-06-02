@@ -96,8 +96,6 @@ export default ({ setPageTitle }) => {
         totalInitQuantity = totalQuantity;
       }
 
-      console.log({ totalQuantity, totalInitQuantity });
-
       return { totalQuantity, totalInitQuantity };
     },
     {
