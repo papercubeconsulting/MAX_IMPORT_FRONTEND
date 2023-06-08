@@ -44,7 +44,7 @@ export const Attend = (props) => {
   }, [boxesText]);
 
   const [pruebaUrl, setPruebaUrl] = useState("");
-  console.log('')
+
   const onSubmit = async () => {
     try {
       /* setLoadingAttend(true); */

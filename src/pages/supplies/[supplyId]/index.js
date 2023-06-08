@@ -2,7 +2,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { get, orderBy } from "lodash";
-import { Input, notification, Table, Popconfirm } from "antd";
+import {
+  Input,
+  Tag,
+  Popover,
+  notification,
+  Badge,
+  Table,
+  Popconfirm,
+  Timeline,
+} from "antd";
 import {
   faCalendarAlt,
   faPlus,
@@ -27,7 +36,7 @@ import {
   userProvider,
 } from "../../../providers";
 import { clientDateFormat, serverDateFormat } from "../../../util";
-
+import { FileTextOutlined } from "@ant-design/icons";
 import { Attend } from "../../../components/supplies/[supplyId]";
 import {
   Button,
@@ -38,12 +47,16 @@ import {
   AutoComplete,
   DatePicker,
 } from "../../../components";
+import { ModalCargaMasiva } from "../../../components/supplies/[supplyId]/ModalCargaMasiva";
+import { useLogsSupply } from "../../../util/hooks/useLogsSupply";
+import { FloatButton } from "../../../components/FloatButton";
+import { ModalLogs, TimeLineItem } from "../../../components/ModalLogs";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
   const [providers, setProviders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-
+  const [isVisibleLogs, setVisibleLogs] = useState(false);
   const [supply, setSupply] = useState(null);
   const [providerId, setProviderId] = useState(null);
   const [warehouseId, setWarehouseId] = useState(null);
@@ -52,24 +65,45 @@ export default ({ setPageTitle }) => {
   const [suppliedProducts, setSuppliedProducts] = useState([]);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
   const [me, setMe] = useState({ name: null });
-  const [selectedRow, setSelectedRow] = useState(null)
+  const [selectedRow, setSelectedRow] = useState(null);
   const [families, setFamilies] = useState([]);
   const [subfamilies, setSubfamilies] = useState([]);
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
-  const [onUpdateBoxes, setUpdateBoxes] = useState(false)
+  const [onUpdateBoxes, setUpdateBoxes] = useState(false);
   const [loadingSupply, setLoadingSupply] = useState(false);
-
+  const [isModalCargaVisible, setIsModalCargaVisible] = useState(false);
   const [attendedProduct, setAttendedProduct] = useState(null);
   const [visibleAttendModal, setVisibleAttendModal] = useState(false);
-
   const router = useRouter();
   const { supplyId, operation } = router.query;
   const isNew = supplyId === "new";
   const isAttend = operation === "attend";
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
-  // console.log("suplied", suppliedProducts)
+
+  const sumQuantity = suppliedProducts?.reduce(
+    (prev, curr) => {
+      const totalQuantity = prev.totalQuantity + curr.quantity * curr.boxSize;
+
+      let totalInitQuantity;
+
+      /*if the product has bot initQuantity and initBoxSize consider thtat to the total*/
+
+      if (curr.initQuantity >= 0 && curr.initBoxSize >= 0) {
+        totalInitQuantity =
+          prev.totalInitQuantity + curr.initQuantity * curr.initBoxSize;
+      } else {
+        totalInitQuantity = totalQuantity;
+      }
+
+      return { totalQuantity, totalInitQuantity };
+    },
+    {
+      totalInitQuantity: 0,
+      totalQuantity: 0,
+    }
+  );
 
   const columns = [
     {
@@ -81,10 +115,9 @@ export default ({ setPageTitle }) => {
         <>
           <Button
             padding="0 0.5rem"
-            background={'red'}
+            background={"red"}
             onClick={() => {
-              console.log('suppliedProdc', suppliedProduct)
-              setSelectedRow(suppliedProduct.dbId)
+              setSelectedRow(suppliedProduct.dbId);
               if (disabled) {
                 setAttendedProduct(suppliedProduct);
                 return setVisibleAttendModal(true);
@@ -100,20 +133,30 @@ export default ({ setPageTitle }) => {
               );
             }}
             className="ant_green_color"
-            type={suppliedProduct.quantity === suppliedProduct.productBoxes?.length && disabled ? "ghost" : "primary"}
+            type={
+              suppliedProduct.quantity ===
+                suppliedProduct.productBoxes?.length && disabled
+                ? "ghost"
+                : "primary"
+            }
           >
             <Icon
-              color={suppliedProduct.quantity === suppliedProduct.productBoxes?.length && disabled ? "green" : undefined}
+              color={
+                suppliedProduct.quantity ===
+                  suppliedProduct.productBoxes?.length && disabled
+                  ? "green"
+                  : undefined
+              }
               marginRight="0px"
               fontSize="0.8rem"
               icon={disabled ? faPrint : faTrash}
             />
           </Button>
-          {!isNew && (
+          {!isNew && isAttend && (
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
-              onCancel={() => { }}
+              onCancel={() => {}}
               okText="Si"
               cancelText="No"
             >
@@ -149,8 +192,6 @@ export default ({ setPageTitle }) => {
                 ...remainingSuppliedProducts,
                 {
                   id: suppliedProduct.id,
-                  dbId: suppliedProduct.dbId,
-                  productBoxes: suppliedProduct.productBoxes,
                   quantity: suppliedProduct.quantity,
                   boxSize: suppliedProduct.boxSize,
                   familyId: value,
@@ -266,7 +307,16 @@ export default ({ setPageTitle }) => {
       dataIndex: "modelId",
       align: "center",
       render: (modelId, suppliedProduct) => {
-        return <RenderColumn modelId={modelId} selectOptions={selectOptions} setSuppliedProducts={setSuppliedProducts} disabled={disabled} suppliedProduct={suppliedProduct} models={models} />
+        return (
+          <RenderColumn
+            modelId={modelId}
+            selectOptions={selectOptions}
+            setSuppliedProducts={setSuppliedProducts}
+            disabled={disabled}
+            suppliedProduct={suppliedProduct}
+            models={models}
+          />
+        );
       },
     },
     {
@@ -282,46 +332,65 @@ export default ({ setPageTitle }) => {
       width: "140px",
       align: "center",
       render: (quantity, suppliedProduct) => (
-        <Input
-          key={suppliedProducts.length}
-          value={quantity}
-          disabled={disabled}
-          onKeyPress={(e) => {
-            if (e.key === '-' || (e.key === '0' && quantity === 0  )) {
-              e.preventDefault()
-            }
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "3px",
+            alignItems: "center",
           }}
-          onPaste={(e) => {
-            const value = parseFloat(e.clipboardData.getData('text'))
-            if (value <= 0) {
-              e.preventDefault()
-            }
-          }
-          }
-          onChange={(event) => {
-            let number = event.nativeEvent.target.value;
-            if (number < 0) {
-              number = 0;
-            }
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
+        >
+          {suppliedProduct.initQuantity !== suppliedProduct.quantity && (
+            <Popover
+              content={() => (
+                <div>{`Valor Previo: ${suppliedProduct.initQuantity}`}</div>
+              )}
+            >
+              <Badge color="magenta" />
+            </Popover>
+          )}
+          <Input
+            key={suppliedProducts.length}
+            value={quantity}
+            bordered
+            disabled={disabled}
+            onKeyPress={(e) => {
+              if (e.key === "-" || (e.key === "0" && quantity === 0)) {
+                e.preventDefault();
+              }
+            }}
+            onPaste={(e) => {
+              const value = parseFloat(e.clipboardData.getData("text"));
+              if (value <= 0) {
+                e.preventDefault();
+              }
+            }}
+            onChange={(event) => {
+              let number = event.nativeEvent.target.value;
+              if (number < 0) {
+                number = 0;
+              }
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
 
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  ...suppliedProduct,
-                  /*  quantity: parseFloat(number || "0"), */
-                  quantity: parseFloat(number || ""),
-                },
-              ];
-            });
-            event.persist();
-          }}
-          type="number"
-          min="1"
-        />
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    ...suppliedProduct,
+                    /*  quantity: parseFloat(number || "0"), */
+                    quantity: parseFloat(number || ""),
+                  },
+                ];
+              });
+              event.persist();
+            }}
+            type="number"
+            min="1"
+          />
+        </div>
       ),
     },
     {
@@ -330,46 +399,63 @@ export default ({ setPageTitle }) => {
       width: "150px",
       align: "center",
       render: (boxSize, suppliedProduct) => (
-        <Input
-          key={suppliedProducts.length}
-          defaultValue={boxSize}
-          disabled={disabled}
-          min="1"
-          onKeyPress={(e) => {
-            if (e.key === '-' || (e.key === '0' && boxSize === 0  )) {
-              e.preventDefault()
-            }
-          }
-          }
-          onPaste={(e) => {
-            const value = parseFloat(e.clipboardData.getData('text'))
-            if (value <= 0) {
-              e.preventDefault()
-            }
-          }
-          }
-          onChange={(event) => {
-            setSuppliedProducts((prevState) => {
-              const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
-              );
-
-              return [
-                ...remainingSuppliedProducts,
-                {
-                  ...suppliedProduct,
-                  boxSize: parseFloat(event.nativeEvent.target.value || "0"),
-                },
-              ];
-            });
-            event.persist();
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "3px",
+            alignItems: "center",
           }}
-          type="number"
-        />
+        >
+          {suppliedProduct.boxSize !== suppliedProduct.initBoxSize && (
+            <Popover
+              content={() => (
+                <div>{`Valor Previo: ${suppliedProduct.initBoxSize}`}</div>
+              )}
+            >
+              <Badge color="magenta" />
+            </Popover>
+          )}
+
+          <Input
+            key={suppliedProducts.length}
+            defaultValue={boxSize}
+            disabled={disabled}
+            min="1"
+            onKeyPress={(e) => {
+              if (e.key === "-" || (e.key === "0" && boxSize === 0)) {
+                e.preventDefault();
+              }
+            }}
+            onPaste={(e) => {
+              const value = parseFloat(e.clipboardData.getData("text"));
+              if (value <= 0) {
+                e.preventDefault();
+              }
+            }}
+            onChange={(event) => {
+              setSuppliedProducts((prevState) => {
+                const remainingSuppliedProducts = prevState.filter(
+                  (_suppliedProduct) =>
+                    _suppliedProduct.id !== suppliedProduct.id
+                );
+
+                return [
+                  ...remainingSuppliedProducts,
+                  {
+                    ...suppliedProduct,
+                    boxSize: parseFloat(event.nativeEvent.target.value || "0"),
+                  },
+                ];
+              });
+              event.persist();
+            }}
+            type="number"
+          />
+        </div>
       ),
     },
   ];
-
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -420,7 +506,6 @@ export default ({ setPageTitle }) => {
   }, [providerId]);
 
   const fetchSupply = async (supplyId) => {
-
     if (isNew) {
       const _me = await userProvider.getUser();
       setMe(_me);
@@ -445,46 +530,47 @@ export default ({ setPageTitle }) => {
         modelId: get(suppliedProduct, "product.modelId", null),
         quantity: get(suppliedProduct, "quantity", null),
         boxSize: get(suppliedProduct, "boxSize", null),
+        initQuantity: get(suppliedProduct, "initQuantity", null),
+        initBoxSize: get(suppliedProduct, "initBoxSize", null),
         product: get(suppliedProduct, "product", null),
       }))
     );
   };
 
   useEffect(() => {
-    console.log('refecth')
-
     if (supplyId) fetchSupply(supplyId);
   }, [supplyId, toggleUpdateTable]);
 
-  useEffect(() => {
-  }, [suppliedProducts]);
+  useEffect(() => {}, [suppliedProducts]);
 
   useEffect(() => {
-
     const onUpdate = async () => {
       const _supply = await getSupply(supplyId);
-      const suppliedProducts = get(_supply, "suppliedProducts", []).map((suppliedProduct, index) => ({
-        id: index + 1,
-        dbId: suppliedProduct.id,
-        productBoxes: suppliedProduct.productBoxes,
-        familyId: get(suppliedProduct, "product.familyId", null),
-        subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
-        elementId: get(suppliedProduct, "product.elementId", null),
-        modelId: get(suppliedProduct, "product.modelId", null),
-        quantity: get(suppliedProduct, "quantity", null),
-        boxSize: get(suppliedProduct, "boxSize", null),
-        product: get(suppliedProduct, "product", null),
-      }))
-      setSuppliedProducts({ ...suppliedProducts })
-      setAttendedProduct(suppliedProducts.find(e => e.dbId === selectedRow))
-    }
+      const suppliedProducts = get(_supply, "suppliedProducts", []).map(
+        (suppliedProduct, index) => ({
+          id: index + 1,
+          dbId: suppliedProduct.id,
+          productBoxes: suppliedProduct.productBoxes,
+          familyId: get(suppliedProduct, "product.familyId", null),
+          subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
+          elementId: get(suppliedProduct, "product.elementId", null),
+          modelId: get(suppliedProduct, "product.modelId", null),
+          quantity: get(suppliedProduct, "quantity", null),
+          boxSize: get(suppliedProduct, "boxSize", null),
+          product: get(suppliedProduct, "product", null),
+        })
+      );
+      // setSuppliedProducts({ ...suppliedProducts });
+      // fix: 
+      setSuppliedProducts(suppliedProducts);
+      setAttendedProduct(suppliedProducts.find((e) => e.dbId === selectedRow));
+    };
 
     if (onUpdateBoxes) {
-      onUpdate()
-      setUpdateBoxes(false)
+      onUpdate();
+      setUpdateBoxes(false);
     }
-
-  }, [onUpdateBoxes, suppliedProducts])
+  }, [onUpdateBoxes, suppliedProducts]);
 
   const enablePost = useMemo(() => {
     if (!suppliedProducts.length) return false;
@@ -520,7 +606,10 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSupply(true);
       const mappedSuppliedProducts = await mapSuppliedProducts(
-        suppliedProducts
+        suppliedProducts,
+        0,
+        [],
+        isEdit
       );
 
       const body = {
@@ -539,10 +628,11 @@ export default ({ setPageTitle }) => {
       await router.push("/supplies");
       setLoadingSupply(false);
     } catch (error) {
-      if (error.message.toLowerCase().includes('contains a duplicate value')) {
+      if (error.message.toLowerCase().includes("contains a duplicate value")) {
         notification.error({
           message: "No se pudo crear abastecimiento",
-          description: "Existen items duplicados del mismo tipo (unidades por caja iguales). Por favor, actualice la cantidad de cajas en uno de los items y elimine el otro",
+          description:
+            "Existen items duplicados del mismo tipo (unidades por caja iguales). Por favor, actualice la cantidad de cajas en uno de los items y elimine el otro",
         });
       } else {
         notification.error({
@@ -557,13 +647,22 @@ export default ({ setPageTitle }) => {
   const mapSuppliedProducts = async (
     products,
     index = 0,
-    mappedSuppliedProducts = []
+    mappedSuppliedProducts = [],
+    isEdit = false
   ) => {
     if (products.length === index) return mappedSuppliedProducts;
 
     const currentProduct = products[index];
-    const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
-      currentProduct;
+    const {
+      familyId,
+      subfamilyId,
+      elementId,
+      modelId,
+      boxSize,
+      quantity,
+      initQuantity,
+      initBoxSize,
+    } = currentProduct;
 
     const productsResult = await getProducts({
       familyId,
@@ -572,14 +671,20 @@ export default ({ setPageTitle }) => {
       modelId,
     });
 
-    return mapSuppliedProducts(products, index + 1, [
-      ...mappedSuppliedProducts,
-      {
-        productId: productsResult.rows[0].id,
-        boxSize,
-        quantity,
-      },
-    ]);
+    return mapSuppliedProducts(
+      products,
+      index + 1,
+      [
+        ...mappedSuppliedProducts,
+        {
+          productId: productsResult.rows[0].id,
+          boxSize,
+          quantity,
+          ...(isEdit ? { initQuantity, initBoxSize } : {}),
+        },
+      ],
+      isEdit
+    );
   };
 
   const finishAttend = async () => {
@@ -602,7 +707,6 @@ export default ({ setPageTitle }) => {
   const deleteProduct = async (id) => {
     try {
       const response = await deleteSupplyProduct(supplyId, id);
-      console.log(id, "eliminado", response);
       setToggleUpdateTable((prev) => !prev);
       notification.success({
         message: "Producto eliminado exitosamente ",
@@ -612,9 +716,18 @@ export default ({ setPageTitle }) => {
     }
   };
 
-
   return (
     <>
+      <FloatButton onClick={() => setVisibleLogs(!isVisibleLogs)} />
+      <ModalLogs
+        supplyId={supplyId}
+        visible={isVisibleLogs}
+        onCancel={() => setVisibleLogs(!isVisibleLogs)}
+      />
+      <ModalCargaMasiva
+        isVisible={isModalCargaVisible}
+        closeModal={() => setIsModalCargaVisible(false)}
+      />
       <Container height="auto">
         <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
           <Select
@@ -655,33 +768,72 @@ export default ({ setPageTitle }) => {
             }
           />
           <Input value={me.name} disabled addonBefore="Usuario" />
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
+            <Tag color="blue">{`Cant. Inicial Unid.: ${
+              isNaN(sumQuantity.totalInitQuantity)
+                ? "-"
+                : sumQuantity.totalInitQuantity
+            }`}</Tag>
+            <Tag
+              color={
+                sumQuantity.totalInitQuantity === sumQuantity.totalQuantity
+                  ? "blue"
+                  : "magenta"
+              }
+            >{`Cant. Final Unid.: ${
+              isNaN(sumQuantity.totalQuantity) ? "-" : sumQuantity.totalQuantity
+            } `}</Tag>
+          </div>
         </Grid>
       </Container>
       <Table
         columns={columns}
         bordered
         pagination={false}
-        rowKey={record => record.id}
+        rowKey={(record) => record.id}
         dataSource={orderBy(suppliedProducts, "id", "asc")}
       />
-      {!disabled && (
-        <Container height="5rem">
-          <Button
-            padding="0 0.5rem"
-            disabled={!providerId}
-            onClick={() =>
-              setSuppliedProducts((prevState) => [
-                ...prevState,
-                { id: suppliedProducts.length + 1 },
-              ])
-            }
-            type="primary"
-          >
-            <Icon fontSize="1rem" icon={faPlus} />
-            Agregar producto
-          </Button>
-        </Container>
-      )}
+      <div style={{ display: "flex" }}>
+        {!disabled && (
+          <Container width="auto" height="5rem">
+            <Button
+              padding="0 0.5rem"
+              disabled={!providerId}
+              onClick={() =>
+                setSuppliedProducts((prevState) => [
+                  ...prevState,
+                  { id: suppliedProducts.length + 1 },
+                ])
+              }
+              type="primary"
+            >
+              <Icon fontSize="1rem" icon={faPlus} />
+              Agregar producto
+            </Button>
+          </Container>
+        )}
+        {/* {!disabled && ( */}
+        {/*   <Container width='auto' height="5rem"> */}
+        {/*     <Button */}
+        {/*       padding="0 0.5rem" */}
+        {/*       disabled={!providerId} */}
+        {/*       onClick={()=>setIsModalCargaVisible(true)} */}
+        {/*       // onClick={() => */}
+        {/*       //   setSuppliedProducts((prevState) => [ */}
+        {/*       //     ...prevState, */}
+        {/*       //     { id: suppliedProducts.length + 1 }, */}
+        {/*       //   ]) */}
+        {/*       // } */}
+        {/*       type="primary" */}
+        {/*     > */}
+        {/*       <Icon fontSize="1rem" icon={faPlus} /> */}
+        {/*       Carga Masiva */}
+        {/*     </Button> */}
+        {/*   </Container> */}
+        {/* )} */}
+      </div>
       <Container height="20%" alignItems="center" flexDirection="column">
         {(isEdit || isNew) && (
           <Button
@@ -721,9 +873,14 @@ export default ({ setPageTitle }) => {
   );
 };
 
-
-const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOptions, setSuppliedProducts }) => {
-
+const RenderColumn = ({
+  models,
+  disabled,
+  modelId,
+  suppliedProduct,
+  selectOptions,
+  setSuppliedProducts,
+}) => {
   const [model, setModel] = useState({
     name: suppliedProduct?.product?.modelName,
   });
@@ -751,8 +908,7 @@ const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOption
 
         setSuppliedProducts((prevState) => {
           const remainingSuppliedProducts = prevState.filter(
-            (_suppliedProduct) =>
-              _suppliedProduct.id !== suppliedProduct.id
+            (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
           );
 
           return [
@@ -783,11 +939,8 @@ const RenderColumn = ({ models, disabled, modelId, suppliedProduct, selectOption
         if (typeof input === "number") {
           return;
         }
-        return option.children
-          .toLowerCase()
-          .includes(input.toLowerCase());
+        return option.children.toLowerCase().includes(input.toLowerCase());
       }}
     />
   );
-
-}
+};

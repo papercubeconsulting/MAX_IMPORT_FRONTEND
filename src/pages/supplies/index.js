@@ -17,10 +17,12 @@ import { getSupplies, putSupplyStatus } from "../../providers";
 
 import { Button, Container, DatePicker, Grid, Icon } from "../../components";
 import { ModalProviders } from "../../components/supplies/ModalProviders";
+import { ModalCargaMasiva } from "../../components/supplies/[supplyId]/ModalCargaMasiva";
+import { buildUrl, getToken } from "../../providers/baseProvider";
+import FileSaver from "file-saver";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
-
   const columns = [
     {
       title: "Movimiento",
@@ -125,7 +127,7 @@ export default ({ setPageTitle }) => {
 
   const [windowHeight, setWindowHeight] = useState(0);
   const [pagination, setPagination] = useState(null);
-
+  const [isCargaMasivaVisible, setIsCargaMasivaVisible] = React.useState(false);
   const [supplies, setSupplies] = useState([]);
   const [from, setFrom] = useState(moment().subtract(6, "months"));
   const [to, setTo] = useState(moment().add(6, "M"));
@@ -143,33 +145,33 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const _supplies = await getSupplies({
-          from: from.format(serverDateFormat),
-          to: to.format(serverDateFormat),
-          page,
-        });
-        setPagination({
-          position: ["bottomCenter"],
-          total: _supplies.count,
-          current: _supplies.page,
-          pageSize: _supplies.pageSize,
-          showSizeChanger: false,
-          showQuickJumper: true,
-        });
-        setSupplies(
-          _supplies.rows.filter((supply) => supply.status !== "Cancelado")
-        );
-      } catch (error) {
-        notification.error({
-          message: "Error en el servidor",
-          description: error.message,
-        });
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      const _supplies = await getSupplies({
+        from: from.format(serverDateFormat),
+        to: to.format(serverDateFormat),
+        page,
+      });
+      setPagination({
+        position: ["bottomCenter"],
+        total: _supplies.count,
+        current: _supplies.page,
+        pageSize: _supplies.pageSize,
+        showSizeChanger: false,
+        showQuickJumper: true,
+      });
+      setSupplies(
+        _supplies.rows.filter((supply) => supply.status !== "Cancelado")
+      );
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
   }, [from, to, page, toggleUpdateTable]);
 
@@ -193,8 +195,64 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  const propsModal1 = {
+    name: "csv",
+    multiple: false,
+    customRequest: async (options) => {
+      const { onSuccess, onError, file } = options;
+      const formData = new FormData();
+      formData.append("csv", file);
+      const token = await getToken();
+      try {
+        const fetched = await fetch(buildUrl("supplies/csvUpload"), {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // console.log("fetched", fetched, fetched.ok);
+        if (!fetched.ok) {
+          const body = await fetched.json();
+          throw new Error(body.userMessage || body.message);
+        }
+        const response = await fetched.blob();
+        FileSaver.saveAs(response, "Inventario.xlsx");
+        onSuccess("ok");
+      } catch (error) {
+        // console.log("error", error);
+        notification.error({
+          message: "Error procesando el archivo",
+          description: error.message,
+        });
+        onError(error);
+      }
+    },
+    async onChange(info) {
+      const { status } = info.file;
+      console.log("info");
+      if (status !== "uploading") {
+        console.log(info.file, info.file.xhr, info.fileList, info.event);
+      }
+      if (status === "done") {
+        console.log("done", info.file.response);
+        await Promise.all([fetchProducts()]);
+      } else if (status === "error") {
+        console.log("There was an error uploading the file");
+      }
+    },
+    onDrop(e) {
+      console.log("Dropped files", e.dataTransfer.files);
+    },
+  };
+
   return (
     <>
+      <ModalCargaMasiva
+        propsModal1={propsModal1}
+        isVisible={isCargaMasivaVisible}
+        closeModal={() => setIsCargaMasivaVisible(false)}
+      />
       <Modal
         visible={isVisibleProvidersModal}
         title="Gestión de proveedores"
@@ -274,6 +332,22 @@ export default ({ setPageTitle }) => {
         onChange={(pagination) => setPage(pagination.current)}
         dataSource={supplies}
       />
+      <Container height="15%">
+        <Grid
+          gridTemplateColumns="repeat(4, 1fr)"
+          gridGap="2rem"
+          justifyItems="center"
+        >
+          <Button
+            onClick={() => setIsCargaMasivaVisible(true)}
+            size="large"
+            width="200px"
+            type="primary"
+          >
+            Carga Masiva
+          </Button>
+        </Grid>
+      </Container>
     </>
   );
 };

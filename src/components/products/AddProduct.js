@@ -32,6 +32,10 @@ export const AddProduct = (props) => {
   const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [compatibility, setCompatibility] = useState(null);
   const [tradename, setTradename] = useState("-");
+  const [cost, setCost] = useState(suggestedPrice);
+  const [margin, setMargin] = useState(0);
+
+  // let margin = ((suggestedPrice / cost) * 100).toFixed(2);
 
   //images
   const [imagesList, setImageList] = useState([]);
@@ -158,7 +162,14 @@ export const AddProduct = (props) => {
   };
 
   const confirmAddProduct = () => {
-    if (suggestedPrice < 0) {
+    if (cost === "" || cost <= 0) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "El costo debe ser positvo",
+      });
+    }
+
+    if (suggestedPrice <= 0) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "El precio debe ser positivo",
@@ -327,6 +338,7 @@ export const AddProduct = (props) => {
         providerId: provider.id,
         tradename,
         suggestedPrice: Math.round(suggestedPrice * 100),
+        cost: Math.round(cost * 100),
         compatibility: compatibility || undefined,
         ...imagesBodySection,
       };
@@ -348,12 +360,18 @@ export const AddProduct = (props) => {
       });
     }
   };
+
+  function handleDecimalsOnValue(value) {
+    const regex = /([0-9]*[\.|\,]{0,1}[0-9]{0,2})/s;
+    return value.match(regex)[0];
+  }
+
   return (
     <Modal
       visible={props.visible}
       onOk={() => confirmAddProduct()}
       onCancel={() => props.trigger && props.trigger(false)}
-      width="90%"
+      width="95%"
       title="Nuevo ítem inventario"
     >
       <Grid gridTemplateRows="repeat(2, 1fr)" gridGap="1rem">
@@ -474,7 +492,7 @@ export const AddProduct = (props) => {
             }
           />
         </Grid>
-        <Grid gridTemplateColumns="3fr 2fr 3fr 3fr" gridGap="1rem">
+        <Grid gridTemplateColumns="3fr 2fr 3fr " gridGap="1rem">
           <Select
             value={provider.name}
             label="Proveedor"
@@ -487,12 +505,6 @@ export const AddProduct = (props) => {
             options={selectOptions(providers)}
           />
           <Input
-            value={suggestedPrice}
-            onChange={(event) => setSuggestedPrice(event.target.value)}
-            type="number"
-            addonBefore="Precio S/"
-          />
-          <Input
             value={compatibility}
             onChange={(event) => setCompatibility(event.target.value)}
             addonBefore="Compatibilidad"
@@ -501,6 +513,76 @@ export const AddProduct = (props) => {
             value={tradename}
             onChange={(event) => setTradename(event.target.value)}
             addonBefore="Nombre comercial"
+          />
+          <Input
+            value={cost}
+            type="number"
+            step=".01"
+            onChange={(event) => {
+              const value = handleDecimalsOnValue(event.target.value);
+
+              if (margin === 100) {
+                setCost(value);
+                setSuggestedPrice(value);
+                return;
+              }
+              const price = value * (1 + margin / 100);
+              if (!isNaN(price)) {
+                setSuggestedPrice(price.toFixed(2));
+                setCost(value);
+              }
+            }}
+            addonBefore="Costo S/"
+          />
+          <Input
+            type="number"
+            step=".01"
+            disabled={cost === 0}
+            onBlur={(e) => {
+              const realMargin = ((suggestedPrice / cost) - 1) * 100;
+              setMargin(Number(realMargin).toFixed(2));
+            }}
+            onChange={(event) => {
+              const value = handleDecimalsOnValue(event.target.value);
+              const margin = Number(value).toFixed(2);
+              const price = (cost * (margin / 100 + 1)).toFixed(2);
+              if (!isNaN(price)) {
+                setMargin(value);
+                setSuggestedPrice(price);
+              }
+            }}
+            value={margin}
+            addonBefore="Margen %"
+          />
+          <Input
+            value={suggestedPrice}
+            min={0}
+            onBlur={(event) => {
+              // once on focus the
+              if (cost === 0) {
+                setCost(event.target.value);
+              }
+            }}
+            onChange={(event) => {
+              // in case price is 0 and maargin 0 (initial state)
+
+              const value = handleDecimalsOnValue(event.target.value);
+
+              if (cost === 0) {
+                setSuggestedPrice(value);
+                return;
+              }
+
+              const price = Number(value).toFixed(2);
+              const margin = ((price / cost) * 100).toFixed(2);
+              if (!isNaN(margin)) {
+                setMargin((margin - 100).toFixed(2));
+                setSuggestedPrice(value);
+              }
+            }}
+            type="number"
+            step=".01"
+            addonBefore="Precio S/"
           />
           <Upload
             className="ant-upload-wrapper"
@@ -519,7 +601,11 @@ export const AddProduct = (props) => {
         </Grid>
         <div>
           <h3>Leyenda:</h3>
-          <LegendsContainer justifyContent="space-around" padding="0px">
+          <LegendsContainer
+            justifyContent="space-around"
+            height="auto"
+            padding="0px"
+          >
             <Tag color={colors[0]}>No seleccionado</Tag>
             <Tag color={colors[1]}>Existente</Tag>
             <Tag color={colors[2]}>Nuevo</Tag>

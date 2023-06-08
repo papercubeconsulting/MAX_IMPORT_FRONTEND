@@ -20,6 +20,9 @@ const putSupplyStatus = async (supplyId, status) =>
 const deleteSupplyProduct = async (supplyId, suppliedProductId) =>
   baseProvider.httpDelete(`supplies/${supplyId}/delete/${suppliedProductId}`);
 
+const getLogsBySupplyId = async (supplyId) =>
+  baseProvider.httpGet(`supplies/logs`, { supplyId });
+
 export {
   getSupply,
   getSupplies,
@@ -28,4 +31,5 @@ export {
   putSupply,
   putSupplyStatus,
   deleteSupplyProduct,
+  getLogsBySupplyId,
 };
