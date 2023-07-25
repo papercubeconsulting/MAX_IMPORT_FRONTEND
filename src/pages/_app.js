@@ -15,6 +15,20 @@ export default ({ Component, pageProps }) => {
     setGlobalAuthUser(JSON.parse(localAuthUser));
   }, []);
 
+  if (Component.isPdf) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
+        <GlobalStyle />
+        <Component
+          setShowButton={setShowButton}
+          setPageTitle={setTitle}
+          {...pageProps}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
@@ -102,4 +116,17 @@ const GlobalStyle = createGlobalStyle`
   .ant_green_color {
     background-color: green
   }
+
+  /* This css is for styling the header of the max import table */
+  .pdfProforma
+  .ant-table
+    .ant-table-container
+    .ant-table-content
+    table
+    thead.ant-table-thead
+    .ant-table-cell {
+    background-color: #ed7204;
+  }
+
+
 `;
