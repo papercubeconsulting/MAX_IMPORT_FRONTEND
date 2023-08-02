@@ -162,7 +162,7 @@ export const AddProduct = (props) => {
   };
 
   const confirmAddProduct = () => {
-    if (cost === "" || cost <= 0) {
+    if (cost === "" || cost < 0) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "El costo debe ser positvo",
