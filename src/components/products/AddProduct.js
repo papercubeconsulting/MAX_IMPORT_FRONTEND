@@ -169,7 +169,7 @@ export const AddProduct = (props) => {
       });
     }
 
-    if (suggestedPrice <= 0) {
+    if (suggestedPrice < 0) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "El precio debe ser positivo",
