@@ -3,10 +3,13 @@ import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
 import { getProforma } from "../../../providers";
 import { get } from "lodash";
-import { Input, Table, Modal } from "antd";
+import { Input, Table, Modal, Alert } from "antd";
+import { ModalValidateDiscount } from "../../../components/proforma/ModalValidateDiscount";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Información de proforma");
+  // States for handling modal validate discount approval
+  const [isModalDiscountOpen, setIsModalDiscountOpen] = useState(false);
   //extraccion de params de url
   const router = useRouter();
   const { proformaId } = router.query;
@@ -120,11 +123,32 @@ export default ({ setPageTitle }) => {
         const _proforma = await getProforma(proformaId);
         setProforma(_proforma);
       } catch (error) {
+        console.error(error);
         router.back();
       }
     };
     proformaId && fetchProforma();
   }, [router]);
+
+  const statusValidationModal = React.useMemo(() => {
+    const discountTransactionId =
+      proforma?.discountProforma?.id || proforma?.discountValidationId;
+    if (
+      discountTransactionId &&
+      proforma.status === "PENDING_DISCOUNT_APPROVAL"
+    ) {
+      return {
+        discountTransactionId,
+        status: proforma.status,
+      };
+    }
+    return {
+      discountTransactionId: null,
+      status: null,
+    };
+  }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
+
+  console.log({ statusValidationModal });
 
   return (
     <>
@@ -137,6 +161,22 @@ export default ({ setPageTitle }) => {
       >
         <ModalProduct id={idModal}></ModalProduct>
       </Modal>
+      <ModalValidateDiscount
+        // isModalOpen={true || isModalDiscountOpen}
+        qr={statusValidationModal.discountTransactionId}
+        // qr={
+        //   typeof window !== "undefined" &&
+        //   `${
+        //     window.location.host.includes("localhost") ? "http" : "https"
+        //   }://${window.location.host}/proformas/validate/${
+        //     statusValidationModal.discountTransactionId
+        //   }`
+        // }
+        isModalOpen={isModalDiscountOpen}
+        onOk={() => setIsModalDiscountOpen((prev) => !prev)}
+        onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
+      />
+
       <Container height="fit-content">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={proformaId} disabled addonBefore="Proforma" />
@@ -221,9 +261,9 @@ export default ({ setPageTitle }) => {
             <br />
             <Input
               value={
-                proforma.efectivo 
-                  ? `S/.${(proforma.efectivo / 100).toFixed(2)}`:
-                proforma.sale?.due
+                proforma.efectivo
+                  ? `S/.${(proforma.efectivo / 100).toFixed(2)}`
+                  : proforma.sale?.due
                   ? `S/.${(proforma.sale.due / 100).toFixed(2)}`
                   : `-`
               }
@@ -234,9 +274,9 @@ export default ({ setPageTitle }) => {
 
             <Input
               value={
-                proforma.credit 
-                  ? `S/.${(proforma.credit / 100).toFixed(2)}`:
-                proforma.sale?.credit
+                proforma.credit
+                  ? `S/.${(proforma.credit / 100).toFixed(2)}`
+                  : proforma.sale?.credit
                   ? `S/.${(proforma.sale.credit / 100).toFixed(2)}`
                   : `-`
               }
@@ -303,6 +343,24 @@ export default ({ setPageTitle }) => {
       >
         Regresar
       </Button>
+      {statusValidationModal.discountTransactionId &&
+        statusValidationModal.status && (
+          <Alert
+            message="Warning"
+            description="Proforma pendiente de aprobacion de descuento"
+            type="warning"
+            action={
+              <Button
+                onClick={() => setIsModalDiscountOpen(true)}
+                size="middle"
+                danger
+              >
+                Ver QR
+              </Button>
+            }
+            showIcon
+          />
+        )}
     </>
   );
 };
