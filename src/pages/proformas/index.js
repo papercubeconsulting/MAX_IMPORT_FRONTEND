@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-
+import { WarningTwoTone } from "@ant-design/icons";
 import {
   Button,
   Container,
@@ -10,11 +10,15 @@ import {
   Select,
 } from "../../components";
 import { getProformas, getUsers, userProvider } from "../../providers";
-import { Input, notification, Table } from "antd";
+import { Input, notification, Table, Tooltip, Tag } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
-import { faCalendarAlt, faEye } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCalendarAlt,
+  faEye,
+  faExclamationTriangle,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Historial de proformas");
@@ -25,13 +29,23 @@ export default ({ setPageTitle }) => {
       width: "fit-content",
       align: "center",
       render: (id, record, index) => (
-        <Button
-          onClick={async () => router.push(`/proformas/${id}`)}
-          type="primary"
-        >
-          <Icon icon={faEye} />
-          {index + 1}
-        </Button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <Button
+            onClick={async () => router.push(`/proformas/${id}`)}
+            type="primary"
+          >
+            <Icon icon={faEye} />
+            {index + 1}
+          </Button>
+          {record.status === "PENDING_DISCOUNT_APPROVAL" && (
+            <Tooltip title="Pendiente de aprobacion de descuento">
+              <WarningTwoTone
+                style={{ fontSize: "22px" }}
+                twoToneColor="#ffcc00"
+              />
+            </Tooltip>
+          )}
+        </div>
       ),
     },
     {
@@ -252,6 +266,10 @@ export default ({ setPageTitle }) => {
     {
       value: "OPEN",
       label: "En cotización",
+    },
+    {
+      value: "PENDING_DISCOUNT_APPROVAL",
+      label: "Pendiente de aprobacion",
     },
     {
       value: "CLOSED",
