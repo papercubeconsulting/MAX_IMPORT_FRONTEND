@@ -1,8 +1,6 @@
 import * as config from "../config";
 import { get } from "lodash";
 
-console.log(config.serverUrl);
-
 export const buildUrl = (url, params = {}) => {
   const queries = Object.keys(params)
     .map(
