@@ -14,6 +14,7 @@ export const ModalValidateDiscount = (props) => {
     }/proformas/validate/${props.qr}`;
 
   const { onShare, messageStatus, setMessageStatus } = useNavigatorShare(qr);
+  console.log({ qr });
 
   const router = useRouter();
   return (
@@ -60,8 +61,16 @@ export const ModalValidateDiscount = (props) => {
                   Comparte el link
                 </Button>
               </Tooltip>
-              <QRCode size={206} value={props.qr || ""} />
-              <Tag>{qr}</Tag>
+              <QRCode size={206} value={qr || ""} />
+              <div
+                style={{
+                  fontWeight: 700,
+                  backgroundColor: "#f1f1f1",
+                  padding: "1rem 1rem",
+                }}
+              >
+                {qr}
+              </div>
               <Divider>O visita la pagina</Divider>
               <Button type="primary" onClick={() => router.push(qr)}>
                 Ir
