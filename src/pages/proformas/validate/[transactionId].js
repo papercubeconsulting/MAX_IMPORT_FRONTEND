@@ -18,15 +18,21 @@ import {
   Input,
   Button,
   InputNumber,
+  Tooltip,
 } from "antd";
 
 import QRCode from "react-qr-code";
 import { useValidationProforma } from "../../../util/hooks/useValidationProforma";
+import { useNavigatorShare } from "../../../util/hooks/useNavigationShare";
+import proforma from "../../proforma";
 
 export default () => {
   const router = useRouter();
   const { transactionId } = router.query;
   const [api, contextHolder] = notification.useNotification();
+  const currentUrl = typeof window !== "undefined" && window.location.href;
+  const { onShare, messageStatus, setMessageStatus } =
+    useNavigatorShare(currentUrl);
 
   const {
     isLoading,
@@ -39,7 +45,10 @@ export default () => {
     validationInfoStatus,
     handleChangeDiscountInput,
     cleanError,
+    successSubmitValidation,
   } = useValidationProforma(transactionId);
+
+  console.log({ successSubmitValidation });
 
   React.useEffect(() => {
     if (errorSubmitValidation?.message) {
@@ -50,27 +59,19 @@ export default () => {
         durration: 2,
         onClose: () => cleanError(),
       });
+
       // cleanError();
     }
-  }, [errorSubmitValidation?.message]);
-
-  console.log({
-    transactionId,
-    dis: discountPercentageInput.toString(),
-    isLoading,
-    validationInfoStatus,
-  });
-
-  // const openNotification = (placement) => {
-  //   api.info({
-  //     message: `Notification ${placement}`,
-  //     description:
-  //       "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
-  //     placement,
-  //   });
-  // };
-
-  console.log({ errorSubmitValidation, validationInfoStatus });
+    if (successSubmitValidation) {
+      api.open({
+        type: "success",
+        message: "Proforma actualizada",
+        description: successSubmitValidation.message,
+        durration: 2,
+        onClose: () => cleanError(),
+      });
+    }
+  }, [errorSubmitValidation?.message, successSubmitValidation]);
 
   return (
     <Wrapper>
@@ -78,17 +79,20 @@ export default () => {
       {validationInfoStatus ? (
         <InnerWrapper>
           <Title>Confirmacion de descuento de Proforma</Title>
-          <Button
-            // color="white"
-            size="large"
-            type="primary"
-            // style={{ backgroundColor: "#fcfcfc" }}
-            block
+          <Tooltip
+            open={!!messageStatus}
+            onOpenChange={(open) => !open && setMessageStatus(null)}
+            title={"Copiado"}
           >
-            Share link
-          </Button>
-          {/* <Title>{`Solicitud hecha por ${validationInfoStatus.proforma.user.name}`}</Title> */}
-          {/* <QR><span>Scan </span>{transactionId && <QRCode value={transactionId} />}</QR> */}
+            <Button
+              onClick={onShare()}
+              // color="white"
+              size="large"
+              type="primary"
+            >
+              Comparte el link !
+            </Button>
+          </Tooltip>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <Input
               placeholder={validationInfoStatus.proforma.user.name}
@@ -185,9 +189,10 @@ export default () => {
           <EditProformaSection>
             {/* <Space.Compact> */}
             <InputNumber
-              // type="number"
+              type="number"
               // step="0.1"
               max={100}
+              disabled={isLoadingSubmitValidation}
               addonBefore="Descuento %"
               // value={discountPercentageInput.toFixed(2)}
               value={discountPercentageInput.toString()}
@@ -199,16 +204,21 @@ export default () => {
           <ApprovalSection>
             <Button
               type="primary"
-              onClick={() => handleSubmitApproval()}
+              onClick={() =>
+                handleSubmitApproval({
+                  discountPercentage: Number(discountPercentageInput) / 100,
+                })
+              }
+              loading={isLoadingSubmitValidation}
               size="large"
               icon={<CheckOutlined />}
             >
               Aprobar
             </Button>
             {/* What should we don't with this option */}
-            <Button size="large" danger>
-              Rechazar
-            </Button>
+            {/* <Button size="large" danger> */}
+            {/*   Rechazar */}
+            {/* </Button> */}
             <Button type="dashed" size="large" onClick={() => resetDiscount()}>
               Reiniciar
             </Button>

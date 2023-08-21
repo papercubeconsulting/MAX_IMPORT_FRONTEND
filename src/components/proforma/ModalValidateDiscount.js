@@ -1,8 +1,9 @@
-import { Modal, Result, Alert, Tag, Button, Divider } from "antd";
+import { Modal, Result, Alert, Tag, Button, Divider, Tooltip } from "antd";
 import React from "react";
 import QRCode from "react-qr-code";
 import styled from "styled-components";
 import { useRouter } from "next/router";
+import { useNavigatorShare } from "../../util/hooks/useNavigationShare";
 
 export const ModalValidateDiscount = (props) => {
   // console.log('ModalValidateDiscount',props.qr);
@@ -12,6 +13,8 @@ export const ModalValidateDiscount = (props) => {
       window.location.host
     }/proformas/validate/${props.qr}`;
 
+  const { onShare, messageStatus, setMessageStatus } = useNavigatorShare(qr);
+
   const router = useRouter();
   return (
     <Modal
@@ -19,7 +22,7 @@ export const ModalValidateDiscount = (props) => {
       open={props.isModalOpen}
       // width="30%"
       onOk={props.onOk}
-      bodyStyle={{padding:0}}
+      bodyStyle={{ padding: 0 }}
       onCancel={props.onCancel}
     >
       <ModalWrapperContent>
@@ -41,6 +44,22 @@ export const ModalValidateDiscount = (props) => {
                 message="Escanear el siguiente código QR para redirigirse a la validación"
                 type="primary"
               />
+              <Tooltip
+                open={!!messageStatus}
+                onOpenChange={(open) => !open && setMessageStatus(null)}
+                title={messageStatus}
+              >
+                <Button
+                  onClick={onShare()}
+                  // color="white"
+                  size="large"
+                  type="primary"
+                  // style={{ backgroundColor: "#fcfcfc" }}
+                  // block
+                >
+                  Comparte el link
+                </Button>
+              </Tooltip>
               <QRCode size={206} value={props.qr || ""} />
               <Tag>{qr}</Tag>
               <Divider>O visita la pagina</Divider>

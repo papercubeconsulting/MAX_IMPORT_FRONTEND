@@ -4,16 +4,20 @@ import {
   validateDiscountProforma,
 } from "../../providers/discountValidationProforma";
 import Big from "big.js";
+import { notification } from "antd";
 
 export const useValidationProforma = (transactionId) => {
   const [validationInfoStatus, setValidationInfoStatus] = React.useState(null);
+  const [api, contextHolder] = notification.useNotification();
   const [fetchStatus, setFetchStatus] = React.useState({
     isLoading: false,
     error: null,
+    sucess: null,
   });
   const [submitValidationStatus, setSubmitValidationStatus] = React.useState({
     isLoading: false,
     error: null,
+    sucess: null,
   });
 
   const [discountPercentageInput, setDiscountPercentageInput] = React.useState(
@@ -27,8 +31,6 @@ export const useValidationProforma = (transactionId) => {
 
   const handleChangeDiscountInput = (event) => {
     const inputValue = event;
-    console.log({ inputValue, is: inputValue === "" });
-    console.log(discountPercentageInput);
 
     // Check if the input value is numeric
     if (inputValue !== null) {
@@ -70,9 +72,7 @@ export const useValidationProforma = (transactionId) => {
       const total = new Big(validationInfoResult.proforma.total);
       const discountPercentage = discount.div(subtotal).mul(100).toFixed(2);
       initDiscountRef.current = discountPercentage;
-      // console.log({ discount, subtotal, total, discountPercentage });
       setDiscountPercentageInput(discountPercentage);
-      // setDiscountInput(validationInfoStatus.proforma);
     } catch (error) {
       console.error(error);
       setFetchStatus({ ...fetchStatus, error: error });
@@ -87,23 +87,25 @@ export const useValidationProforma = (transactionId) => {
     }
   }, [transactionId]);
 
-  const handleSubmitApproval = async () => {
+  const handleSubmitApproval = async (payloadToSubmit) => {
     let _error;
     try {
       setSubmitValidationStatus((prev) => {
         return { ...prev, isLoading: true };
       });
-      await validateDiscountProforma(transactionId);
+      await validateDiscountProforma(transactionId, payloadToSubmit);
       await getValidationInfo(transactionId);
+      setSubmitValidationStatus((prev) => {
+        return { ...prev, sucess: "Proforma Actualizado correctamente" };
+      });
     } catch (error) {
-      console.info("error", error);
+      console.error("error", error);
       _error = error;
       setSubmitValidationStatus((prev) => ({
         ...prev,
         error: error,
       }));
     } finally {
-      console.log("finaly", _error);
       setSubmitValidationStatus((prev) => ({
         ...prev,
         error: _error,
@@ -113,16 +115,19 @@ export const useValidationProforma = (transactionId) => {
   };
 
   const cleanError = () => {
-    setSubmitValidationStatus((prev) => ({ ...prev, error: null }));
+    setSubmitValidationStatus((prev) => ({
+      ...prev,
+      error: null,
+      sucess: null,
+    }));
   };
-
-  console.log("submit", { submitValidationStatus });
 
   return {
     isLoading: fetchStatus.isLoading,
     error: fetchStatus.error,
     isLoadingSubmitValidation: submitValidationStatus.isLoading,
     errorSubmitValidation: submitValidationStatus.error,
+    successSubmitValidation: submitValidationStatus.sucess,
     handleSubmitApproval,
     validationInfoStatus,
     discountPercentageInput,

@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./proforma.module.css";
-import { Space, Table, Tag } from "antd";
+import { Skeleton, Space, Table, Tag } from "antd";
 import styled from "styled-components";
 import { getProforma } from "../../../providers";
 import { useRouter } from "next/router";
@@ -26,11 +26,16 @@ export const ProformaPdf = () => {
     };
     proformaId && fetchProforma();
   }, [router]);
-  console.log("router", proforma);
-  // console.log(styles);
 
   if (proforma.length === 0) {
-    return <div>loading</div>;
+    return (
+      <div>
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+      </div>
+    );
   }
 
   const columns = [
@@ -72,18 +77,8 @@ export const ProformaPdf = () => {
 
   const total = (proforma.subtotal - proforma.discount) / 100;
 
-  // const data = [
-  //   {
-  //     key: "1",
-  //     cantidad: 10,
-  //     descripcion: "Alternador 1",
-  //     punit: 12.5,
-  //     importe: 23,
-  //   },
-  // ];
-
   return (
-    <div className={styles.invoiceContainer} style={{ padding: "10px 10px" }}>
+    <div className={styles.invoiceContainer} style={{ padding: "40px 10px" }}>
       <div
         style={{
           display: "flex",
@@ -91,9 +86,9 @@ export const ProformaPdf = () => {
           // gap: "24px",
         }}
       >
-        <div style={{ flex: 1, marginRight: "24px" }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <img
-            src="/max-import.png"
+            src="/new_log_max.png"
             style={{ maxWidth: "100%", width: "200px" }}
           />
         </div>
@@ -305,7 +300,7 @@ export const ProformaPdf = () => {
         </div>
       </div>
       <UserInfo>
-        <div className="user" style={{ flex: 1 }}>
+        <div className="user" style={{ flex: 1, margin: "0.5rem 0" }}>
           <div className="name">
             <span>Señor(es): </span>
             {`${proforma.client.name} ${proforma.client.lastname || ""} `}
@@ -384,6 +379,7 @@ export const ProformaPdf = () => {
             gap: "12px",
             marginRight: "12px",
             gridTemplateColumns: "1fr 1fr",
+            marginTop: "2rem",
           }}
         >
           <ProformAccountWrapper className="proforma-bank-account-type">
@@ -457,7 +453,7 @@ export const ProformaPdf = () => {
       </div>
       <div
         className="footNote"
-        style={{ color: color, marginTop: "4px", fontWeight: "600" }}
+        style={{ color: color, marginTop: "2rem", fontWeight: "600" }}
       >
         <div>* NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES</div>
         <div>* CANJEAR PROFORMA POR BOLETA O FACTURA (Max. 07 Dias)</div>
@@ -493,7 +489,7 @@ const TipoProformaItem = styled.div`
   font-family: console;
   align-items: center;
   line-height: 1;
-  margin-bottom:4px;
+  margin-bottom: 4px;
   /* gap: 12px; */
   font-size: 16px;
   input {

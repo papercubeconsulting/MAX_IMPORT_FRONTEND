@@ -552,7 +552,6 @@ export default ({ setPageTitle }) => {
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-      console.log({ proformaId: proforma.id });
       if (proforma.id) {
         //Actualiza la proforma
         const _response = await putProforma(proforma.id, {
@@ -653,7 +652,6 @@ export default ({ setPageTitle }) => {
         districtId,
         defaultDeliveryAgencyId: 1,
       });
-      console.log(response);
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
       });
@@ -776,10 +774,7 @@ export default ({ setPageTitle }) => {
       setCode(null);
     }
   }, [subFamilyId, modelId, elementId, familyId]);
-  console.log(
-    "discountProforma",
-    proforma?.discountProforma?.id || proforma?.discountValidationId
-  );
+
   const statusValidationModal = React.useMemo(() => {
     const discountTransactionId =
       proforma?.discountProforma?.id || proforma?.discountValidationId;
@@ -798,7 +793,6 @@ export default ({ setPageTitle }) => {
     };
   }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
 
-  console.log({ statusValidationModal });
   return (
     <>
       <Modal
