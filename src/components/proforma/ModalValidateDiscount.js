@@ -18,7 +18,7 @@ export const ModalValidateDiscount = (props) => {
   const router = useRouter();
   return (
     <Modal
-      style={{ top: 10 }}
+      // style={{ top: 10 }}
       open={props.isModalOpen}
       // width="30%"
       onOk={props.onOk}
@@ -61,32 +61,44 @@ export const ModalValidateDiscount = (props) => {
                 </Button>
               </Tooltip>
               <QRCode size={206} value={qr || ""} />
-              <div
-                style={{
-                  fontWeight: 700,
-                  backgroundColor: "#f1f1f1",
-                  padding: "1rem 1rem",
-                }}
-              >
-                {qr}
-              </div>
-              <Divider>O visita la pagina</Divider>
-              <Button type="primary" onClick={() => router.push(qr)}>
-                Ir
-              </Button>
             </div>
           }
         />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "center",
+            margin: "12px 12px",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 700,
+              overflowWrap: "break-word",
+              backgroundColor: "#f1f1f1",
+              padding: "1rem 1rem",
+              textAlign: "center",
+            }}
+          >
+            {qr}
+          </div>
+          <Divider>O visita la pagina</Divider>
+          <Button type="primary" onClick={() => router.push(qr)}>
+            Ir
+          </Button>
+        </div>
       </ModalWrapperContent>
     </Modal>
   );
 };
 const ModalWrapperContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* gap: 1rem; */
 `;
 
 const Title = styled.div`
