@@ -14,7 +14,6 @@ export const ModalValidateDiscount = (props) => {
     }/proformas/validate/${props.qr}`;
 
   const { onShare, messageStatus, setMessageStatus } = useNavigatorShare(qr);
-  console.log({ qr });
 
   const router = useRouter();
   return (

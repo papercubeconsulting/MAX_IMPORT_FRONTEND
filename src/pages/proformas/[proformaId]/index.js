@@ -167,12 +167,7 @@ export default ({ setPageTitle }) => {
   const isProformaPendingDiscountValidation =
     proforma?.status === "PENDING_DISCOUNT_APPROVAL";
 
-  // console.log({
-  //   isProformaPendingDiscountValidation,
-  //   // length: proforma.length,
-  // });
 
-  console.log({ proforma });
 
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
 

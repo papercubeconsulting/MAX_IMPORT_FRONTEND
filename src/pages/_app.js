@@ -3,17 +3,31 @@ import { useGlobal } from "reactn";
 import { BaseLayout } from "../components";
 import { createGlobalStyle } from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
+import { useRouter } from "next/router";
+import { route } from "next/dist/next-server/server/router";
 
 export default ({ Component, pageProps }) => {
   const [title, setTitle] = useState(null);
   const [showButton, setShowButton] = useState(false);
+  const router = useRouter();
 
   const [, setGlobalAuthUser] = useGlobal("authUser");
 
   useEffect(() => {
     const localAuthUser = localStorage.getItem("authUser") || null;
+    if (!localAuthUser) {
+      router.push("/");
+    }
+
     setGlobalAuthUser(JSON.parse(localAuthUser));
   }, []);
+
+
+  useEffect(() => {
+    if (router.asPath !== "/") {
+      localStorage.setItem("previousPath", router.asPath);
+    }
+  }, [router.asPath]);
 
   if (Component.isPdf) {
     return (

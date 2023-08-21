@@ -48,8 +48,6 @@ export default () => {
     successSubmitValidation,
   } = useValidationProforma(transactionId);
 
-  console.log({ successSubmitValidation });
-
   React.useEffect(() => {
     if (errorSubmitValidation?.message) {
       api.open({
