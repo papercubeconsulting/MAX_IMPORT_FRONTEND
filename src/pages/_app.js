@@ -14,7 +14,12 @@ export default ({ Component, pageProps }) => {
   const [, setGlobalAuthUser] = useGlobal("authUser");
 
   useEffect(() => {
+    // console.log({ router });
     const localAuthUser = localStorage.getItem("authUser") || null;
+    const ispdfProforma = router.pathname === "/proformas/[proformaId]/pdf";
+    if (ispdfProforma) {
+      return;
+    }
     if (!localAuthUser) {
       router.push("/");
     }
@@ -22,12 +27,11 @@ export default ({ Component, pageProps }) => {
     setGlobalAuthUser(JSON.parse(localAuthUser));
   }, []);
 
-
-  useEffect(() => {
-    if (router.asPath !== "/") {
-      localStorage.setItem("previousPath", router.asPath);
-    }
-  }, [router.asPath]);
+  // useEffect(() => {
+  //   if (router.asPath !== "/") {
+  //     localStorage.setItem("previousPath", router.asPath);
+  //   }
+  // }, [router.asPath, router.query]);
 
   if (Component.isPdf) {
     return (
