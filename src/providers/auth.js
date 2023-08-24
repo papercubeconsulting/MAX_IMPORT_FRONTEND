@@ -7,5 +7,6 @@ const resetPassword = async (body) =>
   baseProvider.httpPost("users/resetpassword", body);
 const updatePassword = async (body) =>
   baseProvider.httpPost("users/updatepassword", body);
+const me = async () => baseProvider.httpGet("users/me");
 
-export { login, forgotPassword, resetPassword, updatePassword };
+export { login, forgotPassword, me, resetPassword, updatePassword };

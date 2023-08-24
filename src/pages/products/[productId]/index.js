@@ -13,7 +13,7 @@ import {
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getProduct, updateProduct } from "../../../providers";
+import { getProduct, me, updateProduct } from "../../../providers";
 import { toBase64 } from "../../../util";
 
 import {
@@ -100,6 +100,11 @@ export default () => {
     setIsModalReadProductBoxCodeVisible,
   ] = useState(false);
 
+  // user information
+  const [user, setUser] = React.useState(null);
+  const isLogistic = user?.role === "logistic";
+  const isSeller = user?.role === "seller";
+
   const router = useRouter();
   const { productId } = router.query;
 
@@ -137,6 +142,9 @@ export default () => {
   const fetchProduct = async () => {
     try {
       const _product = await getProduct(productId);
+      const user = await me();
+      setUser(user);
+      // console.log({ user });
       setProduct(_product);
       setCost((_product.cost / 100).toFixed(2));
       setMargin(parsedMargin(_product));
@@ -366,40 +374,46 @@ export default () => {
             />
           </Grid>
         </Grid>
-        <Grid
-          style={{ margin: "1rem 0" }}
-          gridTemplateColumns="repeat(3, 1fr)"
-          gridTemplateRows="repeat(1, 2rem)"
-          gridGap="1rem"
-        >
-          <Input
-            addonBefore="Costo"
-            value={cost}
-            {...costInputProps}
-            // onChange={(e) => {
-            //   setTradename(e.target.value);
-            // }}
-          />
-          <Input
-            addonBefore="Margen %"
-            value={margin}
-            {...marginInputProps}
-            // onChange={(e) => {
-            //   setTradename(e.target.value);
-            // }}
-          />
-          <Input
-            addonBefore="Precio sugerido S/."
-            value={suggestedPrice}
-            // onChange={(e) => {
-            //   setSuggestedPrice(e.target.value);
-            // }}
-            {...priceInputProps}
-            onBlur={(e) => {
-              setSuggestedPrice(parseFloat(e.target.value || "0").toFixed(2));
-            }}
-          />
-        </Grid>
+        {user !== null && !isLogistic && (
+          <Grid
+            style={{ margin: "1rem 0" }}
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridTemplateRows="repeat(1, 2rem)"
+            gridGap="1rem"
+          >
+            {!isSeller && (
+              <>
+                <Input
+                  addonBefore="Costo"
+                  value={cost}
+                  {...costInputProps}
+                  // onChange={(e) => {
+                  //   setTradename(e.target.value);
+                  // }}
+                />
+                <Input
+                  addonBefore="Margen %"
+                  value={margin}
+                  {...marginInputProps}
+                  // onChange={(e) => {
+                  //   setTradename(e.target.value);
+                  // }}
+                />
+              </>
+            )}
+            <Input
+              addonBefore="Precio sugerido S/."
+              value={suggestedPrice}
+              // onChange={(e) => {
+              //   setSuggestedPrice(e.target.value);
+              // }}
+              {...priceInputProps}
+              onBlur={(e) => {
+                setSuggestedPrice(parseFloat(e.target.value || "0").toFixed(2));
+              }}
+            />
+          </Grid>
+        )}
       </Container>
       <div
         style={{

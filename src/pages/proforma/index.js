@@ -31,12 +31,15 @@ import {
   Table,
   notification,
   Modal,
+  Alert,
   Divider,
   AutoComplete as AutoCompleteAntd,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
+import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
+import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
 
 export default ({ setPageTitle }) => {
   const router = useRouter();
@@ -277,9 +280,15 @@ export default ({ setPageTitle }) => {
   const [proforma, setProforma] = useState([]);
   const [saleWay, setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
   //
+
+  // States for handling modal validate discount approval
+  const [isModalDiscountOpen, setIsModalDiscountOpen] = useState(false);
+
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
+  const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
+  //
 
   useMemo(() => {
     if (queryParams.id) {
@@ -287,7 +296,11 @@ export default ({ setPageTitle }) => {
       const fetchProforma = async () => {
         try {
           const _proforma = await getProforma(queryParams.id);
-          if (_proforma.status === "OPEN") {
+          // const proformaDiscount = await getInfoValidationProforma()
+          if (
+            _proforma.status === "OPEN" ||
+            _proforma.status === "PENDING_DISCOUNT_APPROVAL"
+          ) {
             setProforma(_proforma);
             setDocumentNumber(_proforma.client.idNumber);
             setName(_proforma.client.name);
@@ -318,12 +331,13 @@ export default ({ setPageTitle }) => {
             );
 
             setDiscount(_proforma.discount / 100);
-            setDiscountPercentage(
-              (
-                (parseFloat(_proforma.discount || "0") * 100) /
-                _proforma.subtotal
-              ).toFixed(2)
-            );
+            setDiscountPercentage((_proforma.discountPercentage ?? 0) * 100);
+            // setDiscountPercentage(
+            //   (
+            //     (parseFloat(_proforma.discount ?? 0) * 100) /
+            //     _proforma.subtotal
+            //   ).toFixed(2)
+            // );
             // this part will cause thtat the credit equals total
             // setDue(_proforma.total / 100);
           } else {
@@ -423,20 +437,20 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-        get(proformaProduct, "product.suggestedPrice", 0),
+          get(proformaProduct, "product.suggestedPrice", 0),
       0
     );
 
     return _totalPrice;
-  }, [proformaProducts]);
-
+  }, [proformaProducts.length]);
+  // console.log({ totalPrice, discountPercentage, discount });
   useEffect(() => {
     setFinalPrice((totalPrice * (1 - discountPercentage / 100)).toFixed(2));
   }, [totalPrice, discountPercentage]);
 
-  useEffect(() => {
-    setFinalPrice((totalPrice - discount).toFixed(2));
-  }, [totalPrice, discount]);
+  // useEffect(() => {
+  //   setFinalPrice((totalPrice - discount).toFixed(2));
+  // }, [totalPrice, discount]);
 
   useEffect(() => {
     // setDue((finalPrice - paid).toFixed(2));
@@ -538,7 +552,6 @@ export default ({ setPageTitle }) => {
   const onSaveProforma = async () => {
     try {
       setLoadingSaveProforma(true);
-
       if (proforma.id) {
         //Actualiza la proforma
         const _response = await putProforma(proforma.id, {
@@ -556,7 +569,18 @@ export default ({ setPageTitle }) => {
         notification.success({
           message: "Proforma actualizada correctamente",
         });
+        // console.log({ _response });
+        const validateProformaTransactionId = _response.discountValidationId;
+        // console.log({ validateProformaTransactionId });
+        // setDiscountUrlValidation(validateProformaTransactionId);
+        // if (validateProformaTransactionId) {
+        //   router.push(`/proformas/validate/${validateProformaTransactionId}`);
+        // }
+        // if(_response.)
         setProforma(_response);
+        if (validateProformaTransactionId) {
+          setIsModalDiscountOpen(true);
+        }
       } else {
         //Guarda la proforma
         const _response = await postProforma({
@@ -574,6 +598,11 @@ export default ({ setPageTitle }) => {
         });
         setProforma(_response);
         success(_response.id);
+        const validateProformaTransactionId = _response.discountValidationId;
+        if (validateProformaTransactionId) {
+          setIsModalDiscountOpen(true);
+        }
+        // setIsModalDiscountOpen(true);
       }
       setLoadingSaveProforma(false);
       setSalesActivated(true);
@@ -623,7 +652,6 @@ export default ({ setPageTitle }) => {
         districtId,
         defaultDeliveryAgencyId: 1,
       });
-      console.log(response);
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
       });
@@ -699,7 +727,7 @@ export default ({ setPageTitle }) => {
       request.setRequestHeader("Accept", "application/json");
 
       request.send(formData);
-      request.onload = async function() {
+      request.onload = async function () {
         var data = JSON.parse(this.response);
         if (data.success) {
           setName(data.nombre_o_razon_social);
@@ -732,7 +760,6 @@ export default ({ setPageTitle }) => {
     }
   };
 
-
   React.useEffect(() => {
     /*This effect is for keeping track inf the changes the other options after you search bu cod invetario*/
 
@@ -747,6 +774,24 @@ export default ({ setPageTitle }) => {
       setCode(null);
     }
   }, [subFamilyId, modelId, elementId, familyId]);
+
+  const statusValidationModal = React.useMemo(() => {
+    const discountTransactionId =
+      proforma?.discountProforma?.id || proforma?.discountValidationId;
+    if (
+      discountTransactionId &&
+      proforma.status === "PENDING_DISCOUNT_APPROVAL"
+    ) {
+      return {
+        discountTransactionId,
+        status: proforma.status,
+      };
+    }
+    return {
+      discountTransactionId: null,
+      status: null,
+    };
+  }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
 
   return (
     <>
@@ -1189,26 +1234,29 @@ export default ({ setPageTitle }) => {
               type="number"
               min={0}
               onChange={(event) => {
-                console.log("onchange");
+                // console.log("onchange");
                 setDiscount(event.target.value);
                 setDiscountPercentage(
                   // (
                   //   (parseFloat(event.target.value || "0") * 100) /
                   //   totalPrice
                   // ).toFixed(2)
-                  (parseFloat(event.target.value || "0") * 100) / totalPrice
+                  (
+                    (parseFloat(event.target.value ?? 0) * 100) /
+                    totalPrice
+                  ).toFixed(2)
                 );
               }}
-            // onBlur={(event) => {
-            //   console.log('blur')
-            //   setDiscount(parseFloat(event.target.value || "0").toFixed(2));
-            //   setDiscountPercentage(
-            //     (
-            //       (parseFloat(event.target.value || "0") * 100) /
-            //       totalPrice
-            //     ).toFixed(2)
-            //   );
-            // }}
+              // onBlur={(event) => {
+              //   console.log('blur')
+              //   setDiscount(parseFloat(event.target.value || "0").toFixed(2));
+              //   setDiscountPercentage(
+              //     (
+              //       (parseFloat(event.target.value || "0") * 100) /
+              //       totalPrice
+              //     ).toFixed(2)
+              //   );
+              // }}
             />
             <Input
               addonBefore="%"
@@ -1222,27 +1270,66 @@ export default ({ setPageTitle }) => {
                   //   (parseFloat(event.target.value || "0") * totalPrice) /
                   //   100
                   // ).toFixed(2)
-                  (parseFloat(event.target.value || "0") * totalPrice) / 100
+                  (
+                    (parseFloat(event.target.value ?? 0) * totalPrice) /
+                    100
+                  ).toFixed(4)
                 );
                 setDiscountPercentage(event.target.value);
               }}
-            // onBlur={(event) => {
-            //   setDiscount(
-            //     (
-            //       (parseFloat(event.target.value || "0") * totalPrice) /
-            //       100
-            //     ).toFixed(2)
-            //   );
-            //   setDiscountPercentage(
-            //     parseFloat(event.target.value || "0").toFixed(2)
-            //   );
-            // }}
+              // onBlur={(event) => {
+              //   setDiscount(
+              //     (
+              //       (parseFloat(event.target.value || "0") * totalPrice) /
+              //       100
+              //     ).toFixed(2)
+              //   );
+              //   setDiscountPercentage(
+              //     parseFloat(event.target.value || "0").toFixed(2)
+              //   );
+              //   );
+              // }}
             />
             <Input disabled value={finalPrice} addonBefore="Total Final S/" />
             <br />
           </Grid>
         </Grid>
+        {/* <Modal /> */}
+        <ModalValidateDiscount
+          // isModalOpen={true || isModalDiscountOpen}
+          qr={statusValidationModal.discountTransactionId}
+          // qr={
+          //   typeof window !== "undefined" &&
+          //   `${
+          //     window.location.host.includes("localhost") ? "http" : "https"
+          //   }://${window.location.host}/proformas/validate/${
+          //     statusValidationModal.discountTransactionId
+          //   }`
+          // }
+          isModalOpen={isModalDiscountOpen}
+          onOk={() => setIsModalDiscountOpen((prev) => !prev)}
+          onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
+        />
+        {/* {<Modal open={!!proforma}>Test</Modal>} */}
       </Container>
+      {statusValidationModal.discountTransactionId &&
+        statusValidationModal.status && (
+          <Alert
+            message="Warning"
+            description="Proforma pendiente de aprobacion de descuento"
+            type="warning"
+            action={
+              <Button
+                onClick={() => setIsModalDiscountOpen(true)}
+                size="middle"
+                danger
+              >
+                Ver QR
+              </Button>
+            }
+            showIcon
+          />
+        )}
     </>
   );
 };

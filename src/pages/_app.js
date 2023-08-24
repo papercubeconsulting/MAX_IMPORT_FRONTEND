@@ -3,17 +3,45 @@ import { useGlobal } from "reactn";
 import { BaseLayout } from "../components";
 import { createGlobalStyle } from "styled-components";
 import stylesheet from "antd/dist/antd.min.css";
+import { useRouter } from "next/router";
+import { route } from "next/dist/next-server/server/router";
 
 export default ({ Component, pageProps }) => {
   const [title, setTitle] = useState(null);
   const [showButton, setShowButton] = useState(false);
+  const router = useRouter();
 
   const [, setGlobalAuthUser] = useGlobal("authUser");
 
   useEffect(() => {
     const localAuthUser = localStorage.getItem("authUser") || null;
+    if (!localAuthUser) {
+      router.push("/");
+    }
+
     setGlobalAuthUser(JSON.parse(localAuthUser));
   }, []);
+
+
+  useEffect(() => {
+    if (router.asPath !== "/") {
+      localStorage.setItem("previousPath", router.asPath);
+    }
+  }, [router.asPath]);
+
+  if (Component.isPdf) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
+        <GlobalStyle />
+        <Component
+          setShowButton={setShowButton}
+          setPageTitle={setTitle}
+          {...pageProps}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -102,4 +130,17 @@ const GlobalStyle = createGlobalStyle`
   .ant_green_color {
     background-color: green
   }
+
+  /* This css is for styling the header of the max import table */
+  .pdfProforma
+  .ant-table
+    .ant-table-container
+    .ant-table-content
+    table
+    thead.ant-table-thead
+    .ant-table-cell {
+    background-color: #ed7204;
+  }
+
+
 `;

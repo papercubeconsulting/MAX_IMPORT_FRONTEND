@@ -152,7 +152,7 @@ export const baseProvider = {
         accept: " */*",
         Authorization: `Bearer ${token}`,
       },
-      responseType: "blob"
+      responseType: "blob",
     });
 
     const responseJson = await response.json();
