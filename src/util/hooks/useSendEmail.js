@@ -78,7 +78,7 @@ export const useSendEmailProforma = ({ proforma, proformaId }) => {
 
         let a = document.createElement("a");
         a.href = pdfURL;
-        a.download = `Proforma N°${proformaId} - ${new Date().toISOString()}`;
+        a.download = `Proforma N°${proformaId} - ${new Date().toISOString()}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
