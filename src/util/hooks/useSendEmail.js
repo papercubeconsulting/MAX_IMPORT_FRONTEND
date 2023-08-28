@@ -92,9 +92,6 @@ export const useSendEmailProforma = ({ proforma, proformaId }) => {
             // console.log();
           },
         });
-        // console.log({ pdfURL });
-        // // console.log({ pdfURL });
-        // window.open(pdfURL, "_blank");
         setLoading(false);
       }
     } catch (error) {
