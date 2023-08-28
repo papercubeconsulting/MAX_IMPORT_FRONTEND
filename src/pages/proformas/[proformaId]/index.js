@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getProforma, sendEmail } from "../../../providers";
+import { getProforma, postProforma, sendEmail } from "../../../providers";
 import { get } from "lodash";
 import { MailOutlined, MailFilled } from "@ant-design/icons";
 import { Input, Table, Modal, Alert, notification, Spin } from "antd";
@@ -110,6 +110,32 @@ export default ({ setPageTitle }) => {
 
   const [api, contextHolder] = notification.useNotification();
 
+  const handleOnRenovar = async () => {
+    try {
+      const postData = {
+        clientId: get(proforma, "client.id"),
+        efectivo: 0, // remember: this will default the credit to the total final , credtit + efectivo
+        discount: 0,
+        proformaProducts: proforma.proformaProducts.map((proformaProduct) => ({
+          productId: get(proformaProduct, "product.id", null),
+          unitPrice: Math.round(
+            get(proformaProduct, "product.suggestedPrice", 0)
+          ),
+          //unitPrice: price,
+          quantity: get(proformaProduct, "quantity", null),
+        })),
+      };
+
+      const response = await postProforma(postData);
+
+      router.push(`/proformas/${response.id}`);
+    } catch (error) {
+      notification.error({
+        message: error.message,
+      });
+    }
+  };
+
   //costumizadas por JM
   const [proforma, setProforma] = useState(null);
   const [windowHeight, setWindowHeight] = useState(0);
@@ -167,10 +193,7 @@ export default ({ setPageTitle }) => {
   const isProformaPendingDiscountValidation =
     proforma?.status === "PENDING_DISCOUNT_APPROVAL";
 
-
-
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
-
   return (
     <>
       <Modal
@@ -316,11 +339,21 @@ export default ({ setPageTitle }) => {
             <br />
             <Button
               type="primary"
-              disabled={proforma?.status === "CLOSED"}
+              disabled={
+                proforma?.status === "CLOSED" || proforma?.status === "EXPIRED"
+              }
               onClick={async () => router.push(`/proforma?id=${proformaId}`)}
             >
-              EDITAR
+              Editar
             </Button>
+            {proforma?.status === "EXPIRED" && (
+              <>
+                <br />
+                <Button type="primary" onClick={handleOnRenovar}>
+                  Renovar
+                </Button>
+              </>
+            )}
             <br />
             {proforma ? (
               <>
@@ -328,21 +361,27 @@ export default ({ setPageTitle }) => {
                   // type="dashed"
                   loading={loadingEmail}
                   icon={<MailOutlined />}
-                  disabled={proforma?.status === "PENDING_DISCOUNT_APPROVAL"}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
                   onClick={() => setIsEmailModalOpen(true)}
                   // onClick={handleSendEmail}
                 >
-                  VISTA PREVIA E-MAIL
+                  Vista previa e-mail
                 </Button>
                 <br />
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
                   icon={<MailOutlined />}
-                  disabled={proforma?.status === "PENDING_DISCOUNT_APPROVAL"}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
                   onClick={handleSendEmail}
                 >
-                  ENVIAR E-MAIL
+                  Enviar e-mail
                 </Button>
               </>
             ) : (
