@@ -15,6 +15,10 @@ module.exports = withCSS({
             key: "X-Frame-Options",
             value: "SAMEORIGIN", // Set your desired value here
           },
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'",
+          },
         ],
       },
     ];
