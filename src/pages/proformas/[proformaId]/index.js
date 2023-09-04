@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
 import { getProforma, postProforma, sendEmail } from "../../../providers";
 import { get } from "lodash";
-import { MailOutlined, MailFilled } from "@ant-design/icons";
+import { MailOutlined, MailFilled, DownloadOutlined } from "@ant-design/icons";
 import { Input, Table, Modal, Alert, notification, Spin } from "antd";
 import { ModalValidateDiscount } from "../../../components/proforma/ModalValidateDiscount";
 import { getLocalHostWithPath } from "../../../util";
@@ -144,6 +144,7 @@ export default ({ setPageTitle }) => {
     setLoading,
     handleSendEmail,
     bodyUrlPDF,
+    handleDownloadEmail,
   } = useSendEmailProforma({
     proforma,
     proformaId,
@@ -368,7 +369,21 @@ export default ({ setPageTitle }) => {
                   onClick={() => setIsEmailModalOpen(true)}
                   // onClick={handleSendEmail}
                 >
-                  Vista previa e-mail
+                  Vista previa proforma
+                </Button>
+                <br />
+                <Button
+                  // type="dashed"
+                  loading={loadingEmail}
+                  icon={<DownloadOutlined />}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
+                  onClick={handleDownloadEmail}
+                  // onClick={handleSendEmail}
+                >
+                  Descargar proforma
                 </Button>
                 <br />
                 <Button
