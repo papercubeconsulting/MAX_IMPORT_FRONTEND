@@ -37,11 +37,11 @@ export const useSendEmailProforma = ({ proforma, proformaId }) => {
   };
 
   const downloadPDF = async () => {
-    const sendEmailProformaApi = `proformas/${proformaId}/pdf`;
+    const sendEmailProformaApi = `proformas/${proformaId}/downloadpdf`;
     const token = await getToken();
     // remote the last ?
     const url = buildUrl(sendEmailProformaApi).slice(0, -1);
-    const bodyUrl = getLocalHostWithPath(`/proformas/${proformaId}/downloadpdf`);
+    const bodyUrl = getLocalHostWithPath(`/proformas/${proformaId}/pdf`);
     const response = await fetch(url, {
       method: "POST",
       body: JSON.stringify({ url: bodyUrl }),
