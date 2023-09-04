@@ -70,8 +70,8 @@ export const ProformaPdf = () => {
       key: index,
       cantidad: producto?.quantity,
       descripcion: producto?.product.tradename || "",
-      punit: producto?.product.unitPrice / 100 ?? "Precio no encontrado",
-      importe: (producto?.product.unitPrice / 100) * producto?.quantity,
+      punit: producto?.unitPrice / 100 ?? "Precio no encontrado",
+      importe: (producto?.unitPrice / 100) * producto?.quantity,
     };
   });
 
