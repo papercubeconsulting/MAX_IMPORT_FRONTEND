@@ -397,7 +397,7 @@ export const ProformaPdf = () => {
           </ProformAccountWrapper>
           <ProformAccountWrapper className="proforma-bank-account-type">
             <div className="proforma-bank-title">
-              MAX IMPORTACIONES E.I.R.L.
+              M&X IMPORTACIONES E.I.R.L.
             </div>
             <AccountNumber>
               <div>BCP SOLES: 191-2444280-0-96</div>
