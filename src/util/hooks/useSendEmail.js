@@ -95,7 +95,7 @@ export const useSendEmailProforma = ({ proforma, proformaId }) => {
         setLoading(true);
         const url = getLocalHostWithPath(`/proformas/${proformaId}/pdf`);
         const response = await sendEmail(proformaId, url);
-        const file = await response.blob();
+        /* const file = await response.blob();
         const pdfURL = URL.createObjectURL(file);
 
         let a = document.createElement("a");
@@ -104,7 +104,7 @@ export const useSendEmailProforma = ({ proforma, proformaId }) => {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(pdfURL);
+        URL.revokeObjectURL(pdfURL); */
 
         notification.open({
           message: "E-mail enviado!",
