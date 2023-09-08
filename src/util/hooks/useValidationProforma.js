@@ -44,7 +44,7 @@ export const useValidationProforma = (transactionId) => {
         ...prev,
         proforma: {
           ...prev.proforma,
-          discountPercentage: inputValue,
+          discountPercentage: inputValue / 100,
           discount,
           total,
         },

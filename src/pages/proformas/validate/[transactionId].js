@@ -181,7 +181,9 @@ export default () => {
                 >
                   <Statistic
                     title="Descuento %"
-                    value={validationInfoStatus.proforma.discountPercentage}
+                    value={Number(
+                      validationInfoStatus.proforma.discountPercentage * 100
+                    ).toFixed(2)}
                     precision={2}
                     valueStyle={{ color: "yellowgreen" }}
                     // prefix={<ArrowDownOutlined />}
