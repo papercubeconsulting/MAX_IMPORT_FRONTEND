@@ -288,7 +288,7 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
-
+  console.log({ paid, due });
   useMemo(() => {
     if (queryParams.id) {
       setLoadingSearchClient(true);
@@ -311,8 +311,8 @@ export default ({ setPageTitle }) => {
             setProvinceId(_proforma.client.provinceId);
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
-            setPaid((_proforma.efectivo / 100).toFixed(2));
-            // setDue(_proforma.credit/100)
+            // setPaid((_proforma.efectivo / 100).toFixed(2));
+            setDue((_proforma.credit / 100).toFixed(2));
             setproformaProducts(
               _proforma.proformaProducts.map((proformaProduct) => {
                 return {
