@@ -440,6 +440,7 @@ export const ProformaPdf = () => {
             display: "flex",
             flexDirection: "column",
             fontSize: "16px",
+            paddingRight: "50px",
             // width: "100%",
             flex: "1",
             fontWeight: 600,
