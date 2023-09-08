@@ -72,8 +72,7 @@ export default () => {
   }, [errorSubmitValidation?.message, successSubmitValidation]);
 
   const isAlreadyAproved = validationInfoStatus?.userId;
-  console.log(isLoading);
-  console.log({ validationInfoStatus });
+
   if (isLoading) {
     return (
       <Wrapper>

@@ -288,7 +288,6 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
-  //
 
   useMemo(() => {
     if (queryParams.id) {
@@ -442,7 +441,7 @@ export default ({ setPageTitle }) => {
     );
 
     return _totalPrice;
-  }, [proformaProducts.length]);
+  }, [proformaProducts]);
   // console.log({ totalPrice, discountPercentage, discount });
   useEffect(() => {
     setFinalPrice((totalPrice * (1 - discountPercentage / 100)).toFixed(2));
@@ -455,13 +454,14 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     // setDue((finalPrice - paid).toFixed(2));
     // setPaid(finalPrice)
-    setDue((finalPrice - paid).toFixed(2));
+    // setDue((finalPrice - paid).toFixed(2));
+    setPaid((finalPrice - due).toFixed(2));
     // console.log('finalPrices',finalPrice)
-  }, [finalPrice]);
+  }, [finalPrice, paid]);
 
   useEffect(() => {
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
-  }, [totalPrice]);
+  }, [totalPrice, discountPercentage]);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
