@@ -391,7 +391,7 @@ export const ProformaPdf = () => {
               <input type="checkbox" />
             </AccountNumber>
             <AccountNumber>
-              <div>BBVA SOLES: 0011-0609-0100003520</div>
+              <div>BBVA SOLES: 0011-0609-0100052200</div>
               <input type="checkbox" />
             </AccountNumber>
           </ProformAccountWrapper>
