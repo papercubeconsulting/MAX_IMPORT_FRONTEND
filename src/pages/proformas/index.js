@@ -420,6 +420,7 @@ export default ({ setPageTitle }) => {
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
+          rowKey="id"
           pagination={pagination}
           expandable={{
             expandedRowRender: (record) => {
@@ -444,7 +445,11 @@ export default ({ setPageTitle }) => {
                         } (User ID: ${item.userId})`}
                         description={`Monto S/ ${(
                           Number(item.approvedDiscount) / 100
-                        ).toFixed(2)}`}
+                        ).toFixed(2)} Fecha: ${new Date(
+                          item.updatedAt
+                        ).toLocaleDateString("es-PE", {
+                          timeZone: "America/Lima",
+                        })}`}
                       />
                     </List.Item>
                   )}
@@ -452,7 +457,11 @@ export default ({ setPageTitle }) => {
               );
             },
             rowExpandable: (record) => {
-              console.log({ record });
+              console.log({
+                rowExpandable:
+                  record?.discountProformas?.filter((d) => d.userId !== null)
+                    .length > 0,
+              });
               return (
                 record?.discountProformas?.filter((d) => d.userId !== null)
                   .length > 0
