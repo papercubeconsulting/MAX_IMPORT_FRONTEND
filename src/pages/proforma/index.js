@@ -169,7 +169,7 @@ export default ({ setPageTitle }) => {
       dataIndex: "id",
       align: "center",
       render: (id, row) =>
-        `S/ ${(
+        `S/ ${' '(
           get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
         ).toFixed(2)}`,
     },

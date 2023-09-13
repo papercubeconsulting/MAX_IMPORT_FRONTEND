@@ -71,14 +71,14 @@ export default ({ setPageTitle }) => {
       dataIndex: "unitPrice",
       width: "fit-content",
       align: "center",
-      render: (unitPrice) => `S/.${(unitPrice / 100).toFixed(2)}`,
+      render: (unitPrice) => `S/ ${(unitPrice / 100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
       dataIndex: "subtotal",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
+      render: (subtotal) => `S/ ${(subtotal / 100).toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
@@ -316,9 +316,9 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.efectivo
-                  ? `S/.${(proforma?.efectivo / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.efectivo / 100).toFixed(2)}`
                   : proforma?.sale?.due
-                  ? `S/.${(proforma?.sale.due / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.sale.due / 100).toFixed(2)}`
                   : `-`
               }
               disabled
@@ -329,9 +329,9 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.credit
-                  ? `S/.${(proforma?.credit / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.credit / 100).toFixed(2)}`
                   : proforma?.sale?.credit
-                  ? `S/.${(proforma?.sale.credit / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.sale.credit / 100).toFixed(2)}`
                   : `-`
               }
               disabled
@@ -407,8 +407,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.subtotal
-                  ? `S/.${(proforma.subtotal / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.subtotal / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Total"
@@ -417,8 +417,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.discount
-                  ? `S/.${(proforma.discount / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.discount / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Descuento"
@@ -436,8 +436,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.total
-                  ? `S/.${(proforma.total / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.total / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Total Final"
