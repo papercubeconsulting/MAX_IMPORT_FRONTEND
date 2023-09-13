@@ -288,7 +288,7 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
-  console.log({ paid, due });
+
   useMemo(() => {
     if (queryParams.id) {
       setLoadingSearchClient(true);
@@ -443,21 +443,14 @@ export default ({ setPageTitle }) => {
     return _totalPrice;
   }, [proformaProducts]);
   // console.log({ totalPrice, discountPercentage, discount });
+
   useEffect(() => {
-    setFinalPrice((totalPrice * (1 - discountPercentage / 100)).toFixed(2));
+    const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
+      2
+    );
+    setFinalPrice(newFinalPrice);
   }, [totalPrice, discountPercentage]);
 
-  // useEffect(() => {
-  //   setFinalPrice((totalPrice - discount).toFixed(2));
-  // }, [totalPrice, discount]);
-
-  useEffect(() => {
-    // setDue((finalPrice - paid).toFixed(2));
-    // setPaid(finalPrice)
-    // setDue((finalPrice - paid).toFixed(2));
-    setPaid((finalPrice - due).toFixed(2));
-    // console.log('finalPrices',finalPrice)
-  }, [finalPrice, paid]);
 
   useEffect(() => {
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
@@ -1236,27 +1229,19 @@ export default ({ setPageTitle }) => {
               onChange={(event) => {
                 // console.log("onchange");
                 setDiscount(event.target.value);
-                setDiscountPercentage(
-                  // (
-                  //   (parseFloat(event.target.value || "0") * 100) /
-                  //   totalPrice
-                  // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value ?? 0) * 100) /
-                    totalPrice
-                  ).toFixed(2)
-                );
+                const discountPercentage = (
+                  (parseFloat(event.target.value ?? 0) * 100) /
+                  totalPrice
+                ).toFixed(2);
+                const newFinalPrice = (
+                  totalPrice *
+                  (1 - discountPercentage / 100)
+                ).toFixed(2);
+                setPaid(newFinalPrice);
+                setDue(0);
+
+                setDiscountPercentage(discountPercentage);
               }}
-              // onBlur={(event) => {
-              //   console.log('blur')
-              //   setDiscount(parseFloat(event.target.value || "0").toFixed(2));
-              //   setDiscountPercentage(
-              //     (
-              //       (parseFloat(event.target.value || "0") * 100) /
-              //       totalPrice
-              //     ).toFixed(2)
-              //   );
-              // }}
             />
             <Input
               addonBefore="%"
@@ -1265,6 +1250,12 @@ export default ({ setPageTitle }) => {
               min={0}
               max={100}
               onChange={(event) => {
+                const newFinalPrice = (
+                  totalPrice *
+                  (1 - event.target.value / 100)
+                ).toFixed(2);
+                setPaid(newFinalPrice);
+                setDue(0);
                 setDiscount(
                   // (
                   //   (parseFloat(event.target.value || "0") * totalPrice) /
