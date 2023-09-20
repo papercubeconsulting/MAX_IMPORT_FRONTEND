@@ -180,7 +180,7 @@ export default ({ setPageTitle }) => {
 
     initialize();
   }, []);
-  console.log({ proformas });
+
   //Se buscan segun queryParams
   useEffect(() => {
     const fetchProformas = async () => {
@@ -428,7 +428,6 @@ export default ({ setPageTitle }) => {
                 record?.discountProformas?.filter(
                   (discount) => discount.userId
                 );
-              console.log({ discountProformasApproved });
               // return <p>hola</p>
               return (
                 <List

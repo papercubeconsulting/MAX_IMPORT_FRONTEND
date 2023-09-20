@@ -196,6 +196,7 @@ export default ({ setPageTitle }) => {
   const fetchProducts = async () => {
     try {
       const _products = await getProducts(queryParams);
+      console.log({_products})
       setTotalItems(_products.length);
       setPagination({
         position: ["bottomCenter"],

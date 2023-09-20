@@ -311,7 +311,7 @@ export default ({ setPageTitle }) => {
             setProvinceId(_proforma.client.provinceId);
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
-            // setPaid((_proforma.efectivo / 100).toFixed(2));
+            setPaid((_proforma.efectivo / 100).toFixed(2));
             setDue((_proforma.credit / 100).toFixed(2));
             setproformaProducts(
               _proforma.proformaProducts.map((proformaProduct) => {
@@ -329,8 +329,10 @@ export default ({ setPageTitle }) => {
               })
             );
 
-            setDiscount(_proforma.discount / 100);
-            setDiscountPercentage((_proforma.discountPercentage ?? 0) * 100);
+            setDiscount((_proforma.discount / 100).toFixed(2));
+            setDiscountPercentage(
+              ((_proforma.discountPercentage ?? 0) * 100).toFixed(2)
+            );
             // setDiscountPercentage(
             //   (
             //     (parseFloat(_proforma.discount ?? 0) * 100) /
@@ -442,7 +444,6 @@ export default ({ setPageTitle }) => {
 
     return _totalPrice;
   }, [proformaProducts]);
-  // console.log({ totalPrice, discountPercentage, discount });
 
   useEffect(() => {
     const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
@@ -450,10 +451,11 @@ export default ({ setPageTitle }) => {
     );
     setFinalPrice(newFinalPrice);
   }, [totalPrice, discountPercentage]);
-
   useEffect(() => {
+    // BUG HERE
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
-  }, [totalPrice, discountPercentage]);
+    // }, [totalPrice, discountPercentage]);
+  }, [totalPrice]);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -1104,6 +1106,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
+          rowKey="id"
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
@@ -1229,8 +1232,7 @@ export default ({ setPageTitle }) => {
                 // console.log("onchange");
                 setDiscount(event.target.value);
                 const discountPercentage = (
-                  (parseFloat(event.target.value ?? 0) * 100) /
-                  totalPrice
+                  (parseFloat(event.target.value ?? 0) * 100) / totalPrice || 0
                 ).toFixed(2);
                 const newFinalPrice = (
                   totalPrice *
@@ -1263,7 +1265,7 @@ export default ({ setPageTitle }) => {
                   (
                     (parseFloat(event.target.value ?? 0) * totalPrice) /
                     100
-                  ).toFixed(4)
+                  ).toFixed(2)
                 );
                 setDiscountPercentage(event.target.value);
               }}
