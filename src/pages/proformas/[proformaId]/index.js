@@ -107,20 +107,21 @@ export default ({ setPageTitle }) => {
       ),
     },
   ];
-
   const [api, contextHolder] = notification.useNotification();
-
   const handleOnRenovar = async () => {
     try {
       const postData = {
         clientId: get(proforma, "client.id"),
-        efectivo: 0, // remember: this will default the credit to the total final , credtit + efectivo
-        discount: 0,
+        efectivo: (Number(get(proforma, "efectivo")) / 100).toFixed(2), // remember: this will default the credit to the total final , credtit + efectivo
+        // discount: Math.roundNumber(get(proforma, "discount")), // remember: this will default the credit to the total final , credtit + efectivo
+        // discount: Math.round(
+        // //   Number(get(proforma, "total")) *
+        // //     Number(get(proforma, "discountPercentage"))
+        // // ),
+        discount: get(proforma, "discount"),
         proformaProducts: proforma.proformaProducts.map((proformaProduct) => ({
           productId: get(proformaProduct, "product.id", null),
-          unitPrice: Math.round(
-            get(proformaProduct, "product.suggestedPrice", 0)
-          ),
+          unitPrice: Math.round(get(proformaProduct, "unitPrice", 0)),
           //unitPrice: price,
           quantity: get(proformaProduct, "quantity", null),
         })),
