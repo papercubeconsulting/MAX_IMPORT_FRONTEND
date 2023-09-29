@@ -450,11 +450,19 @@ export default ({ setPageTitle }) => {
       2
     );
     setFinalPrice(newFinalPrice);
+    // when any data from list producs on create proforma is changed
+    // whe default the total
+    setPaid(newFinalPrice);
+    setDue(Number(0).toFixed(2));
   }, [totalPrice, discountPercentage]);
+
   useEffect(() => {
     // BUG HERE
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
     // }, [totalPrice, discountPercentage]);
+    // if (paid === 0) {
+    // setPaid(totalPrice);
+    // }
   }, [totalPrice]);
 
   const selectOptions = (collection) =>
