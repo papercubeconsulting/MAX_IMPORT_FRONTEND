@@ -1220,7 +1220,7 @@ export default ({ setPageTitle }) => {
                 disabled={!salesActivated}
                 onClick={() => handlePayButton(2)}
               >
-                Venta No Presencial
+                Abono de cuenta
               </Button>
             </Grid>
           </Grid>
