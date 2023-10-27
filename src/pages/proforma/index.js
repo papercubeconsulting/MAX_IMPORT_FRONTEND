@@ -795,6 +795,10 @@ export default ({ setPageTitle }) => {
     };
   }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
 
+  const selectedCodigoInventario = async (code) => {
+    const _products = await getProducts({ code });
+  };
+
   return (
     <>
       <Modal
@@ -872,12 +876,9 @@ export default ({ setPageTitle }) => {
             value={modelId}
             label="Modelo"
             onChange={async (value) => {
-              /*Cause in this part we're setting the proudct, if in the secion "Buscar por codigo" has some value
-              /* we need to clean setCode(null)
-              */
               setModelId(value);
               const _product = await getProduct(value, { noStock: true });
-              setCode(null);
+              setCode(_product.code);
               setProduct(_product);
             }}
             options={selectOptions(
@@ -893,7 +894,7 @@ export default ({ setPageTitle }) => {
               Cód. Inventario
             </span>
             <AutoCompleteAntd
-              onFocus={() => resetDataModal()}
+              // onFocus={() => resetDataModal()}
               placeholder="Codigo Inventario"
               style={{ width: "300px" }}
               color={"white"}
