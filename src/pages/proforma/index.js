@@ -450,10 +450,15 @@ export default ({ setPageTitle }) => {
       2
     );
     setFinalPrice(newFinalPrice);
-    // when any data from list producs on create proforma is changed
-    // whe default the total
-    setPaid(newFinalPrice);
-    setDue(Number(0).toFixed(2));
+    // if it's the same then due and paid it's equal to the data from db
+    // other wise, we update setPaid with newFinalPrice and due to 0
+    const isSameSubtotal =
+      (proforma?.subtotal / 100).toFixed(2) === totalPrice.toFixed(2);
+
+    if (!isSameSubtotal) {
+      setPaid(newFinalPrice);
+      setDue(Number(0).toFixed(2));
+    }
   }, [totalPrice, discountPercentage]);
 
   useEffect(() => {

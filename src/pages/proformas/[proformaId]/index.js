@@ -1,7 +1,12 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getProforma, postProforma, sendEmail } from "../../../providers";
+import {
+  getProforma,
+  postProforma,
+  resetExpireStatus,
+  sendEmail,
+} from "../../../providers";
 import { get } from "lodash";
 import { MailOutlined, MailFilled, DownloadOutlined } from "@ant-design/icons";
 import { Input, Table, Modal, Alert, notification, Spin } from "antd";
@@ -110,26 +115,28 @@ export default ({ setPageTitle }) => {
   const [api, contextHolder] = notification.useNotification();
   const handleOnRenovar = async () => {
     try {
-      const postData = {
-        clientId: get(proforma, "client.id"),
-        efectivo: (Number(get(proforma, "efectivo")) / 100).toFixed(2), // remember: this will default the credit to the total final , credtit + efectivo
-        // discount: Math.roundNumber(get(proforma, "discount")), // remember: this will default the credit to the total final , credtit + efectivo
-        // discount: Math.round(
-        // //   Number(get(proforma, "total")) *
-        // //     Number(get(proforma, "discountPercentage"))
-        // // ),
-        discount: get(proforma, "discount"),
-        proformaProducts: proforma.proformaProducts.map((proformaProduct) => ({
-          productId: get(proformaProduct, "product.id", null),
-          unitPrice: Math.round(get(proformaProduct, "unitPrice", 0)),
-          //unitPrice: price,
-          quantity: get(proformaProduct, "quantity", null),
-        })),
-      };
+      // const postData = {
+      //   clientId: get(proforma, "client.id"),
+      //   efectivo: (Number(get(proforma, "efectivo")) / 100).toFixed(2), // remember: this will default the credit to the total final , credtit + efectivo
+      //   // discount: Math.roundNumber(get(proforma, "discount")), // remember: this will default the credit to the total final , credtit + efectivo
+      //   // discount: Math.round(
+      //   // //   Number(get(proforma, "total")) *
+      //   // //     Number(get(proforma, "discountPercentage"))
+      //   // // ),
+      //   discount: get(proforma, "discount"),
+      //   proformaProducts: proforma.proformaProducts.map((proformaProduct) => ({
+      //     productId: get(proformaProduct, "product.id", null),
+      //     unitPrice: Math.round(get(proformaProduct, "unitPrice", 0)),
+      //     //unitPrice: price,
+      //     quantity: get(proformaProduct, "quantity", null),
+      //   })),
+      // };
 
-      const response = await postProforma(postData);
+      // const response = await postProforma(postData);
 
-      router.push(`/proformas/${response.id}`);
+      const resonse = await resetExpireStatus(proformaId);
+
+      router.push(`/proformas/${proformaId}`);
     } catch (error) {
       notification.error({
         message: error.message,
