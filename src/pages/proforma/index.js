@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import Big from "big.js";
 import { useRouter } from "next/router";
 import {
   Button,
@@ -438,7 +439,7 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-          get(proformaProduct, "product.suggestedPrice", 0),
+        get(proformaProduct, "product.suggestedPrice", 0),
       0
     );
 
@@ -734,7 +735,7 @@ export default ({ setPageTitle }) => {
       request.setRequestHeader("Accept", "application/json");
 
       request.send(formData);
-      request.onload = async function () {
+      request.onload = async function() {
         var data = JSON.parse(this.response);
         if (data.success) {
           setName(data.nombre_o_razon_social);
@@ -1265,36 +1266,51 @@ export default ({ setPageTitle }) => {
               min={0}
               max={100}
               onChange={(event) => {
-                const newFinalPrice = (
-                  totalPrice *
-                  (1 - event.target.value / 100)
-                ).toFixed(2);
-                setPaid(newFinalPrice);
+                console.log(event.target.value);
+                const value =
+                  event.target.value === "" ? 0 : event.target.value;
+                const discountPercentage = new Big(value).div(100);
+                const newFinalPrice = new Big(totalPrice).times(
+                  new Big(1).minus(discountPercentage)
+                );
+                // const newFinalPrice = (
+                //   totalPrice *
+                //   (1 - event.target.value / 100)
+                // ).toFixed(2);
+                console.log({
+                  newFinalPrice: newFinalPrice.toNumber(),
+                  toApply: new Big(1).minus(discountPercentage).toNumber(),
+                  totalPrice,
+                  discountPercentage: discountPercentage.toNumber(),
+                  value: event.target.value,
+                });
+                setPaid(newFinalPrice.round(2, Big.roundHalfUp));
                 setDue(0);
                 setDiscount(
+                  new Big(totalPrice).minus(newFinalPrice).toNumber()
                   // (
                   //   (parseFloat(event.target.value || "0") * totalPrice) /
                   //   100
                   // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value ?? 0) * totalPrice) /
-                    100
-                  ).toFixed(2)
+                  // (
+                  //   (parseFloat(event.target.value ?? 0) * totalPrice) /
+                  //   100
+                  // ).toFixed(2)
                 );
                 setDiscountPercentage(event.target.value);
               }}
-              // onBlur={(event) => {
-              //   setDiscount(
-              //     (
-              //       (parseFloat(event.target.value || "0") * totalPrice) /
-              //       100
-              //     ).toFixed(2)
-              //   );
-              //   setDiscountPercentage(
-              //     parseFloat(event.target.value || "0").toFixed(2)
-              //   );
-              //   );
-              // }}
+            // onBlur={(event) => {
+            //   setDiscount(
+            //     (
+            //       (parseFloat(event.target.value || "0") * totalPrice) /
+            //       100
+            //     ).toFixed(2)
+            //   );
+            //   setDiscountPercentage(
+            //     parseFloat(event.target.value || "0").toFixed(2)
+            //   );
+            //   );
+            // }}
             />
             <Input disabled value={finalPrice} addonBefore="Total Final S/" />
             <br />
