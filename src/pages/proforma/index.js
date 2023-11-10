@@ -578,7 +578,9 @@ export default ({ setPageTitle }) => {
           message: "Proforma actualizada correctamente",
         });
         // console.log({ _response });
-        const validateProformaTransactionId = _response.discountValidationId;
+        const validateProformaTransactionId =
+          _response?.discountValidationId ||
+          _response.discountProformas?.[0]?.id;
         // console.log({ validateProformaTransactionId });
         // setDiscountUrlValidation(validateProformaTransactionId);
         // if (validateProformaTransactionId) {
@@ -783,9 +785,13 @@ export default ({ setPageTitle }) => {
     }
   }, [subFamilyId, modelId, elementId, familyId]);
 
+  const discountValidationId = proforma?.discountProformas?.[0]?.id;
+
   const statusValidationModal = React.useMemo(() => {
     const discountTransactionId =
-      proforma?.discountProforma?.id || proforma?.discountValidationId;
+      proforma?.discountProforma?.id ||
+      proforma?.discountValidationId ||
+      discountValidationId;
     if (
       discountTransactionId &&
       proforma.status === "PENDING_DISCOUNT_APPROVAL"
@@ -799,7 +805,12 @@ export default ({ setPageTitle }) => {
       discountTransactionId: null,
       status: null,
     };
-  }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
+  }, [
+    proforma?.discountProforma?.id,
+    proforma?.status,
+    isModalDiscountOpen,
+    discountValidationId,
+  ]);
 
   const selectedCodigoInventario = async (code) => {
     const _products = await getProducts({ code });
@@ -1193,6 +1204,14 @@ export default ({ setPageTitle }) => {
                   );
                 }}
                 onBlur={(event) => {
+                  if (
+                    Math.abs(event.target.value) + Math.abs(paid) >
+                    Math.abs(finalPrice)
+                  ) {
+                    setDue(finalPrice);
+                    setPaid("0");
+                    return;
+                  }
                   setDue(parseFloat(event.target.value || "0").toFixed(2));
                   //TODO: Due no puede ser mayor a finalPrice
                   setPaid(
@@ -1266,10 +1285,14 @@ export default ({ setPageTitle }) => {
               min={0}
               max={100}
               onChange={(event) => {
-                console.log(event.target.value);
                 const value =
                   event.target.value === "" ? 0 : event.target.value;
-                const discountPercentage = new Big(value).div(100);
+                let discountPercentage = new Big(value).div(100);
+                if (discountPercentage > 1) {
+                  discountPercentage = new Big(1);
+                  event.target.value = "100.00";
+                }
+
                 const newFinalPrice = new Big(totalPrice).times(
                   new Big(1).minus(discountPercentage)
                 );
@@ -1277,13 +1300,13 @@ export default ({ setPageTitle }) => {
                 //   totalPrice *
                 //   (1 - event.target.value / 100)
                 // ).toFixed(2);
-                console.log({
-                  newFinalPrice: newFinalPrice.toNumber(),
-                  toApply: new Big(1).minus(discountPercentage).toNumber(),
-                  totalPrice,
-                  discountPercentage: discountPercentage.toNumber(),
-                  value: event.target.value,
-                });
+                // console.log({
+                //   newFinalPrice: newFinalPrice.toNumber(),
+                //   toApply: new Big(1).minus(discountPercentage).toNumber(),
+                //   totalPrice,
+                //   discountPercentage: discountPercentage.toNumber(),
+                //   value: event.target.value,
+                // });
                 setPaid(newFinalPrice.round(2, Big.roundHalfUp));
                 setDue(0);
                 setDiscount(
