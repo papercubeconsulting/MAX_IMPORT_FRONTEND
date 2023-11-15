@@ -35,8 +35,9 @@ export const useProducts = (queryParams = {}) => {
   };
 
   React.useEffect(() => {
-    fetchProducts();
+    // dont run this at load, we will get the products after completing the fields in search
+    // fetchProducts();
   }, []);
 
-  return { products, codes, pagination, totalItems };
+  return { products, setProducts, codes, pagination, totalItems };
 };
