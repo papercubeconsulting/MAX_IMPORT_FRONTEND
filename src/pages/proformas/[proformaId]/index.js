@@ -307,6 +307,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
+          rowKey={(record) => record.id}
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered

@@ -288,6 +288,10 @@ export default ({ setPageTitle }) => {
       label: "En cotización",
     },
     {
+      value: "EXPIRED",
+      label: "Caducada",
+    },
+    {
       value: "PENDING_DISCOUNT_APPROVAL",
       label: "Pendiente de aprobacion",
     },
@@ -420,7 +424,7 @@ export default ({ setPageTitle }) => {
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
-          rowKey="id"
+          rowKey={(record) => record.id}
           pagination={pagination}
           expandable={{
             expandedRowRender: (record) => {
@@ -456,11 +460,6 @@ export default ({ setPageTitle }) => {
               );
             },
             rowExpandable: (record) => {
-              console.log({
-                rowExpandable:
-                  record?.discountProformas?.filter((d) => d.userId !== null)
-                    .length > 0,
-              });
               return (
                 record?.discountProformas?.filter((d) => d.userId !== null)
                   .length > 0

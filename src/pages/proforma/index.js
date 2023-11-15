@@ -42,6 +42,7 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
+import { useTradeNames } from "../../util/hooks/useTradeNames";
 
 export default ({ setPageTitle }) => {
   const router = useRouter();
@@ -53,9 +54,13 @@ export default ({ setPageTitle }) => {
   );
 
   /*This hooks are for handling the new autoselect property for codigo de invitarion in the modal*/
-  const { products, codes, setProducts } = useProducts();
-  const [code, setCode] = useState(null);
+  const { products, codes, setProducts, fetchProducts } = useProducts({
+    elementId: null,
+  });
 
+  const { tradeNames, setTradeNames } = useTradeNames();
+  const [code, setCode] = useState(null);
+  // console.log({ products });
   const columns = [
     {
       dataIndex: "id",
@@ -245,7 +250,7 @@ export default ({ setPageTitle }) => {
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [tradeNames, setTradenames] = useState([]);
+  // const [tradeNames, setTradenames] = useState([]);
   const [tradeName, setTradeName] = useState(null);
 
   const [windowHeight, setWindowHeight] = useState(0);
@@ -453,7 +458,7 @@ export default ({ setPageTitle }) => {
       (accumulator, proformaProduct) =>
         accumulator +
         get(proformaProduct, "quantity", 0) *
-        get(proformaProduct, "product.suggestedPrice", 0),
+          get(proformaProduct, "product.suggestedPrice", 0),
       0
     );
 
@@ -487,7 +492,7 @@ export default ({ setPageTitle }) => {
 
   const selectOptions = (collection) =>
     // console.log("collection", collection)
-    [collection, { id: null, name: "Todos" }].map((document) => ({
+    [{ id: null, name: "Todos" }, ...collection].map((document) => ({
       value: document.id,
       label: document.name,
     }));
@@ -756,7 +761,7 @@ export default ({ setPageTitle }) => {
       request.setRequestHeader("Accept", "application/json");
 
       request.send(formData);
-      request.onload = async function() {
+      request.onload = async function () {
         var data = JSON.parse(this.response);
         if (data.success) {
           setName(data.nombre_o_razon_social);
@@ -844,7 +849,7 @@ export default ({ setPageTitle }) => {
     setProducts([]);
   };
 
-  // console.log({ elements, tradeNames, product });
+  // console.log({ elements, tradeNames, product, tradeName });
 
   const prevFamiliyIdSelect = React.useRef(null);
   prevFamiliyIdSelect.current = familyId;
@@ -902,15 +907,89 @@ export default ({ setPageTitle }) => {
           </Button>,
         ]}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "12px",
+          }}
+        >
+          <span
+            className="ant-input-group-addon"
+            style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+          >
+            Nombre Comercial
+          </span>
+          <AutoCompleteAntd
+            // onFocus={() => resetDataModal()}
+            placeholder="Nombre comercial"
+            style={{ width: "100%" }}
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            value={tradeName}
+            loading={isCodInventarioLoading}
+            // disabled={isCodInventarioLoading}
+            onSelect={async (value, option) => {
+              setTradeName(value);
+              const products = await fetchProducts({
+                // noStock: true,
+                tradename: value,
+                // familyId,
+                // subfamilyId: subFamilyId,
+                // elementId,
+                // modelId: Number(value),
+              });
+
+              // console.log("u", { products });
+
+              // only one match
+              if (products.length === 1) {
+                const product = products[0];
+                setFamilyId(product.familyId);
+                setElementId(product.elementId);
+                setSubFamilyId(product.subfamilyId);
+                setModelId(product.modelId);
+              } else {
+                setFamilyId("Varios");
+                setElementId("Varios");
+                setSubFamilyId("Varios");
+                setModelId("Varios");
+              }
+
+              // setCode(value);
+              // setProduct(option.product);
+              // setFamilyId(option.product.familyId);
+              // setElementId(option.product.elementId);
+              // setModelId(option.product.modelId);
+              // setSubFamilyId(option.product.subfamilyId);
+            }}
+            onSearch={(value, option) => {
+              // console.log({
+              //   value,
+              //   product: option?.product,
+              //   type: "onSearch",
+              // });
+              setTradeName(value);
+            }}
+            options={tradeNames.map((product, index) => ({
+              value: product,
+              label: product,
+              product,
+            }))}
+            filterOption={true}
+            // filterOption={(input, option) => {
+            //   return option.value.toLowerCase().includes(input.toLowerCase());
+            // }}
+          />
+        </div>
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Select
             value={familyId}
             label="Familia"
             onChange={(value) => {
-              console.log({ familyId, current: prevFamiliyIdSelect.current });
+              // console.log({ familyId, current: prevFamiliyIdSelect.current });
               if (prevFamiliyIdSelect.current !== value) {
                 setSubFamilyId("");
-                console.log("setSubFamilyId");
               }
               setFamilyId(value);
               resetInputsInModalAddProduct();
@@ -942,18 +1021,18 @@ export default ({ setPageTitle }) => {
             value={modelId}
             label="Modelo"
             onChange={async (value) => {
-              console.log({ value });
+              // console.log({ value, familyId, subFamilyId, elementId, value });
               setModelId(value);
               setIsCodInventarioLoading(true);
-              const _products = await getProducts({
+              const _products = await fetchProducts({
                 // noStock: true,
                 familyId,
                 subfamilyId: subFamilyId,
                 elementId,
                 modelId: Number(value),
               });
-              console.log({ _products });
-              setProducts(_products.rows);
+              // console.log({ _products });
+              // setProducts(_products);
               setIsCodInventarioLoading(false);
               // const _product = await getProduct(value, { noStock: true });
               // setCode(_product.code);
@@ -963,11 +1042,11 @@ export default ({ setPageTitle }) => {
               models.filter((model) => model.elementId === elementId)
             )}
           />
-          <Input
-            addonBefore="Nombre comercial"
-            value={product.tradename}
-            disabled
-          />
+          {/* <Input */}
+          {/*   addonBefore="Nombre comercial" */}
+          {/*   value={product.tradename} */}
+          {/*   disabled */}
+          {/* /> */}
           {/* <Input addonBefore="Cód. Inventario" value={product.code} disabled /> */}
           <div style={{ display: "flex", alignItems: "center" }}>
             <span
@@ -992,6 +1071,7 @@ export default ({ setPageTitle }) => {
                 setElementId(option.product.elementId);
                 setModelId(option.product.modelId);
                 setSubFamilyId(option.product.subfamilyId);
+                setTradeName(option.product.tradename);
               }}
               onSearch={(value, option) => {
                 // console.log({
@@ -1194,7 +1274,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
-          rowKey="id"
+          rowKey={(record) => record.id}
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
@@ -1384,18 +1464,18 @@ export default ({ setPageTitle }) => {
                 );
                 setDiscountPercentage(event.target.value);
               }}
-            // onBlur={(event) => {
-            //   setDiscount(
-            //     (
-            //       (parseFloat(event.target.value || "0") * totalPrice) /
-            //       100
-            //     ).toFixed(2)
-            //   );
-            //   setDiscountPercentage(
-            //     parseFloat(event.target.value || "0").toFixed(2)
-            //   );
-            //   );
-            // }}
+              // onBlur={(event) => {
+              //   setDiscount(
+              //     (
+              //       (parseFloat(event.target.value || "0") * totalPrice) /
+              //       100
+              //     ).toFixed(2)
+              //   );
+              //   setDiscountPercentage(
+              //     parseFloat(event.target.value || "0").toFixed(2)
+              //   );
+              //   );
+              // }}
             />
             <Input disabled value={finalPrice} addonBefore="Total Final S/" />
             <br />
