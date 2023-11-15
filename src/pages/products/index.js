@@ -178,7 +178,7 @@ export default ({ setPageTitle }) => {
     setIsModalReadProductBoxCodeVisible,
   ] = useState(false);
 
-  const [isCargaMasivaVisible, setIsCargaMasivaVisible] = React.useState(false)
+  const [isCargaMasivaVisible, setIsCargaMasivaVisible] = React.useState(false);
 
   const [isDownloadFilesVisible, setIsDownloadFilesVisible] = useState(false);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
@@ -196,7 +196,7 @@ export default ({ setPageTitle }) => {
   const fetchProducts = async () => {
     try {
       const _products = await getProducts(queryParams);
-      console.log({_products})
+      console.log({ _products });
       setTotalItems(_products.length);
       setPagination({
         position: ["bottomCenter"],
@@ -207,7 +207,11 @@ export default ({ setPageTitle }) => {
         showQuickJumper: true,
       });
       setProducts(_products.rows);
-      setCodes(_products.rows.map((r) => { return { code: r.code } }))
+      setCodes(
+        _products.rows.map((r) => {
+          return { code: r.code };
+        })
+      );
     } catch (error) {
       notification.error({
         message: "Error en el servidor",
@@ -227,7 +231,7 @@ export default ({ setPageTitle }) => {
 
   const initialize = React.useCallback(async () => {
     try {
-      token.current = await getToken()
+      token.current = await getToken();
       const _families = await getFamilies();
       const _tradenames = await getTradenames();
       setTradenames(_tradenames.rows);
@@ -393,30 +397,30 @@ export default ({ setPageTitle }) => {
   };
 
   const propsModal1 = {
-    name: 'csv',
+    name: "csv",
     multiple: false,
     customRequest: async (options) => {
       const { onSuccess, onError, file } = options;
       const formData = new FormData();
-      formData.append('csv', file);
+      formData.append("csv", file);
       try {
-        const fetched = await fetch(buildUrl('products/csvUpload'), {
+        const fetched = await fetch(buildUrl("products/csvUpload"), {
           method: "POST",
           body: formData,
           headers: {
             Authorization: `Bearer ${token.current}`,
           },
         });
-        console.log('fetched', fetched, fetched.ok)
+        console.log("fetched", fetched, fetched.ok);
         if (!fetched.ok) {
-          const body = await fetched.json()
-          throw new Error(body.userMessage || body.message)
+          const body = await fetched.json();
+          throw new Error(body.userMessage || body.message);
         }
-        const response = await fetched.blob()
-        FileSaver.saveAs(response, 'Inventario.xlsx')
-        onSuccess('ok');
+        const response = await fetched.blob();
+        FileSaver.saveAs(response, "Inventario.xlsx");
+        onSuccess("ok");
       } catch (error) {
-        console.log('error', error)
+        console.log("error", error);
         notification.error({
           message: "Error procesando el archivo",
           description: error.message,
@@ -426,47 +430,53 @@ export default ({ setPageTitle }) => {
     },
     async onChange(info) {
       const { status } = info.file;
-      console.log('info')
-      if (status !== 'uploading') {
+      console.log("info");
+      if (status !== "uploading") {
         console.log(info.file, info.file.xhr, info.fileList, info.event);
       }
-      if (status === 'done') {
-        console.log('done', info.file.response)
-        await Promise.all([fetchProducts(), initialize(), fetchElements(), fetchSubfamilies(), fetchModels()])
-      } else if (status === 'error') {
-        console.log('There was an error uploading the file')
+      if (status === "done") {
+        console.log("done", info.file.response);
+        await Promise.all([
+          fetchProducts(),
+          initialize(),
+          fetchElements(),
+          fetchSubfamilies(),
+          fetchModels(),
+        ]);
+      } else if (status === "error") {
+        console.log("There was an error uploading the file");
       }
     },
     onDrop(e) {
-      console.log('Dropped files', e.dataTransfer.files);
+      console.log("Dropped files", e.dataTransfer.files);
     },
   };
 
   const propsModal2 = {
-    name: 'zip',
+    name: "zip",
     multiple: false,
     customRequest: async (options) => {
       const { onSuccess, onError, file } = options;
       const formData = new FormData();
-      formData.append('zip', file);
+      formData.append("zip", file);
       try {
-        const fetched = await fetch(buildUrl('products/images/zipUpload'), {
+        const fetched = await fetch(buildUrl("products/images/zipUpload"), {
           method: "POST",
           body: formData,
           headers: {
             Authorization: `Bearer ${token.current}`,
           },
         });
-        console.log('fetched', fetched, fetched.ok)
+        console.log("fetched", fetched, fetched.ok);
         if (!fetched.ok) {
-          const body = await fetched.json()
-          throw new Error(body.userMessage || body.message)
+          const body = await fetched.json();
+          throw new Error(body.userMessage || body.message);
         }
-        const response = await fetched.blob()
-        FileSaver.saveAs(response, 'Lista_Imagenes.xlsx')
-        onSuccess('ok');
+        const response = await fetched.blob();
+        FileSaver.saveAs(response, "Lista_Imagenes.xlsx");
+        onSuccess("ok");
       } catch (error) {
-        console.log('error', error)
+        console.log("error", error);
         notification.error({
           message: "Error procesando el archivo",
           description: error.message,
@@ -476,25 +486,36 @@ export default ({ setPageTitle }) => {
     },
     async onChange(info) {
       const { status } = info.file;
-      console.log('info')
-      if (status !== 'uploading') {
+      console.log("info");
+      if (status !== "uploading") {
         console.log(info.file, info.file.xhr, info.fileList, info.event);
       }
-      if (status === 'done') {
-        console.log('done', info.file.response)
-        await Promise.all([fetchProducts(), initialize(), fetchElements(), fetchSubfamilies(), fetchModels()])
-      } else if (status === 'error') {
-        console.log('There was an error uploading the file')
+      if (status === "done") {
+        console.log("done", info.file.response);
+        await Promise.all([
+          fetchProducts(),
+          initialize(),
+          fetchElements(),
+          fetchSubfamilies(),
+          fetchModels(),
+        ]);
+      } else if (status === "error") {
+        console.log("There was an error uploading the file");
       }
     },
     onDrop(e) {
-      console.log('Dropped files', e.dataTransfer.files);
+      console.log("Dropped files", e.dataTransfer.files);
     },
   };
 
   return (
     <>
-      <ModalCargaMasiva propsModal1={propsModal1} propsModal2={propsModal2} isVisible={isCargaMasivaVisible} closeModal={() => setIsCargaMasivaVisible(false)} />
+      <ModalCargaMasiva
+        propsModal1={propsModal1}
+        propsModal2={propsModal2}
+        isVisible={isCargaMasivaVisible}
+        closeModal={() => setIsCargaMasivaVisible(false)}
+      />
       <Modal
         visible={isVisibleModalDelete}
         width="40%"
@@ -662,6 +683,7 @@ export default ({ setPageTitle }) => {
       <br />
       <Table
         columns={columns}
+        rowKey={(record) => record.id}
         bordered
         scrollToFirstRowOnChange
         pagination={pagination}
