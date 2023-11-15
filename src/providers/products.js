@@ -12,6 +12,9 @@ const updateProduct = async (productId, body) =>
 
 const getTradenames = async () => baseProvider.httpGet(`products/tradename`);
 
+const getTradenamesWithQueryParams = async (params) =>
+  baseProvider.httpGet(`products/tradename`, params);
+
 const deleteProduct = async (productId) =>
   baseProvider.httpDelete(`products/${productId}`);
 
@@ -33,4 +36,5 @@ export {
   deleteProduct,
   getFileXlsx,
   getFileXlsxMovimientoCajas,
+  getTradenamesWithQueryParams,
 };
