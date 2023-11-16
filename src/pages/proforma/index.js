@@ -976,10 +976,10 @@ export default ({ setPageTitle }) => {
               label: product,
               product,
             }))}
-            filterOption={true}
-            // filterOption={(input, option) => {
-            //   return option.value.toLowerCase().includes(input.toLowerCase());
-            // }}
+            // filterOption={true}
+            filterOption={(input, option) => {
+              return option.value.toLowerCase().includes(input.toLowerCase());
+            }}
           />
         </div>
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">

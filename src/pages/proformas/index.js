@@ -185,7 +185,21 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchProformas = async () => {
       try {
-        const _proformas = await getProformas(queryParams);
+        const updatedQueryParams = { ...queryParams };
+        if (updatedQueryParams.status === "EXPIRED") {
+          delete updatedQueryParams?.status;
+        }
+        let _proformas = await getProformas(updatedQueryParams);
+        // due in the backend we don't have a status type of EXPIRED ("CADUCADA"). We're getting that value from the get() in the column status
+        // so if we have "Pendiente de aprobacion". Internally will look for "Pendiente de aprobacion" in the database. Then, due the get(), if it's within the
+        // expire days. We get EXPIRED ("Caducada")
+        const proformasRows = _proformas.rows.filter(
+          (proforma) =>
+            (queryParams.status === "EXPIRED" &&
+              proforma.status === "EXPIRED") ||
+            (queryParams.status !== "EXPIRED" && proforma.status !== "EXPIRED")
+        );
+
         setPagination({
           position: ["bottomCenter"],
           total: _proformas.pageSize * _proformas.pages,
@@ -196,17 +210,17 @@ export default ({ setPageTitle }) => {
           showQuickJumper: true,
         });
 
-        let proformasRequest = [];
-        for (const proforma of proformas) {
-          proformasRequest.push(getProforma(proforma.id));
-        }
+        // let proformasRequest = [];
+        // for (const proforma of proformas) {
+        //   proformasRequest.push(getProforma(proforma.id));
+        // }
 
-        const response = await Promise.allSettled(proformasRequest);
+        // const response = await Promise.allSettled(proformasRequest);
 
-        for (const promiseResponse of response) {
-        }
+        // for (const promiseResponse of response) {
+        // }
 
-        setProformas(_proformas.rows);
+        setProformas(proformasRows);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
