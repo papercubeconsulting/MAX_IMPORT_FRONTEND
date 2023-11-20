@@ -64,7 +64,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (createdAt) =>
         `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
-          "hh:mm"
+          "hh:mm",
         )}`,
     },
     {
@@ -197,7 +197,9 @@ export default ({ setPageTitle }) => {
           (proforma) =>
             (queryParams.status === "EXPIRED" &&
               proforma.status === "EXPIRED") ||
-            (queryParams.status !== "EXPIRED" && proforma.status !== "EXPIRED")
+            (queryParams.status !== "EXPIRED" &&
+              proforma.status !== "EXPIRED") ||
+            typeof queryParams.status === "undefined",
         );
 
         setPagination({
@@ -444,7 +446,7 @@ export default ({ setPageTitle }) => {
             expandedRowRender: (record) => {
               const discountProformasApproved =
                 record?.discountProformas?.filter(
-                  (discount) => discount.userId
+                  (discount) => discount.userId,
                 );
               // return <p>hola</p>
               return (
@@ -463,7 +465,7 @@ export default ({ setPageTitle }) => {
                         description={`Monto S/ ${(
                           Number(item.approvedDiscount) / 100
                         ).toFixed(2)} Fecha: ${new Date(
-                          item.updatedAt
+                          item.updatedAt,
                         ).toLocaleDateString("es-PE", {
                           timeZone: "America/Lima",
                         })}`}
