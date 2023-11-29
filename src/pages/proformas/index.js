@@ -114,19 +114,22 @@ export default ({ setPageTitle }) => {
     },
 
     {
-      dataIndex: "sale",
-      title: "Pagado",
+      // dataIndex: "sale",
+      dataIndex: "efectivo",
+      // title: "Pagado",
+      title: "Efectivo",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/ ${(sale.due / 100).toFixed(2)}` : "-"),
+      render: (efectivo) => (efectivo ? `S/ ${(efectivo / 100).toFixed(2)}` : "-"),
     },
 
     {
-      dataIndex: "sale",
+      // dataIndex: "sale",
+      dataIndex: "credit",
       title: "Crédito",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/ ${(sale.credit / 100).toFixed(2)}` : "-"),
+      render: (credit) => (credit ? `S/ ${(credit / 100).toFixed(2)}` : "-"),
     },
   ];
 
@@ -313,7 +316,8 @@ export default ({ setPageTitle }) => {
     },
     {
       value: "CLOSED",
-      label: "Cerrada",
+      label: "Vendida",
+      // label: "Cerrada",
     },
   ];
 

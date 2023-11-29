@@ -11,18 +11,14 @@ export const useProducts = (queryParams = {}) => {
   const fetchProducts = async (queryParams) => {
     try {
       // filter the queryParams that has values of null or undefined
-      console.log({ queryParams });
       const updatedQueryParams = Object.keys(queryParams).reduce(
         (prev, curr) => {
           queryParams[curr] ? (prev[curr] = queryParams[curr]) : prev;
           return prev;
         },
-        {}
+        {},
       );
-
-      console.log({ updatedQueryParams });
       const _products = await getProducts(updatedQueryParams);
-      console.log({ dffd: _products });
       setTotalItems(_products.length);
       setPagination({
         position: ["bottomCenter"],
@@ -33,12 +29,7 @@ export const useProducts = (queryParams = {}) => {
         showQuickJumper: true,
       });
       setProducts(_products.rows);
-      // setCodes(
-      //   _products.rows.map((r) => {
-      //     return { code: r.code };
-      //   })
-      // );
-      return _products.rows
+      return _products.rows;
     } catch (error) {
       notification.error({
         message: "Error en el servidor",
