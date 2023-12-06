@@ -855,8 +855,6 @@ export default ({ setPageTitle }) => {
 
   const resetInputsInModalAddProduct = () => {
     setModelId("");
-    // setFamilyId("");
-    // setSubFamilyId("");
     setElementId("");
     setAlertState({ active: false });
     setCode("");
@@ -1015,8 +1013,6 @@ export default ({ setPageTitle }) => {
             value={familyId}
             label="Familia"
             onChange={(value) => {
-              console.log("familia", value);
-              // console.log({ familyId, current: prevFamiliyIdSelect.current });
               if (prevFamiliyIdSelect.current !== value) {
                 setSubFamilyId("");
               }
@@ -1042,37 +1038,16 @@ export default ({ setPageTitle }) => {
             value={elementId}
             label="Elemento"
             onChange={(value) => {
+              setProduct({});
               setElementId(value);
+              setModel("");
+              setCode("");
+              setProducts([]);
             }}
             options={selectOptions(
               elements.filter((element) => element.subfamilyId === subFamilyId),
             )}
           />
-          {/* <Select */}
-          {/*   value={modelId} */}
-          {/*   label="Modelo" */}
-          {/*   onChange={async (value) => { */}
-          {/*     // console.log({ value, familyId, subFamilyId, elementId, value }); */}
-          {/*     setModelId(value); */}
-          {/*     setIsCodInventarioLoading(true); */}
-          {/*     const _products = await fetchProducts({ */}
-          {/*       // noStock: true, */}
-          {/*       familyId, */}
-          {/*       subfamilyId: subFamilyId, */}
-          {/*       elementId, */}
-          {/*       modelId: Number(value), */}
-          {/*     }); */}
-          {/*     // console.log({ _products }); */}
-          {/*     // setProducts(_products); */}
-          {/*     setIsCodInventarioLoading(false); */}
-          {/*     // const _product = await getProduct(value, { noStock: true }); */}
-          {/*     // setCode(_product.code); */}
-          {/*     // setProduct(_product); */}
-          {/*   }} */}
-          {/*   options={selectOptions( */}
-          {/*     models.filter((model) => model.elementId === elementId), */}
-          {/*   )} */}
-          {/* /> */}
           <div style={{ display: "flex", alignItems: "center" }}>
             <span
               className="ant-input-group-addon"
