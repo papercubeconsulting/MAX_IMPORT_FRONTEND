@@ -879,7 +879,7 @@ export default ({ setPageTitle }) => {
 
   //
 
-  console.log({ product });
+  console.log({ product, products });
 
   return (
     <>
@@ -1015,7 +1015,7 @@ export default ({ setPageTitle }) => {
             value={familyId}
             label="Familia"
             onChange={(value) => {
-              console.log('familia',value)
+              console.log("familia", value);
               // console.log({ familyId, current: prevFamiliyIdSelect.current });
               if (prevFamiliyIdSelect.current !== value) {
                 setSubFamilyId("");
@@ -1090,6 +1090,7 @@ export default ({ setPageTitle }) => {
               // loading={isCodInventarioLoading}
               // disabled={isCodInventarioLoading}
               onSelect={async (value, option) => {
+                setProduct({});
                 setModel(option.label);
                 setIsCodInventarioLoading(true);
                 const _products = await fetchProducts({
@@ -1162,8 +1163,8 @@ export default ({ setPageTitle }) => {
                   code: _code,
                 });
                 if (productsFound.length === 0) {
-                  setFamilyId('')
-                  setSubFamilyId('')
+                  setFamilyId("");
+                  setFamilyId("");
                   resetInputsInModalAddProduct();
                   // setProducts([...prevProduct]);
                   setAlertState({
@@ -1175,7 +1176,7 @@ export default ({ setPageTitle }) => {
 
                 if (productsFound.length === 1) {
                   const product = productsFound[0];
-                  setProduct(product)
+                  setProduct(product);
                   setAlertState({ active: false });
                   setFamilyId(product.familyId);
                   setElementId(product.elementId);
