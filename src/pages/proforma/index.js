@@ -1075,6 +1075,13 @@ export default ({ setPageTitle }) => {
                   elementId,
                   modelId: Number(value),
                 });
+                // Update the tradename
+                if (_products.length === 1) {
+                  const product = _products[0];
+                  setProduct(product);
+                  setAlertState({ active: false });
+                  setTradeName(product.tradename);
+                }
                 setIsCodInventarioLoading(false);
               }}
               onSearch={(value, option) => {
