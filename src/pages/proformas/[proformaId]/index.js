@@ -1,9 +1,14 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Container, Grid, ModalProduct } from "../../../components";
-import { getProforma, sendEmail } from "../../../providers";
+import {
+  getProforma,
+  postProforma,
+  resetExpireStatus,
+  sendEmail,
+} from "../../../providers";
 import { get } from "lodash";
-import { MailOutlined, MailFilled } from "@ant-design/icons";
+import { MailOutlined, MailFilled, DownloadOutlined } from "@ant-design/icons";
 import { Input, Table, Modal, Alert, notification, Spin } from "antd";
 import { ModalValidateDiscount } from "../../../components/proforma/ModalValidateDiscount";
 import { getLocalHostWithPath } from "../../../util";
@@ -71,14 +76,14 @@ export default ({ setPageTitle }) => {
       dataIndex: "unitPrice",
       width: "fit-content",
       align: "center",
-      render: (unitPrice) => `S/.${(unitPrice / 100).toFixed(2)}`,
+      render: (unitPrice) => `S/ ${(unitPrice / 100).toFixed(2)}`,
     },
     {
       title: "Subtotal",
       dataIndex: "subtotal",
       width: "fit-content",
       align: "center",
-      render: (subtotal) => `S/.${(subtotal / 100).toFixed(2)}`,
+      render: (subtotal) => `S/ ${(subtotal / 100).toFixed(2)}`,
     },
     {
       title: "Disponibilidad",
@@ -107,8 +112,37 @@ export default ({ setPageTitle }) => {
       ),
     },
   ];
-
   const [api, contextHolder] = notification.useNotification();
+  const handleOnRenovar = async () => {
+    try {
+      // const postData = {
+      //   clientId: get(proforma, "client.id"),
+      //   efectivo: (Number(get(proforma, "efectivo")) / 100).toFixed(2), // remember: this will default the credit to the total final , credtit + efectivo
+      //   // discount: Math.roundNumber(get(proforma, "discount")), // remember: this will default the credit to the total final , credtit + efectivo
+      //   // discount: Math.round(
+      //   // //   Number(get(proforma, "total")) *
+      //   // //     Number(get(proforma, "discountPercentage"))
+      //   // // ),
+      //   discount: get(proforma, "discount"),
+      //   proformaProducts: proforma.proformaProducts.map((proformaProduct) => ({
+      //     productId: get(proformaProduct, "product.id", null),
+      //     unitPrice: Math.round(get(proformaProduct, "unitPrice", 0)),
+      //     //unitPrice: price,
+      //     quantity: get(proformaProduct, "quantity", null),
+      //   })),
+      // };
+
+      // const response = await postProforma(postData);
+
+      const resonse = await resetExpireStatus(proformaId);
+
+      router.push(`/proformas/${proformaId}`);
+    } catch (error) {
+      notification.error({
+        message: error.message,
+      });
+    }
+  };
 
   //costumizadas por JM
   const [proforma, setProforma] = useState(null);
@@ -118,6 +152,7 @@ export default ({ setPageTitle }) => {
     setLoading,
     handleSendEmail,
     bodyUrlPDF,
+    handleDownloadEmail,
   } = useSendEmailProforma({
     proforma,
     proformaId,
@@ -167,10 +202,7 @@ export default ({ setPageTitle }) => {
   const isProformaPendingDiscountValidation =
     proforma?.status === "PENDING_DISCOUNT_APPROVAL";
 
-
-
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
-
   return (
     <>
       <Modal
@@ -275,6 +307,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
+          rowKey={(record) => record.id}
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
@@ -292,9 +325,9 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.efectivo
-                  ? `S/.${(proforma?.efectivo / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.efectivo / 100).toFixed(2)}`
                   : proforma?.sale?.due
-                  ? `S/.${(proforma?.sale.due / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.sale.due / 100).toFixed(2)}`
                   : `-`
               }
               disabled
@@ -305,9 +338,9 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.credit
-                  ? `S/.${(proforma?.credit / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.credit / 100).toFixed(2)}`
                   : proforma?.sale?.credit
-                  ? `S/.${(proforma?.sale.credit / 100).toFixed(2)}`
+                  ? `S/ ${(proforma?.sale.credit / 100).toFixed(2)}`
                   : `-`
               }
               disabled
@@ -316,11 +349,21 @@ export default ({ setPageTitle }) => {
             <br />
             <Button
               type="primary"
-              disabled={proforma?.status === "CLOSED"}
+              disabled={
+                proforma?.status === "CLOSED" || proforma?.status === "EXPIRED"
+              }
               onClick={async () => router.push(`/proforma?id=${proformaId}`)}
             >
-              EDITAR
+              Editar
             </Button>
+            {proforma?.status === "EXPIRED" && (
+              <>
+                <br />
+                <Button type="primary" onClick={handleOnRenovar}>
+                  Renovar
+                </Button>
+              </>
+            )}
             <br />
             {proforma ? (
               <>
@@ -328,21 +371,41 @@ export default ({ setPageTitle }) => {
                   // type="dashed"
                   loading={loadingEmail}
                   icon={<MailOutlined />}
-                  disabled={proforma?.status === "PENDING_DISCOUNT_APPROVAL"}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
                   onClick={() => setIsEmailModalOpen(true)}
                   // onClick={handleSendEmail}
                 >
-                  VISTA PREVIA E-MAIL
+                  Vista previa proforma
+                </Button>
+                <br />
+                <Button
+                  // type="dashed"
+                  loading={loadingEmail}
+                  icon={<DownloadOutlined />}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
+                  onClick={handleDownloadEmail}
+                  // onClick={handleSendEmail}
+                >
+                  Descargar proforma
                 </Button>
                 <br />
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
                   icon={<MailOutlined />}
-                  disabled={proforma?.status === "PENDING_DISCOUNT_APPROVAL"}
+                  disabled={
+                    proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
+                    proforma?.status === "EXPIRED"
+                  }
                   onClick={handleSendEmail}
                 >
-                  ENVIAR E-MAIL
+                  Enviar e-mail
                 </Button>
               </>
             ) : (
@@ -353,8 +416,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.subtotal
-                  ? `S/.${(proforma.subtotal / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.subtotal / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Total"
@@ -363,8 +426,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.discount
-                  ? `S/.${(proforma.discount / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.discount / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Descuento"
@@ -382,8 +445,8 @@ export default ({ setPageTitle }) => {
             <Input
               value={
                 proforma?.total
-                  ? `S/.${(proforma.total / 100).toFixed(2)}`
-                  : `S/.0.00`
+                  ? `S/ ${(proforma.total / 100).toFixed(2)}`
+                  : `S/ 0.00`
               }
               disabled
               addonBefore="Total Final"

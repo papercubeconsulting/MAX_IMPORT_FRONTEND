@@ -8,13 +8,13 @@ import {
 } from "@ant-design/icons";
 import {
   Card,
+  Skeleton,
   Badge,
   Col,
   Row,
   Statistic,
   notification,
-  Form,
-  Space,
+  Result,
   Input,
   Button,
   InputNumber,
@@ -71,12 +71,60 @@ export default () => {
     }
   }, [errorSubmitValidation?.message, successSubmitValidation]);
 
+  const isAlreadyAproved = validationInfoStatus?.userId;
+
+  if (isLoading) {
+    return (
+      <Wrapper>
+        <Skeleton />;
+      </Wrapper>
+    );
+  }
+
+  // if (!validationInfoStatus?.proforma) {
+  //   return (
+  //     <Wrapper>
+  //       <InnerWrapper>
+  //         <Result
+  //           status="error"
+  //           title="No existe proforma relacionada con esta validacion"
+  //         />
+  //       </InnerWrapper>
+  //     </Wrapper>
+  //   );
+  // }
   return (
     <Wrapper>
       {contextHolder}
-      {validationInfoStatus ? (
+      {validationInfoStatus?.user && (
+        <Result
+          status="info"
+          extra={[
+            <Button
+              onClick={() =>
+                router.push(`/proformas/${validationInfoStatus.proformaId}`)
+              }
+              type="primary"
+              key="console"
+            >
+              Ir a la proforma
+            </Button>,
+          ]}
+          title={`Proforma N° ${
+            validationInfoStatus.proformaId
+          }: Esta solicitud  ya fue aprobada el ${new Date(
+            validationInfoStatus.updatedAt
+          ).toLocaleDateString("es-PE", {
+            timeZone: "America/Lima",
+          })} por  ${validationInfoStatus.user.name} ${
+            validationInfoStatus.user.lastname
+          }`}
+          subTitle={`Para volver a ver el estatus actual de la proforma , presionar en continuar `}
+        />
+      )}
+      {validationInfoStatus?.proforma && validationInfoStatus?.user === null ? (
         <InnerWrapper>
-          <Title>Confirmacion de descuento de Proforma</Title>
+          <Title>{`Validacion Proforma N° ${validationInfoStatus.proforma?.id}`}</Title>
           <Tooltip
             open={!!messageStatus}
             onOpenChange={(open) => !open && setMessageStatus(null)}
@@ -93,12 +141,17 @@ export default () => {
           </Tooltip>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <Input
-              placeholder={validationInfoStatus.proforma.user.name}
+              placeholder={validationInfoStatus?.proforma?.id}
+              addonBefore={"Proforma ID"}
+              disabled
+            />
+            <Input
+              placeholder={validationInfoStatus?.proforma?.user.name}
               addonBefore={"Vendedor"}
               disabled
             />
             <Input
-              placeholder={validationInfoStatus.proforma.user.id}
+              placeholder={validationInfoStatus?.proforma?.user.id}
               addonBefore={"User ID"}
               disabled
             />
@@ -128,7 +181,9 @@ export default () => {
                 >
                   <Statistic
                     title="Descuento %"
-                    value={validationInfoStatus.proforma.discountPercentage}
+                    value={Number(
+                      validationInfoStatus.proforma.discountPercentage * 100
+                    ).toFixed(2)}
                     precision={2}
                     valueStyle={{ color: "yellowgreen" }}
                     // prefix={<ArrowDownOutlined />}
@@ -205,6 +260,7 @@ export default () => {
               onClick={() =>
                 handleSubmitApproval({
                   discountPercentage: Number(discountPercentageInput) / 100,
+                  discount: Math.trunc(validationInfoStatus.proforma.discount),
                 })
               }
               loading={isLoadingSubmitValidation}
@@ -222,9 +278,7 @@ export default () => {
             </Button>
           </ApprovalSection>
         </InnerWrapper>
-      ) : (
-        "loading"
-      )}
+      ) : null}
     </Wrapper>
   );
 };

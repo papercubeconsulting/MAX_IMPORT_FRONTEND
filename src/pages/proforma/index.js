@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import Big from "big.js";
 import { useRouter } from "next/router";
 import {
   Button,
@@ -24,14 +25,16 @@ import {
   getProforma,
   postProforma,
   putProforma,
+  getTradenames,
 } from "../../providers";
 import { get, orderBy } from "lodash";
 import {
   Input,
   Table,
+  Alert,
+  Spin,
   notification,
   Modal,
-  Alert,
   Divider,
   AutoComplete as AutoCompleteAntd,
 } from "antd";
@@ -40,6 +43,7 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
+import { useTradeNames } from "../../util/hooks/useTradeNames";
 
 export default ({ setPageTitle }) => {
   const router = useRouter();
@@ -47,13 +51,23 @@ export default ({ setPageTitle }) => {
   setPageTitle(
     queryParams.id
       ? `Edición de Proforma N° ${queryParams.id}`
-      : "Nueva Proforma"
+      : "Nueva Proforma",
   );
 
   /*This hooks are for handling the new autoselect property for codigo de invitarion in the modal*/
-  const { products, codes } = useProducts();
-  const [code, setCode] = useState(null);
+  const { products, codes, setProducts, fetchProducts } = useProducts({
+    elementId: null,
+  });
 
+  const [alertState, setAlertState] = React.useState({
+    message: "",
+    active: false,
+    type: "success",
+  });
+
+  const { tradeNames, setTradeNames } = useTradeNames();
+  const [code, setCode] = useState(null);
+  // console.log({ products });
   const columns = [
     {
       dataIndex: "id",
@@ -94,7 +108,8 @@ export default ({ setPageTitle }) => {
           onChange={(event) => {
             setproformaProducts((prevState) => {
               const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) => _proformaProduct.id !== proformaProduct.id
+                (_proformaProduct) =>
+                  _proformaProduct.id !== proformaProduct.id,
               );
 
               return [
@@ -124,7 +139,7 @@ export default ({ setPageTitle }) => {
               setproformaProducts((prevState) => {
                 const remainingproformaProducts = prevState.filter(
                   (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id
+                    _proformaProduct.id !== proformaProduct.id,
                 );
                 return [
                   ...remainingproformaProducts,
@@ -143,7 +158,7 @@ export default ({ setPageTitle }) => {
               setproformaProducts((prevState) => {
                 const remainingproformaProducts = prevState.filter(
                   (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id
+                    _proformaProduct.id !== proformaProduct.id,
                 );
                 return [
                   ...remainingproformaProducts,
@@ -152,7 +167,7 @@ export default ({ setPageTitle }) => {
                     product: {
                       ...product,
                       suggestedPrice: parseFloat(
-                        event.nativeEvent.target.value || "0"
+                        event.nativeEvent.target.value || "0",
                       ).toFixed(2),
                     },
                   },
@@ -210,7 +225,7 @@ export default ({ setPageTitle }) => {
                   .map((proformaProduct, index) => ({
                     ...proformaProduct,
                     id: index + 1,
-                  }))
+                  })),
               )
             }
           >
@@ -243,6 +258,8 @@ export default ({ setPageTitle }) => {
   const [regions, setRegions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
+  // const [tradeNames, setTradenames] = useState([]);
+  const [tradeName, setTradeName] = useState(null);
 
   const [windowHeight, setWindowHeight] = useState(0);
 
@@ -255,7 +272,10 @@ export default ({ setPageTitle }) => {
   const [subFamilyId, setSubFamilyId] = useState("");
   const [elementId, setElementId] = useState("");
   const [modelId, setModelId] = useState("");
+  const [model, setModel] = useState("");
   const [product, setProduct] = useState("");
+  const [isCodInventarioLoading, setIsCodInventarioLoading] =
+    React.useState(false);
 
   //Modal de informacion del producto
   const [isVisible, setIsVisible] = useState(false);
@@ -288,7 +308,6 @@ export default ({ setPageTitle }) => {
     setWindowHeight(window.innerHeight);
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
-  //
 
   useMemo(() => {
     if (queryParams.id) {
@@ -313,7 +332,7 @@ export default ({ setPageTitle }) => {
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
             setPaid((_proforma.efectivo / 100).toFixed(2));
-            // setDue(_proforma.credit/100)
+            setDue((_proforma.credit / 100).toFixed(2));
             setproformaProducts(
               _proforma.proformaProducts.map((proformaProduct) => {
                 return {
@@ -327,11 +346,13 @@ export default ({ setPageTitle }) => {
                   modelId: proformaProduct.product.modelId,
                   elementId: proformaProduct.product.elementId,
                 };
-              })
+              }),
             );
 
-            setDiscount(_proforma.discount / 100);
-            setDiscountPercentage((_proforma.discountPercentage ?? 0) * 100);
+            setDiscount((_proforma.discount / 100).toFixed(2));
+            setDiscountPercentage(
+              ((_proforma.discountPercentage ?? 0) * 100).toFixed(2),
+            );
             // setDiscountPercentage(
             //   (
             //     (parseFloat(_proforma.discount ?? 0) * 100) /
@@ -406,6 +427,15 @@ export default ({ setPageTitle }) => {
   }, []);
 
   useEffect(() => {
+    // const tradeNames = async () => {
+    //   const _tradeNames = await getTradenames(null);
+    //   console.log({ _tradeNames });
+    //   setTradenames(_tradeNames);
+    // };
+    // tradeNames();
+  }, []);
+
+  useEffect(() => {
     const fetchRegions = async () => {
       const _regions = await getRegions();
 
@@ -438,33 +468,40 @@ export default ({ setPageTitle }) => {
         accumulator +
         get(proformaProduct, "quantity", 0) *
           get(proformaProduct, "product.suggestedPrice", 0),
-      0
+      0,
     );
 
     return _totalPrice;
-  }, [proformaProducts.length]);
-  // console.log({ totalPrice, discountPercentage, discount });
+  }, [proformaProducts]);
+
   useEffect(() => {
-    setFinalPrice((totalPrice * (1 - discountPercentage / 100)).toFixed(2));
+    const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
+      2,
+    );
+    setFinalPrice(newFinalPrice);
+    // if it's the same then due and paid it's equal to the data from db
+    // other wise, we update setPaid with newFinalPrice and due to 0
+    const isSameSubtotal =
+      (proforma?.subtotal / 100).toFixed(2) === totalPrice.toFixed(2);
+
+    if (!isSameSubtotal) {
+      setPaid(newFinalPrice);
+      setDue(Number(0).toFixed(2));
+    }
   }, [totalPrice, discountPercentage]);
 
-  // useEffect(() => {
-  //   setFinalPrice((totalPrice - discount).toFixed(2));
-  // }, [totalPrice, discount]);
-
   useEffect(() => {
-    // setDue((finalPrice - paid).toFixed(2));
-    // setPaid(finalPrice)
-    setDue((finalPrice - paid).toFixed(2));
-    // console.log('finalPrices',finalPrice)
-  }, [finalPrice]);
-
-  useEffect(() => {
+    // BUG HERE
     setDiscount(((totalPrice * discountPercentage) / 100).toFixed(2));
+    // }, [totalPrice, discountPercentage]);
+    // if (paid === 0) {
+    // setPaid(totalPrice);
+    // }
   }, [totalPrice]);
 
   const selectOptions = (collection) =>
-    collection.map((document) => ({
+    // console.log("collection", collection)
+    [{ id: null, name: "Todos" }, ...collection].map((document) => ({
       value: document.id,
       label: document.name,
     }));
@@ -472,7 +509,7 @@ export default ({ setPageTitle }) => {
   const mapproformaProducts = async (
     products,
     index = 0,
-    mappedproformaProducts = []
+    mappedproformaProducts = [],
   ) => {
     if (products.length === index) return mappedproformaProducts;
 
@@ -561,7 +598,7 @@ export default ({ setPageTitle }) => {
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
             unitPrice: Math.round(
-              get(proformaProduct, "product.suggestedPrice", 0) * 100
+              get(proformaProduct, "product.suggestedPrice", 0) * 100,
             ),
             quantity: get(proformaProduct, "quantity", null),
           })),
@@ -570,17 +607,23 @@ export default ({ setPageTitle }) => {
           message: "Proforma actualizada correctamente",
         });
         // console.log({ _response });
-        const validateProformaTransactionId = _response.discountValidationId;
+        const validateProformaTransactionId =
+          _response?.discountValidationId ||
+          _response.discountProformas?.[0]?.id;
         // console.log({ validateProformaTransactionId });
         // setDiscountUrlValidation(validateProformaTransactionId);
         // if (validateProformaTransactionId) {
         //   router.push(`/proformas/validate/${validateProformaTransactionId}`);
         // }
         // if(_response.)
+        // router.replace(router.asPath);
+        // console.log('refresh')
         setProforma(_response);
         if (validateProformaTransactionId) {
           setIsModalDiscountOpen(true);
         }
+        router.replace(router.asPath);
+        // window.location.reload();
       } else {
         //Guarda la proforma
         const _response = await postProforma({
@@ -590,7 +633,7 @@ export default ({ setPageTitle }) => {
           proformaProducts: proformaProducts.map((proformaProduct) => ({
             productId: get(proformaProduct, "product.id", null),
             unitPrice: Math.round(
-              get(proformaProduct, "product.suggestedPrice", 0) * 100
+              get(proformaProduct, "product.suggestedPrice", 0) * 100,
             ),
             //unitPrice: price,
             quantity: get(proformaProduct, "quantity", null),
@@ -624,9 +667,13 @@ export default ({ setPageTitle }) => {
   // resetea data del modal addNewProduct
   const resetDataModal = () => {
     setFamilyId("");
+    setModel("");
     setSubFamilyId("");
+    setTradeName(null);
     setElementId("");
+    setAlertState({ active: false });
     setModelId("");
+    setProducts([]);
     setProduct("");
     setCode(null);
   };
@@ -717,7 +764,7 @@ export default ({ setPageTitle }) => {
 
       formData.append(
         "token",
-        "Qw04dLlNDNBKI0vZ6p12fhHJUjce3kDatq3rirg2WmzZQG2N3fnRiNgJ9l54"
+        "Qw04dLlNDNBKI0vZ6p12fhHJUjce3kDatq3rirg2WmzZQG2N3fnRiNgJ9l54",
       );
       formData.append("ruc", documentNumber);
 
@@ -733,17 +780,17 @@ export default ({ setPageTitle }) => {
           setName(data.nombre_o_razon_social);
           setAddress(data.direccion);
           const _region = regions.find(
-            (region) => region.name.toUpperCase() === data.departamento
+            (region) => region.name.toUpperCase() === data.departamento,
           );
           setRegionId(_region.id);
           const _provinces = await getProvinces(_region.id);
           const _province = _provinces.find(
-            (province) => province.name.toUpperCase() === data.provincia
+            (province) => province.name.toUpperCase() === data.provincia,
           );
           setProvinceId(_province.id);
           const _districts = await getDistricts(_region.id, _province.id);
           const _district = _districts.find(
-            (district) => district.name.toUpperCase() === data.distrito
+            (district) => district.name.toUpperCase() === data.distrito,
           );
           setDistrictId(_district.id);
           notification.info({
@@ -775,9 +822,13 @@ export default ({ setPageTitle }) => {
     }
   }, [subFamilyId, modelId, elementId, familyId]);
 
+  const discountValidationId = proforma?.discountProformas?.[0]?.id;
+
   const statusValidationModal = React.useMemo(() => {
     const discountTransactionId =
-      proforma?.discountProforma?.id || proforma?.discountValidationId;
+      proforma?.discountProforma?.id ||
+      proforma?.discountValidationId ||
+      discountValidationId;
     if (
       discountTransactionId &&
       proforma.status === "PENDING_DISCOUNT_APPROVAL"
@@ -791,7 +842,42 @@ export default ({ setPageTitle }) => {
       discountTransactionId: null,
       status: null,
     };
-  }, [proforma?.discountProforma?.id, proforma?.status, isModalDiscountOpen]);
+  }, [
+    proforma?.discountProforma?.id,
+    proforma?.status,
+    isModalDiscountOpen,
+    discountValidationId,
+  ]);
+
+  const selectedCodigoInventario = async (code) => {
+    const _products = await getProducts({ code });
+  };
+
+  const resetInputsInModalAddProduct = () => {
+    setModelId("");
+    setElementId("");
+    setAlertState({ active: false });
+    setCode("");
+    setTradeName(null);
+    setProduct({});
+    setModel("");
+    setProducts([]);
+  };
+
+  const prevFamiliyIdSelect = React.useRef(null);
+  prevFamiliyIdSelect.current = familyId;
+
+  // if the producst has only one element, select that by default
+  const _code = code || (products.length === 1 ? products?.[0]?.code : code);
+
+  const prevCode = React.useRef(null);
+
+  // track the input if changes
+  prevCode.current = _code;
+
+  //
+
+  console.log({ product, products });
 
   return (
     <>
@@ -799,6 +885,7 @@ export default ({ setPageTitle }) => {
         visible={addNewProduct}
         width="60%"
         title="Seleccione los datos del producto que desea agregar"
+        afterClose={() => resetDataModal()}
         onCancel={() => {
           setAddNewProduct(false);
           resetDataModal();
@@ -816,7 +903,10 @@ export default ({ setPageTitle }) => {
           <Button
             key="submit"
             type="primary"
-            disabled={product === "" || product.modelId === null}
+            disabled={
+              // product === {} || product === "" || product.modelId === null
+              !product?.id
+            }
             onClick={() => {
               setproformaProducts((prevState) => {
                 return [
@@ -843,46 +933,168 @@ export default ({ setPageTitle }) => {
           </Button>,
         ]}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "12px",
+          }}
+        >
+          <span
+            className="ant-input-group-addon"
+            style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+          >
+            Nombre Comercial
+          </span>
+          <AutoCompleteAntd
+            // onFocus={() => resetDataModal()}
+            placeholder="Nombre comercial"
+            style={{ width: "100%" }}
+            color={"white"}
+            colorFont={"#5F5F7F"}
+            value={tradeName}
+            loading={isCodInventarioLoading}
+            // disabled={isCodInventarioLoading}
+            onSelect={async (value, option) => {
+              setTradeName(value);
+              const products = await fetchProducts({
+                // noStock: true,
+                tradename: value,
+                // familyId,
+                // subfamilyId: subFamilyId,
+                // elementId,
+                // modelId: Number(value),
+              });
+
+              // only one match
+              if (products.length === 1) {
+                const product = products[0];
+                setProduct(product);
+                setFamilyId(product.familyId);
+                setElementId(product.elementId);
+                setSubFamilyId(product.subfamilyId);
+                setModelId(product.modelId);
+                setModel(product.modelName || "");
+              } else {
+                setFamilyId("Varios");
+                setElementId("Varios");
+                setSubFamilyId("Varios");
+                setModel("Varios");
+              }
+
+              // setCode(value);
+              // setProduct(option.product);
+              // setFamilyId(option.product.familyId);
+              // setElementId(option.product.elementId);
+              // setModelId(option.product.modelId);
+              // setSubFamilyId(option.product.subfamilyId);
+            }}
+            onSearch={(value, option) => {
+              // console.log({
+              //   value,
+              //   product: option?.product,
+              //   type: "onSearch",
+              // });
+              setTradeName(value);
+            }}
+            options={tradeNames.map((product, index) => ({
+              value: product,
+              label: product,
+              product,
+            }))}
+            // filterOption={true}
+            filterOption={(input, option) => {
+              return option.value.toLowerCase().includes(input.toLowerCase());
+            }}
+          />
+        </div>
         <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Select
             value={familyId}
             label="Familia"
-            onChange={(value) => setFamilyId(value)}
+            onChange={(value) => {
+              if (prevFamiliyIdSelect.current !== value) {
+                setSubFamilyId("");
+              }
+              setFamilyId(value);
+              resetInputsInModalAddProduct();
+            }}
             options={selectOptions(families)}
           />
           <Select
             value={subFamilyId}
             label="Sub-Familia"
-            onChange={(value) => setSubFamilyId(value)}
+            onChange={(value) => {
+              setSubFamilyId(value);
+              resetInputsInModalAddProduct();
+            }}
             options={selectOptions(
-              subfamilies.filter((subFamily) => subFamily.familyId === familyId)
+              subfamilies.filter(
+                (subFamily) => subFamily.familyId === familyId,
+              ),
             )}
           />
           <Select
             value={elementId}
             label="Elemento"
-            onChange={(value) => setElementId(value)}
-            options={selectOptions(
-              elements.filter((element) => element.subfamilyId === subFamilyId)
-            )}
-          />
-          <Select
-            value={modelId}
-            label="Modelo"
-            onChange={async (value) => {
-              /*Cause in this part we're setting the proudct, if in the secion "Buscar por codigo" has some value
-              /* we need to clean setCode(null)
-              */
-              setModelId(value);
-              const _product = await getProduct(value, { noStock: true });
-              setCode(null);
-              setProduct(_product);
+            onChange={(value) => {
+              setProduct({});
+              setElementId(value);
+              setModel("");
+              setCode("");
+              setProducts([]);
             }}
             options={selectOptions(
-              models.filter((model) => model.elementId === elementId)
+              elements.filter((element) => element.subfamilyId === subFamilyId),
             )}
           />
-          {/* <Input addonBefore="Cód. Inventario" value={product.code} disabled /> */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span
+              className="ant-input-group-addon"
+              style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+            >
+              Modelo
+            </span>
+            <AutoCompleteAntd
+              // onFocus={() => resetDataModal()}
+              placeholder="Modelo"
+              style={{ width: "100%" }}
+              color={"white"}
+              colorFont={"#5F5F7F"}
+              value={model}
+              // loading={isCodInventarioLoading}
+              // disabled={isCodInventarioLoading}
+              onSelect={async (value, option) => {
+                setProduct({});
+                setModel(option.label);
+                setIsCodInventarioLoading(true);
+                const _products = await fetchProducts({
+                  // noStock: true,
+                  familyId,
+                  subfamilyId: subFamilyId,
+                  elementId,
+                  modelId: Number(value),
+                });
+                // Update the tradename
+                if (_products.length === 1) {
+                  const product = _products[0];
+                  setProduct(product);
+                  setAlertState({ active: false });
+                  setTradeName(product.tradename);
+                }
+                setIsCodInventarioLoading(false);
+              }}
+              onSearch={(value, option) => {
+                setModel(value);
+              }}
+              options={selectOptions(
+                models.filter((model) => model.elementId === elementId),
+              )}
+              filterOption={(input, option) => {
+                return option.label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <span
               className="ant-input-group-addon"
@@ -891,26 +1103,29 @@ export default ({ setPageTitle }) => {
               Cód. Inventario
             </span>
             <AutoCompleteAntd
-              onFocus={() => resetDataModal()}
+              // onFocus={() => resetDataModal()}
               placeholder="Codigo Inventario"
               style={{ width: "300px" }}
               color={"white"}
               colorFont={"#5F5F7F"}
-              value={code}
+              value={_code}
+              loading={isCodInventarioLoading}
+              // disabled={isCodInventarioLoading}
               onSelect={(value, option) => {
                 setCode(value);
                 setProduct(option.product);
                 setFamilyId(option.product.familyId);
                 setElementId(option.product.elementId);
                 setModelId(option.product.modelId);
+                setModel(option.product.modelName);
                 setSubFamilyId(option.product.subfamilyId);
+                setTradeName(option.product.tradename);
               }}
-              onSearch={(value, option) => {
-                // console.log({
-                //   value,
-                //   product: option?.product,
-                //   type: "onSearch",
-                // });
+              onPaste={(e) => {
+                const text = event.clipboardData.getData("text");
+                setCode(text.trimStart().trimEnd());
+              }}
+              onSearch={(value) => {
                 setCode(value);
               }}
               options={products.map((product, index) => ({
@@ -922,14 +1137,55 @@ export default ({ setPageTitle }) => {
                 return option.value.toLowerCase().includes(input.toLowerCase());
               }}
             />
-          </div>
+            <Button
+              disabled={_code === "" || _code === null}
+              onClick={async () => {
+                const prevProduct = products;
+                const productsFound = await fetchProducts({
+                  code: _code,
+                });
+                if (productsFound.length === 0) {
+                  setFamilyId("");
+                  setFamilyId("");
+                  resetInputsInModalAddProduct();
+                  // setProducts([...prevProduct]);
+                  setAlertState({
+                    active: true,
+                    message: "Codigo no encontrado",
+                    type: "warning",
+                  });
+                }
 
-          <Input
-            addonBefore="Nombre comercial"
-            value={product.tradename}
-            disabled
-          />
+                if (productsFound.length === 1) {
+                  const product = productsFound[0];
+                  setProduct(product);
+                  setAlertState({ active: false });
+                  setFamilyId(product.familyId);
+                  setElementId(product.elementId);
+                  setTradeName(product.tradename);
+                  setSubFamilyId(product.subfamilyId);
+                  setModelId(product.modelId);
+                  setModel(product.modelName || "");
+                }
+              }}
+              type="primary"
+            >
+              Buscar
+            </Button>
+            {isCodInventarioLoading && <Spin />}
+          </div>
         </Grid>
+        {alertState.active && (
+          <Alert
+            style={{ marginTop: "1rem" }}
+            showIcon
+            closable
+            type={alertState.type}
+            onClose={() => setAlertState({})}
+            message={alertState.message}
+          />
+        )}
+
         {/* <Divider>Buscar por codigo</Divider> */}
         {/* <div style={{ display: "flex", alignItems: "center" }}> */}
         {/*   <span */}
@@ -1112,6 +1368,7 @@ export default ({ setPageTitle }) => {
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
+          rowKey={(record) => record.id}
           columns={columns}
           scroll={{ y: windowHeight * 0.3 - 48 }}
           bordered
@@ -1145,7 +1402,7 @@ export default ({ setPageTitle }) => {
                     (
                       finalPrice -
                       parseFloat(event.target.value || "0").toFixed(2)
-                    ).toFixed(2)
+                    ).toFixed(2),
                   );
                 }}
                 onBlur={(event) => {
@@ -1163,7 +1420,7 @@ export default ({ setPageTitle }) => {
                     (
                       finalPrice -
                       parseFloat(event.target.value || "0").toFixed(2)
-                    ).toFixed(2)
+                    ).toFixed(2),
                   );
                 }}
                 addonBefore="Efectivo S/"
@@ -1179,17 +1436,25 @@ export default ({ setPageTitle }) => {
                     (
                       finalPrice -
                       parseFloat(event.target.value || "0").toFixed(2)
-                    ).toFixed(2)
+                    ).toFixed(2),
                   );
                 }}
                 onBlur={(event) => {
+                  if (
+                    Math.abs(event.target.value) + Math.abs(paid) >
+                    Math.abs(finalPrice)
+                  ) {
+                    setDue(finalPrice);
+                    setPaid("0");
+                    return;
+                  }
                   setDue(parseFloat(event.target.value || "0").toFixed(2));
                   //TODO: Due no puede ser mayor a finalPrice
                   setPaid(
                     (
                       finalPrice -
                       parseFloat(event.target.value || "0").toFixed(2)
-                    ).toFixed(2)
+                    ).toFixed(2),
                   );
                 }}
                 addonBefore="Crédito S/"
@@ -1217,7 +1482,7 @@ export default ({ setPageTitle }) => {
                 disabled={!salesActivated}
                 onClick={() => handlePayButton(2)}
               >
-                Venta No Presencial
+                Abono de cuenta
               </Button>
             </Grid>
           </Grid>
@@ -1236,27 +1501,18 @@ export default ({ setPageTitle }) => {
               onChange={(event) => {
                 // console.log("onchange");
                 setDiscount(event.target.value);
-                setDiscountPercentage(
-                  // (
-                  //   (parseFloat(event.target.value || "0") * 100) /
-                  //   totalPrice
-                  // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value ?? 0) * 100) /
-                    totalPrice
-                  ).toFixed(2)
-                );
+                const discountPercentage = (
+                  (parseFloat(event.target.value ?? 0) * 100) / totalPrice || 0
+                ).toFixed(2);
+                const newFinalPrice = (
+                  totalPrice *
+                  (1 - discountPercentage / 100)
+                ).toFixed(2);
+                setPaid(newFinalPrice);
+                setDue(0);
+
+                setDiscountPercentage(discountPercentage);
               }}
-              // onBlur={(event) => {
-              //   console.log('blur')
-              //   setDiscount(parseFloat(event.target.value || "0").toFixed(2));
-              //   setDiscountPercentage(
-              //     (
-              //       (parseFloat(event.target.value || "0") * 100) /
-              //       totalPrice
-              //     ).toFixed(2)
-              //   );
-              // }}
             />
             <Input
               addonBefore="%"
@@ -1265,15 +1521,40 @@ export default ({ setPageTitle }) => {
               min={0}
               max={100}
               onChange={(event) => {
+                const value =
+                  event.target.value === "" ? 0 : event.target.value;
+                let discountPercentage = new Big(value).div(100);
+                if (discountPercentage > 1) {
+                  discountPercentage = new Big(1);
+                  event.target.value = "100.00";
+                }
+
+                const newFinalPrice = new Big(totalPrice).times(
+                  new Big(1).minus(discountPercentage),
+                );
+                // const newFinalPrice = (
+                //   totalPrice *
+                //   (1 - event.target.value / 100)
+                // ).toFixed(2);
+                // console.log({
+                //   newFinalPrice: newFinalPrice.toNumber(),
+                //   toApply: new Big(1).minus(discountPercentage).toNumber(),
+                //   totalPrice,
+                //   discountPercentage: discountPercentage.toNumber(),
+                //   value: event.target.value,
+                // });
+                setPaid(newFinalPrice.round(2, Big.roundHalfUp));
+                setDue(0);
                 setDiscount(
+                  new Big(totalPrice).minus(newFinalPrice).toNumber(),
                   // (
                   //   (parseFloat(event.target.value || "0") * totalPrice) /
                   //   100
                   // ).toFixed(2)
-                  (
-                    (parseFloat(event.target.value ?? 0) * totalPrice) /
-                    100
-                  ).toFixed(4)
+                  // (
+                  //   (parseFloat(event.target.value ?? 0) * totalPrice) /
+                  //   100
+                  // ).toFixed(2)
                 );
                 setDiscountPercentage(event.target.value);
               }}

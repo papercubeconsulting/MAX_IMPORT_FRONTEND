@@ -19,13 +19,13 @@ export const Login = () => {
       const authUser = await login(values);
 
       localStorage.setItem("authUser", JSON.stringify(authUser));
-      const previousPath = localStorage.getItem("previousPath");
+      // const previousPath = localStorage.getItem("previousPath");
       await setGlobalAuthUser(authUser);
 
-      if (previousPath) {
-        localStorage.removeItem("previousPath");
-        router.push(previousPath);
-      }
+      // if (previousPath) {
+      //   localStorage.removeItem("previousPath");
+      //   router.push(previousPath);
+      // }
 
       notification.success({
         message: `Bienvenido`,

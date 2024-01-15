@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { WarningTwoTone } from "@ant-design/icons";
+import {
+  CheckCircleFilled,
+  WarningTwoTone,
+  UserOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Container,
@@ -9,8 +13,13 @@ import {
   Icon,
   Select,
 } from "../../components";
-import { getProformas, getUsers, userProvider } from "../../providers";
-import { Input, notification, Table, Tooltip, Tag } from "antd";
+import {
+  getProforma,
+  getProformas,
+  getUsers,
+  userProvider,
+} from "../../providers";
+import { Input, notification, Table, Tooltip, Tag, List } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
@@ -55,7 +64,7 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (createdAt) =>
         `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
-          "hh:mm"
+          "hh:mm",
         )}`,
     },
     {
@@ -101,23 +110,26 @@ export default ({ setPageTitle }) => {
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (total) => `S/.${(total / 100).toFixed(2)}`,
+      render: (total) => `S/ ${(total / 100).toFixed(2)}`,
     },
 
     {
-      dataIndex: "sale",
-      title: "Pagado",
+      // dataIndex: "sale",
+      dataIndex: "efectivo",
+      // title: "Pagado",
+      title: "Efectivo",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/.${(sale.due / 100).toFixed(2)}` : "-"),
+      render: (efectivo) => (efectivo ? `S/ ${(efectivo / 100).toFixed(2)}` : "-"),
     },
 
     {
-      dataIndex: "sale",
+      // dataIndex: "sale",
+      dataIndex: "credit",
       title: "Crédito",
       width: "fit-content",
       align: "center",
-      render: (sale) => (sale ? `S/.${(sale.credit / 100).toFixed(2)}` : "-"),
+      render: (credit) => (credit ? `S/ ${(credit / 100).toFixed(2)}` : "-"),
     },
   ];
 
@@ -176,7 +188,23 @@ export default ({ setPageTitle }) => {
   useEffect(() => {
     const fetchProformas = async () => {
       try {
-        const _proformas = await getProformas(queryParams);
+        const updatedQueryParams = { ...queryParams };
+        if (updatedQueryParams.status === "EXPIRED") {
+          delete updatedQueryParams?.status;
+        }
+        let _proformas = await getProformas(updatedQueryParams);
+        // due in the backend we don't have a status type of EXPIRED ("CADUCADA"). We're getting that value from the get() in the column status
+        // so if we have "Pendiente de aprobacion". Internally will look for "Pendiente de aprobacion" in the database. Then, due the get(), if it's within the
+        // expire days. We get EXPIRED ("Caducada")
+        const proformasRows = _proformas.rows.filter(
+          (proforma) =>
+            (queryParams.status === "EXPIRED" &&
+              proforma.status === "EXPIRED") ||
+            (queryParams.status !== "EXPIRED" &&
+              proforma.status !== "EXPIRED") ||
+            typeof queryParams.status === "undefined",
+        );
+
         setPagination({
           position: ["bottomCenter"],
           total: _proformas.pageSize * _proformas.pages,
@@ -186,7 +214,18 @@ export default ({ setPageTitle }) => {
           showSizeChanger: false,
           showQuickJumper: true,
         });
-        setProformas(_proformas.rows);
+
+        // let proformasRequest = [];
+        // for (const proforma of proformas) {
+        //   proformasRequest.push(getProforma(proforma.id));
+        // }
+
+        // const response = await Promise.allSettled(proformasRequest);
+
+        // for (const promiseResponse of response) {
+        // }
+
+        setProformas(proformasRows);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -268,12 +307,17 @@ export default ({ setPageTitle }) => {
       label: "En cotización",
     },
     {
+      value: "EXPIRED",
+      label: "Caducada",
+    },
+    {
       value: "PENDING_DISCOUNT_APPROVAL",
       label: "Pendiente de aprobacion",
     },
     {
       value: "CLOSED",
-      label: "Cerrada",
+      label: "Vendida",
+      // label: "Cerrada",
     },
   ];
 
@@ -400,7 +444,57 @@ export default ({ setPageTitle }) => {
           columns={columns}
           scroll={{ y: windowHeight * 0.4 - 48 }}
           bordered
+          rowKey={(record) => record.id}
           pagination={pagination}
+          expandable={{
+            expandedRowRender: (record) => {
+              const discountProformasApproved =
+                record?.discountProformas?.filter(
+                  (discount) => discount.userId,
+                );
+              // return <p>hola</p>
+              return (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={discountProformasApproved}
+                  renderItem={(item, index) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={
+                          <CheckCircleFilled style={{ color: "green" }} />
+                        }
+                        title={`Descuento aprobado por  ${
+                          item?.user?.name || "No name found"
+                        } (User ID: ${item.userId})`}
+                        description={`Monto S/ ${(
+                          Number(item.approvedDiscount) / 100
+                        ).toFixed(2)} Fecha: ${new Date(
+                          item.updatedAt,
+                        ).toLocaleDateString("es-PE", {
+                          timeZone: "America/Lima",
+                        })}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              );
+            },
+            rowExpandable: (record) => {
+              return (
+                record?.discountProformas?.filter((d) => d.userId !== null)
+                  .length > 0
+              );
+              // if (record?.discountProformas?.length === 0) {
+              //   return false;
+              // }
+              // return true;
+
+              // if (record.discountProformas) {
+              // }
+
+              // return false;
+            },
+          }}
           dataSource={proformas}
           onChange={(pagination) =>
             updateState(setPage, pagination.current, true)

@@ -70,8 +70,8 @@ export const ProformaPdf = () => {
       key: index,
       cantidad: producto?.quantity,
       descripcion: producto?.product.tradename || "",
-      punit: producto?.product.suggestedPrice / 100 ?? "Precio no encontrado",
-      importe: (producto?.product.suggestedPrice / 100) * producto?.quantity,
+      punit: producto?.unitPrice / 100 ?? "Precio no encontrado",
+      importe: (producto?.unitPrice / 100) * producto?.quantity,
     };
   });
 
@@ -391,46 +391,46 @@ export const ProformaPdf = () => {
               <input type="checkbox" />
             </AccountNumber>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BBVA SOLES: 0011-0609-0100052200</div>
               <input type="checkbox" />
             </AccountNumber>
           </ProformAccountWrapper>
           <ProformAccountWrapper className="proforma-bank-account-type">
             <div className="proforma-bank-title">
-              MAX IMPORTACIONES Y SERVICIOS GENERALES SAC
+              M&X IMPORTACIONES E.I.R.L.
             </div>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BCP SOLES: 191-2444280-0-96</div>
               <input type="checkbox" />
             </AccountNumber>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BBVA SOLES: 0011-0609-0100019214</div>
               <input type="checkbox" />
             </AccountNumber>
           </ProformAccountWrapper>
           <ProformAccountWrapper className="proforma-bank-account-type">
             <div className="proforma-bank-title">
-              MAX IMPORTACIONES Y SERVICIOS GENERALES SAC
+              IMPORTADORA DE RESPUESTOS MAX IMPORT SAC
             </div>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BCP SOLES: 191-2220883-0-60</div>
               <input type="checkbox" />
             </AccountNumber>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BBVA SOLES: 0011-0609-0100011361</div>
               <input type="checkbox" />
             </AccountNumber>
           </ProformAccountWrapper>
           <ProformAccountWrapper className="proforma-bank-account-type">
             <div className="proforma-bank-title">
-              MAX IMPORTACIONES Y SERVICIOS GENERALES SAC
+              JUNIOR ALEXANDER CASTILLO ARRUE
             </div>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BCP SOLES: 191-16997551-0-41</div>
               <input type="checkbox" />
             </AccountNumber>
             <AccountNumber>
-              <div>BCP SOLES: 191-2179658-0-45</div>
+              <div>BBVA SOLES: 0011-0609-0100011558</div>
               <input type="checkbox" />
             </AccountNumber>
           </ProformAccountWrapper>
@@ -440,6 +440,7 @@ export const ProformaPdf = () => {
             display: "flex",
             flexDirection: "column",
             fontSize: "16px",
+            paddingRight: "50px",
             // width: "100%",
             flex: "1",
             fontWeight: 600,

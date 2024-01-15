@@ -11,6 +11,8 @@ const putProforma = async (productId, proforma) =>
   baseProvider.httpPut(`proformas/${productId}`, proforma);
 const sendEmail = async (proformaId, url) =>
   baseProvider.httpPost(`proforma/pdf/${proformaId}`, { url });
+const resetExpireStatus = async (proformaId) =>
+  baseProvider.httpPut(`proformas/${proformaId}/reset-expire`);
 
 export {
   getProformas,
@@ -18,5 +20,6 @@ export {
   postProforma,
   putProforma,
   sendEmail,
+  resetExpireStatus,
   /* postProduct*/
 };
