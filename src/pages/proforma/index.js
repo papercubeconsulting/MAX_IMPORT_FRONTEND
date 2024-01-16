@@ -875,10 +875,6 @@ export default ({ setPageTitle }) => {
   // track the input if changes
   prevCode.current = _code;
 
-  //
-
-  console.log({ product, products });
-
   return (
     <>
       <Modal
@@ -1185,44 +1181,6 @@ export default ({ setPageTitle }) => {
             message={alertState.message}
           />
         )}
-
-        {/* <Divider>Buscar por codigo</Divider> */}
-        {/* <div style={{ display: "flex", alignItems: "center" }}> */}
-        {/*   <span */}
-        {/*     className="ant-input-group-addon" */}
-        {/*     style={{ width: "auto", height: "2rem", lineHeight: "2rem" }} */}
-        {/*   > */}
-        {/*     Cód. Inventario */}
-        {/*   </span> */}
-        {/*   <AutoCompleteAntd */}
-        {/*     onFocus={() => resetDataModal()} */}
-        {/*     placeholder="Codigo Inventario" */}
-        {/*     style={{ width: "300px" }} */}
-        {/*     color={"white"} */}
-        {/*     colorFont={"#5F5F7F"} */}
-        {/*     value={code} */}
-        {/*     onSelect={(value, option) => { */}
-        {/*       setCode(value); */}
-        {/*       setProduct(option.product); */}
-        {/*     }} */}
-        {/*     onSearch={(value, option) => { */}
-        {/*       // console.log({ */}
-        {/*       //   value, */}
-        {/*       //   product: option?.product, */}
-        {/*       //   type: "onSearch", */}
-        {/*       // }); */}
-        {/*       setCode(value); */}
-        {/*     }} */}
-        {/*     options={products.map((product, index) => ({ */}
-        {/*       value: product.code, */}
-        {/*       label: product.code, */}
-        {/*       product, */}
-        {/*     }))} */}
-        {/*     filterOption={(input, option) => { */}
-        {/*       return option.value.toLowerCase().includes(input.toLowerCase()); */}
-        {/*     }} */}
-        {/*   /> */}
-        {/* </div> */}
       </Modal>
       <Modal
         visible={isVisible}
