@@ -131,7 +131,14 @@ export default ({ setPageTitle, setShowButton }) => {
     }));
 
   const confirmMoveProductBox = () => {
-    if (!warehouseId || warehouseId === productBox.warehouseId) {
+    if (!warehouseId) {
+      return notification.error({
+        message: "Error al intentar mover la caja",
+        description: "Debe seleccionar un Almacen y una Subdivision",
+      });
+    }
+
+    if (warehouseId === productBox.warehouseId) {
       return notification.error({
         message: "Error al intentar mover la caja",
         description: "Debe seleccionar una ubicación distinta a la actual",
@@ -192,7 +199,7 @@ export default ({ setPageTitle, setShowButton }) => {
       const response = await putProductBox(productBox.id, body);
 
       Modal.success({
-        width: '60%',
+        width: "60%",
         title: "Se ha movida la caja correctamente",
         // content: `Caja: ${productBoxCode} | Nueva ubicación: ${warehouseName}`,
         content: `Caja: ${productBoxCode} | Nuevo Almacen: ${warehouseName} | Nueva Subvidion: ${subDivisionName}`,
