@@ -307,6 +307,12 @@ export const ReadProductCode = (props) => {
   };
 
   const moveBoxes = async () => {
+    if (!warehouseId) {
+      notification.error({
+        message: 'Por favor, ingrese un Almacen y una Subdivision',
+      });
+      return;
+    }
     const data = dataCodes.map((elem) => ({
       id: elem.id,
       warehouseId,
