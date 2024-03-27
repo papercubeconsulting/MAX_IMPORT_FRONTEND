@@ -51,15 +51,32 @@ import { ModalCargaMasiva } from "../../../components/supplies/[supplyId]/ModalC
 import { useLogsSupply } from "../../../util/hooks/useLogsSupply";
 import { FloatButton } from "../../../components/FloatButton";
 import { ModalLogs, TimeLineItem } from "../../../components/ModalLogs";
+import { useWarehouses } from "../../../util/hooks/useWarehouses";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
   const [providers, setProviders] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
+  const {
+    selectOptionsWarehouse,
+    onChangeSubVisionSelect,
+    onChangeWarehouseName,
+    selectOptionsUbicacion,
+    listOfSubdivisions,
+    warehouseId,
+    warehouseName,
+    wareHouseSubdivisionMap,
+    setWarehouseName,
+    warehouses,
+    setWarehouses,
+    listWarehouses,
+    setWarehouseId,
+  } = useWarehouses();
+  // const [warehouses, setWarehouses] = useState([]);
   const [isVisibleLogs, setVisibleLogs] = useState(false);
   const [supply, setSupply] = useState(null);
   const [providerId, setProviderId] = useState(null);
-  const [warehouseId, setWarehouseId] = useState(null);
+  // const [warehouseId, setWarehouseId] = useState(null);
+  // const [warehouseName, setWarehouseName] = useState(null);
   const [code, setCode] = useState(null);
   const [arrivalDate, setArrivalDate] = useState(moment());
   const [suppliedProducts, setSuppliedProducts] = useState([]);
@@ -102,7 +119,7 @@ export default ({ setPageTitle }) => {
     {
       totalInitQuantity: 0,
       totalQuantity: 0,
-    }
+    },
   );
 
   const columns = [
@@ -129,7 +146,7 @@ export default ({ setPageTitle }) => {
                   .map((suppliedProduct, index) => ({
                     ...suppliedProduct,
                     id: index + 1,
-                  }))
+                  })),
               );
             }}
             className="ant_green_color"
@@ -185,7 +202,8 @@ export default ({ setPageTitle }) => {
           onChange={(value) =>
             setSuppliedProducts((prevState) => {
               const remainingSuppliedProducts = prevState.filter(
-                (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+                (_suppliedProduct) =>
+                  _suppliedProduct.id !== suppliedProduct.id,
               );
 
               return [
@@ -210,7 +228,7 @@ export default ({ setPageTitle }) => {
       render: (subfamilyId, suppliedProduct) => {
         if (suppliedProduct.familyId && !subfamilyId) {
           const _subfamily = subfamilies.filter(
-            (subFamily) => subFamily.familyId === suppliedProduct.familyId
+            (subFamily) => subFamily.familyId === suppliedProduct.familyId,
           );
           const _chosenSubFamily = _subfamily.find((elem) => elem.name === "-");
           if (_chosenSubFamily) {
@@ -226,7 +244,7 @@ export default ({ setPageTitle }) => {
               setSuppliedProducts((prevState) => {
                 const remainingSuppliedProducts = prevState.filter(
                   (_suppliedProduct) =>
-                    _suppliedProduct.id !== suppliedProduct.id
+                    _suppliedProduct.id !== suppliedProduct.id,
                 );
 
                 return [
@@ -245,8 +263,8 @@ export default ({ setPageTitle }) => {
             }}
             options={selectOptions(
               subfamilies.filter(
-                (subFamily) => subFamily.familyId === suppliedProduct.familyId
-              )
+                (subFamily) => subFamily.familyId === suppliedProduct.familyId,
+              ),
             )}
           />
         );
@@ -259,7 +277,7 @@ export default ({ setPageTitle }) => {
       render: (elementId, suppliedProduct) => {
         if (suppliedProduct.subfamilyId && !elementId) {
           const _element = elements.filter(
-            (element) => element.subfamilyId === suppliedProduct.subfamilyId
+            (element) => element.subfamilyId === suppliedProduct.subfamilyId,
           );
           const _chosenElement = _element.find((elem) => elem.name === "-");
           if (_chosenElement) {
@@ -275,7 +293,7 @@ export default ({ setPageTitle }) => {
               setSuppliedProducts((prevState) => {
                 const remainingSuppliedProducts = prevState.filter(
                   (_suppliedProduct) =>
-                    _suppliedProduct.id !== suppliedProduct.id
+                    _suppliedProduct.id !== suppliedProduct.id,
                 );
 
                 return [
@@ -295,8 +313,9 @@ export default ({ setPageTitle }) => {
             }
             options={selectOptions(
               elements.filter(
-                (element) => element.subfamilyId === suppliedProduct.subfamilyId
-              )
+                (element) =>
+                  element.subfamilyId === suppliedProduct.subfamilyId,
+              ),
             )}
           />
         );
@@ -373,7 +392,7 @@ export default ({ setPageTitle }) => {
               setSuppliedProducts((prevState) => {
                 const remainingSuppliedProducts = prevState.filter(
                   (_suppliedProduct) =>
-                    _suppliedProduct.id !== suppliedProduct.id
+                    _suppliedProduct.id !== suppliedProduct.id,
                 );
 
                 return [
@@ -437,7 +456,7 @@ export default ({ setPageTitle }) => {
               setSuppliedProducts((prevState) => {
                 const remainingSuppliedProducts = prevState.filter(
                   (_suppliedProduct) =>
-                    _suppliedProduct.id !== suppliedProduct.id
+                    _suppliedProduct.id !== suppliedProduct.id,
                 );
 
                 return [
@@ -465,13 +484,13 @@ export default ({ setPageTitle }) => {
     fetchProviders();
   }, []);
 
-  useEffect(() => {
-    const fetchWarehouses = async () => {
-      const _warehouses = await getWarehouses("Almacén");
-      setWarehouses(_warehouses);
-    };
-    fetchWarehouses();
-  }, []);
+  // useEffect(() => {
+  //   const fetchWarehouses = async () => {
+  //     const _warehouses = await getWarehouses("Almacén");
+  //     setWarehouses(_warehouses);
+  //   };
+  //   fetchWarehouses();
+  // }, []);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -533,7 +552,7 @@ export default ({ setPageTitle }) => {
         initQuantity: get(suppliedProduct, "initQuantity", null),
         initBoxSize: get(suppliedProduct, "initBoxSize", null),
         product: get(suppliedProduct, "product", null),
-      }))
+      })),
     );
   };
 
@@ -558,10 +577,10 @@ export default ({ setPageTitle }) => {
           quantity: get(suppliedProduct, "quantity", null),
           boxSize: get(suppliedProduct, "boxSize", null),
           product: get(suppliedProduct, "product", null),
-        })
+        }),
       );
       // setSuppliedProducts({ ...suppliedProducts });
-      // fix: 
+      // fix:
       setSuppliedProducts(suppliedProducts);
       setAttendedProduct(suppliedProducts.find((e) => e.dbId === selectedRow));
     };
@@ -602,6 +621,18 @@ export default ({ setPageTitle }) => {
       label: document.name,
     }));
 
+  // const selectOptionsWarehouse = (collection) =>
+  //   collection.map((document) => ({
+  //     value: document,
+  //     label: document,
+  //   }));
+
+  // const selectOptionsUbicacion = (collection) =>
+  //   collection.map((document) => ({
+  //     value: document.id,
+  //     label: document.name || "-",
+  //   }));
+
   const onSubmit = async () => {
     try {
       setLoadingSupply(true);
@@ -609,7 +640,7 @@ export default ({ setPageTitle }) => {
         suppliedProducts,
         0,
         [],
-        isEdit
+        isEdit,
       );
 
       const body = {
@@ -648,7 +679,7 @@ export default ({ setPageTitle }) => {
     products,
     index = 0,
     mappedSuppliedProducts = [],
-    isEdit = false
+    isEdit = false,
   ) => {
     if (products.length === index) return mappedSuppliedProducts;
 
@@ -683,7 +714,7 @@ export default ({ setPageTitle }) => {
           ...(isEdit ? { initQuantity, initBoxSize } : {}),
         },
       ],
-      isEdit
+      isEdit,
     );
   };
 
@@ -716,6 +747,45 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  // // handle the warehouses and list of subvdisions
+  // const { listWarehouses, wareHouseSubdivisionMap } = React.useMemo(() => {
+  //   const mapping = warehouses.reduce(
+  //     (prev, warehouse) => {
+  //       // console.log({ prev });
+  //       const warehouseName = warehouse.name;
+  //       const warehouseId = warehouse.id;
+  //       const subDivision = warehouse.subDivision;
+
+  //       if (warehouse.id in prev.map) {
+  //         prev.map[warehouseName].push({
+  //           id: warehouseId,
+  //           name: warehouse.subDivision,
+  //         });
+  //         // prev.listWarehouses.push({ id: warehouseId, name: warehouse.name });
+  //       } else {
+  //         prev.map[warehouseName] = [
+  //           { id: warehouseId, name: warehouse.subDivision },
+  //         ];
+  //         // prev.list.push({ id: warehouseId, name: warehouse.name });
+  //       }
+
+  //       // console.log("finalprev", { prev });
+
+  //       return prev;
+  //     },
+  //     { list: [], map: {} },
+  //   );
+
+  //   return {
+  //     listWarehouses: Object.keys(mapping.map),
+  //     wareHouseSubdivisionMap: mapping.map,
+  //   };
+  // }, [warehouses.length]);
+
+  // const listOfSubdivisions = React.useMemo(() => {
+  //   return wareHouseSubdivisionMap[warehouseName] || [];
+  // }, [warehouseName]);
+
   return (
     <>
       <FloatButton onClick={() => setVisibleLogs(!isVisibleLogs)} />
@@ -729,7 +799,7 @@ export default ({ setPageTitle }) => {
         closeModal={() => setIsModalCargaVisible(false)}
       />
       <Container height="auto">
-        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+        <Grid gridTemplateColumns="1fr 1fr 1fr 1fr" gridGap="2rem">
           <Select
             value={providerId}
             disabled={disabled || suppliedProducts.length}
@@ -738,11 +808,21 @@ export default ({ setPageTitle }) => {
             options={selectOptions(providers)}
           />
           <Select
-            value={warehouseId}
+            value={warehouseName}
             disabled={disabled}
             label="Almacén"
-            onChange={(value) => setWarehouseId(value)}
-            options={selectOptions(warehouses)}
+            onChange={onChangeWarehouseName}
+            // onChange={(value) => setWarehouseName(value)}
+            options={selectOptionsWarehouse(listWarehouses)}
+            // options={selectOptions(warehouses)}
+          />
+          <Select
+            value={warehouseId}
+            disabled={disabled}
+            label="Subdivision"
+            onChange={onChangeSubVisionSelect}
+            // onChange={(value) => setWarehouseId(value)}
+            options={selectOptionsUbicacion(listOfSubdivisions)}
           />
           <Input
             value={code}
@@ -885,7 +965,7 @@ const RenderColumn = ({
     name: suppliedProduct?.product?.modelName,
   });
   const _models = models.filter(
-    (model) => model.elementId === suppliedProduct.elementId
+    (model) => model.elementId === suppliedProduct.elementId,
   );
   /* console.log("check", suppliedProduct); */
   useEffect(() => {
@@ -908,7 +988,7 @@ const RenderColumn = ({
 
         setSuppliedProducts((prevState) => {
           const remainingSuppliedProducts = prevState.filter(
-            (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id
+            (_suppliedProduct) => _suppliedProduct.id !== suppliedProduct.id,
           );
 
           return [

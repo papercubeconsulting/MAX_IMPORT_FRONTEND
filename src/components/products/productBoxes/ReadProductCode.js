@@ -8,6 +8,7 @@ import { faTrash, faPeopleCarry } from '@fortawesome/free-solid-svg-icons';
 import { InboxOutlined, NumberOutlined } from '@ant-design/icons';
 import {
   getProductBox,
+  getWarehouseById,
   getWarehouses,
   putProductBoxes,
 } from '../../../providers';
@@ -18,6 +19,7 @@ import { Grid } from '../../Grid';
 import { Select } from '../../Select';
 import { Button } from '../../Button';
 import { Icon } from '../../Icon';
+import { useWarehouses } from '../../../util/hooks/useWarehouses';
 
 const Form = styled(Grid)`
   grid-template-columns: 1fr 1fr;
@@ -38,7 +40,7 @@ export const ReadProductCode = (props) => {
   const videoooRef = React.useRef();
   const [dataCodes, setDataCodes] = useState([]);
   const [productBoxCode, setProductBoxCode] = useState('');
-  const [warehouses, setWarehouses] = useState([]);
+  // const [warehouses, setWarehouses] = useState([]);
   const [newWarehouse, setNewWarehouse] = useState({});
   const [modalConfirm, setModalConfirm] = useState(false);
   const [isScanned, setIsScanned] = useState(false)
@@ -47,19 +49,34 @@ export const ReadProductCode = (props) => {
     'cajas': 0, 'unidades': 0, 'items': []
   })
   const [windowHeight, setWindowHeight] = useState(0);
+  const {
+    selectOptionsWarehouse,
+    onChangeWarehouseName,
+    onChangeSubVisionSelect,
+    selectOptionsUbicacion,
+    listOfSubdivisions,
+    warehouseId,
+    warehouseName,
+    wareHouseSubdivisionMap,
+    setWarehouseName,
+    warehouses,
+    setWarehouses,
+    listWarehouses,
+    setWarehouseId,
+  } = useWarehouses();
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
     window.localStream = null;
   }, []);
 
-  useEffect(() => {
-    const fetchWarehouses = async () => {
-      const _warehouses = await getWarehouses();
-      setWarehouses(_warehouses);
-    };
-    fetchWarehouses();
-  }, []);
+  // useEffect(() => {
+  //   const fetchWarehouses = async () => {
+  //     const _warehouses = await getWarehouses();
+  //     setWarehouses(_warehouses);
+  //   };
+  //   fetchWarehouses();
+  // }, []);
 
 
   /* Setting up indicadores for modal*/
@@ -100,6 +117,12 @@ export const ReadProductCode = (props) => {
       render: (warehouse) => warehouse.name,
     },
     {
+      title: 'Subdivision',
+      dataIndex: 'warehouse',
+      align: 'center',
+      render: (warehouse) => warehouse.subDivision || '-',
+    },
+    {
       dataIndex: 'trackingCode',
       align: 'center',
       width: '42px',
@@ -131,6 +154,31 @@ export const ReadProductCode = (props) => {
     try {
       setIsScanned(true)
       const _productBox = await getProductBox(newCode);
+      setDataCodes((prev) => {
+        if (prev.some((code) => code.trackingCode == newCode)) {
+          showNotification &&
+            notification.info({
+              message: 'El código ingresado ya existe en la tabla',
+            });
+          return [...prev];
+        } else {
+          return [...prev, { key: prev.length + 1, ..._productBox }];
+        }
+      });
+      setIsScanned(false)
+    } catch (error) {
+      setIsScanned(false)
+      notification.error({
+        message: 'El código ingresado no fue encontrado',
+      });
+    }
+  };
+
+  const addCodeUbicacion = async (newCode, showNotification) => {
+    try {
+      setIsScanned(true)
+      const _warehouse = await getWarehouseById(newCode)
+      // const _productBox = await getProductBox(newCode);
       setDataCodes((prev) => {
         if (prev.some((code) => code.trackingCode == newCode)) {
           showNotification &&
@@ -261,7 +309,8 @@ export const ReadProductCode = (props) => {
   const moveBoxes = async () => {
     const data = dataCodes.map((elem) => ({
       id: elem.id,
-      warehouseId: newWarehouse.id,
+      warehouseId,
+      // warehouseId: newWarehouse.id,
       previousWarehouseId: elem.warehouseId,
     }));
     try {
@@ -302,6 +351,8 @@ export const ReadProductCode = (props) => {
     </div>)
   }
 
+  console.log({ warehouseId })
+
   return (
     <>
       <Modal
@@ -319,20 +370,35 @@ export const ReadProductCode = (props) => {
         title="Movimiento de cajas"
         centered
       >
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <Select
-            value={newWarehouse.name}
-            label="Ubicación destino"
-            onChange={(value) => {
-              const _warehouse = warehouses.find(
-                (warehouse) => warehouse.id === value
-              );
-              setNewWarehouse(_warehouse);
-            }}
-            options={selectOptions(warehouses)}
+            value={warehouseName}
+            label="Almacen"
+            // onChange={(value) => setWarehouseName(value)}
+            onChange={onChangeWarehouseName}
+            // onChange={()}
+            // onChange={(value) => {
+            //   const _warehouse = warehouses.find(
+            //     (warehouse) => warehouse.id === value
+            //   );
+            //   setNewWarehouse(_warehouse);
+            // }}
+            options={selectOptionsWarehouse(listWarehouses)}
+          />
+          <Select
+            value={warehouseId}
+            label="Subdivision"
+            onChange={onChangeSubVisionSelect}
+            // onChange={(value) => {
+            //   const _warehouse = warehouses.find(
+            //     (warehouse) => warehouse.id === value
+            //   );
+            //   setNewWarehouse(_warehouse);
+            // }}
+            options={selectOptionsUbicacion(listOfSubdivisions)}
           />
           {isLoading && <div style={{ marginTop: '12px' }}><Alert message="Procesando informacion ....." type="info" showIcon /></div>}
-        </>
+        </div>
       </Modal>
       <Modal
         visible={props.visible}
@@ -359,7 +425,7 @@ export const ReadProductCode = (props) => {
               value={productBoxCode}
               //onChange={(event) => { setProductBoxCode(event.target.value) }}
               onChange={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } else { setProductBoxCode(event.target.value) } }}
-              addonBefore="Código de caja"
+              addonBefore="Código de Caja"
             // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
             />
             <Button
@@ -375,6 +441,29 @@ export const ReadProductCode = (props) => {
           </Container>
           <Button onClick={scanBarcode}>Leer Código de barras</Button>
         </Form>
+        {/* <Form gridGap="2rem" marginBottom="1rem"> */}
+        {/*   <Container padding="0rem"> */}
+        {/*     <Input */}
+        {/*       justify="center" */}
+        {/*       value={productBoxCode} */}
+        {/*       //onChange={(event) => { setProductBoxCode(event.target.value) }} */}
+        {/*       onChange={async (event) => { if (event.target.value.length === 16) { await addCode(event.target.value, true); setProductBoxCode('') } else { setProductBoxCode(event.target.value) } }} */}
+        {/*       addonBefore="Código de Ubicacion" */}
+        {/*     // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }} */}
+        {/*     /> */}
+        {/*     <Button */}
+        {/*       type="primary" */}
+        {/*       disabled={!productBoxCode} */}
+        {/*       onClick={() => { */}
+        {/*         addCode(productBoxCode, true); */}
+        {/*         setProductBoxCode(''); */}
+        {/*       }} */}
+        {/*     > */}
+        {/*       Agregar */}
+        {/*     </Button> */}
+        {/*   </Container> */}
+        {/*   <Button onClick={scanBarcode}>Leer Ubicación</Button> */}
+        {/* </Form> */}
         <DivInfo
           gridTemplateColumns="1fr 1fr"
           gridGap="2rem"

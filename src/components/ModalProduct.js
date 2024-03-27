@@ -20,6 +20,11 @@ export const ModalProduct = (props) => {
       align: "center",
     },
     {
+      title: "Ubicacion",
+      dataIndex: "location",
+      align: "center",
+    },
+    {
       title: "Stock",
       dataIndex: "stock",
       align: "center",

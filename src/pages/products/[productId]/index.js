@@ -34,6 +34,11 @@ export default () => {
       align: "center",
     },
     {
+      title: "Ubicacion",
+      dataIndex: "warehouseSubdivision",
+      align: "center",
+    },
+    {
       title: "Stock",
       dataIndex: "stock",
       align: "center",
@@ -171,7 +176,7 @@ export default () => {
     const stockByWarehouseTypeArray = get(product, "stockByWarehouseType", []);
 
     const stockByWarehouseType = stockByWarehouseTypeArray.find(
-      (_stockByWarehouseType) => _stockByWarehouseType.warehouseType === type
+      (_stockByWarehouseType) => _stockByWarehouseType.warehouseType === type,
     );
 
     return get(stockByWarehouseType, "stock", 0);

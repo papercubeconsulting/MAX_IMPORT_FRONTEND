@@ -65,6 +65,12 @@ export default ({ setPageTitle }) => {
       render: (warehouse) => warehouse.name,
     },
     {
+      title: "Ubicacion",
+      dataIndex: "location",
+      align: "center",
+      render: (warehouse) => warehouse?.name || '',
+    },
+    {
       title: "Fecha LLeg.",
       dataIndex: "arrivalDate",
       align: "center",

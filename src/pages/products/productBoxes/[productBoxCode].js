@@ -13,6 +13,7 @@ import {
 
 import { Container, Grid, Select, Button, Icon } from "../../../components";
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
+import { useWarehouses } from "../../../util/hooks/useWarehouses";
 
 export default ({ setPageTitle, setShowButton }) => {
   setPageTitle("Caja de productos");
@@ -51,17 +52,42 @@ export default ({ setPageTitle, setShowButton }) => {
     },
     {
       width: "20%",
-      title: "Ubicación",
+      title: "Almacen",
+      // title: "Ubicación",
       dataIndex: "warehouse",
       align: "center",
       render: (warehouse) => warehouse.name,
     },
+    {
+      width: "20%",
+      title: "Subdivision",
+      dataIndex: "warehouse",
+      align: "center",
+      render: (warehouse) => warehouse.subDivision || "-",
+    },
   ];
+
+  const {
+    selectOptionsWarehouse,
+    onChangeWarehouseName,
+    onChangeSubVisionSelect,
+    selectOptionsUbicacion,
+    subDivisionName,
+    listOfSubdivisions,
+    warehouseId,
+    warehouseName,
+    wareHouseSubdivisionMap,
+    setWarehouseName,
+    warehouses,
+    setWarehouses,
+    listWarehouses,
+    setWarehouseId,
+  } = useWarehouses();
 
   const [productBox, setProductBox] = useState(null);
   const [product, setProduct] = useState(null);
   const [newWarehouse, setNewWarehouse] = useState({});
-  const [warehouses, setWarehouses] = useState([]);
+  // const [warehouses, setWarehouses] = useState([]);
   // const [productBoxLogs, setProductBoxLogs] = useState(null);
   const [
     isModalReadProductBoxCodeVisible,
@@ -90,21 +116,22 @@ export default ({ setPageTitle, setShowButton }) => {
     productBoxCode && fetchProductBox();
   }, [router]);
 
-  useEffect(() => {
-    const fetchWarehouses = async () => {
-      const _warehouses = await getWarehouses();
-      setWarehouses(_warehouses);
-    };
-    fetchWarehouses();
-  }, []);
+  // useEffect(() => {
+  //   const fetchWarehouses = async () => {
+  //     const _warehouses = await getWarehouses();
+  //     setWarehouses(_warehouses);
+  //   };
+  //   fetchWarehouses();
+  // }, []);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
       label: document.name,
       value: document.id,
     }));
+
   const confirmMoveProductBox = () => {
-    if (!newWarehouse.id || newWarehouse.id === productBox.warehouseId) {
+    if (!warehouseId || warehouseId === productBox.warehouseId) {
       return notification.error({
         message: "Error al intentar mover la caja",
         description: "Debe seleccionar una ubicación distinta a la actual",
@@ -130,13 +157,21 @@ export default ({ setPageTitle, setShowButton }) => {
             />
             <Input
               disabled
-              addonBefore="Ubicación actual"
+              addonBefore="Almacen actual"
+              // addonBefore="Ubicación actual"
               value={productBox.warehouse.name}
             />
             <Input
               disabled
-              addonBefore="Nueva ubicación"
-              value={newWarehouse.name}
+              addonBefore="Subdivision actual"
+              // addonBefore="Ubicación actual"
+              value={productBox.warehouse.subDivision || "-"}
+            />
+            <Input disabled addonBefore="Nuevo Almacen" value={warehouseName} />
+            <Input
+              disabled
+              addonBefore="Nueva Subdivision"
+              value={subDivisionName}
             />
           </Grid>
         </Container>
@@ -148,7 +183,8 @@ export default ({ setPageTitle, setShowButton }) => {
     try {
       const body = {
         message: "MOVEMENT",
-        warehouseId: newWarehouse.id,
+        // warehouseId: newWarehouse.id,
+        warehouseId,
       };
 
       // props.trigger(false);
@@ -156,8 +192,10 @@ export default ({ setPageTitle, setShowButton }) => {
       const response = await putProductBox(productBox.id, body);
 
       Modal.success({
+        width: '60%',
         title: "Se ha movida la caja correctamente",
-        content: `Caja: ${productBoxCode} | Nueva ubicación: ${newWarehouse.name}`,
+        // content: `Caja: ${productBoxCode} | Nueva ubicación: ${warehouseName}`,
+        content: `Caja: ${productBoxCode} | Nuevo Almacen: ${warehouseName} | Nueva Subvidion: ${subDivisionName}`,
         onOk: () => router.reload(),
       });
     } catch (error) {
@@ -228,11 +266,12 @@ export default ({ setPageTitle, setShowButton }) => {
             />
             <Input
               disabled
-              addonBefore="Ubicación"
+              // addonBefore="Ubicación"
+              addonBefore="Almacen - Subdivision"
               value={`${get(productBox, "warehouse.name", "-")} (${get(
                 productBox,
-                "warehouse.type",
-                "-"
+                "warehouse.subDivision",
+                "-",
               )})`}
             />
             <Input
@@ -259,22 +298,48 @@ export default ({ setPageTitle, setShowButton }) => {
       >
         <h3>Movimiento de caja</h3>
         <Grid
-          gridTemplateColumns="2fr 1fr"
+          gridTemplateColumns="2fr  2fr 1fr"
           gridTemplateRows="repeat(1, 1fr)"
           justifyContent="center"
           gridGap="1rem"
         >
           <Select
-            value={newWarehouse.name}
-            label="Ubicación destino"
-            onChange={(value) => {
-              const _warehouse = warehouses.find(
-                (warehouse) => warehouse.id === value
-              );
-              setNewWarehouse(_warehouse);
-            }}
-            options={selectOptions(warehouses)}
+            value={warehouseName}
+            label="Almacen"
+            // onChange={(value) => setWarehouseName(value)}
+            onChange={onChangeWarehouseName}
+            // onChange={()}
+            // onChange={(value) => {
+            //   const _warehouse = warehouses.find(
+            //     (warehouse) => warehouse.id === value
+            //   );
+            //   setNewWarehouse(_warehouse);
+            // }}
+            options={selectOptionsWarehouse(listWarehouses)}
           />
+          <Select
+            value={warehouseId}
+            label="Subdivision"
+            onChange={onChangeSubVisionSelect}
+            // onChange={(value) => {
+            //   const _warehouse = warehouses.find(
+            //     (warehouse) => warehouse.id === value
+            //   );
+            //   setNewWarehouse(_warehouse);
+            // }}
+            options={selectOptionsUbicacion(listOfSubdivisions)}
+          />
+          {/* <Select */}
+          {/*   value={newWarehouse.name} */}
+          {/*   label="Ubicación destino" */}
+          {/*   onChange={(value) => { */}
+          {/*     const _warehouse = warehouses.find( */}
+          {/*       (warehouse) => warehouse.id === value */}
+          {/*     ); */}
+          {/*     setNewWarehouse(_warehouse); */}
+          {/*   }} */}
+          {/*   options={selectOptions(warehouses)} */}
+          {/* /> */}
           <Button onClick={() => confirmMoveProductBox()} type="primary">
             <Icon icon={faPeopleCarry} />
             Mover
