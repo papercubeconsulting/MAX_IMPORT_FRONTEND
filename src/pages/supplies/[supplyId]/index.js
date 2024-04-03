@@ -819,7 +819,7 @@ export default ({ setPageTitle }) => {
           <Select
             value={warehouseId}
             disabled={disabled}
-            label="Subdivision"
+            label="Ubicacion"
             onChange={onChangeSubVisionSelect}
             // onChange={(value) => setWarehouseId(value)}
             options={selectOptionsUbicacion(listOfSubdivisions)}

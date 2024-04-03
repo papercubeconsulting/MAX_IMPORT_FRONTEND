@@ -112,7 +112,7 @@ export default ({ setPageTitle }) => {
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
           (stockByWarehouseType) =>
-            stockByWarehouseType.warehouseType === "Tienda"
+            stockByWarehouseType.warehouseType === "Tienda",
         );
 
         return get(_stock, "stock", 0);
@@ -125,7 +125,7 @@ export default ({ setPageTitle }) => {
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
           (stockByWarehouseType) =>
-            stockByWarehouseType.warehouseType === "Almacén"
+            stockByWarehouseType.warehouseType === "Almacén",
         );
 
         return get(_stock, "stock", 0);
@@ -138,7 +138,7 @@ export default ({ setPageTitle }) => {
       render: (stockByWarehouseTypeArray) => {
         const _stock = stockByWarehouseTypeArray.find(
           (stockByWarehouseType) =>
-            stockByWarehouseType.warehouseType === "Averiado"
+            stockByWarehouseType.warehouseType === "Averiado",
         );
 
         return get(_stock, "stock", 0);
@@ -210,7 +210,7 @@ export default ({ setPageTitle }) => {
       setCodes(
         _products.rows.map((r) => {
           return { code: r.code };
-        })
+        }),
       );
     } catch (error) {
       notification.error({
@@ -260,7 +260,7 @@ export default ({ setPageTitle }) => {
         setSubfamilyId(
           _subfamilies[0] && _subfamilies[0].name === "-"
             ? _subfamilies[0].id
-            : null
+            : null,
         );
       }
     } catch (error) {
@@ -286,7 +286,7 @@ export default ({ setPageTitle }) => {
         const _elements = await getElements(subfamilyId);
         setElements(_elements);
         setElementId(
-          _elements[0] && _elements[0].name === "-" ? _elements[0].id : null
+          _elements[0] && _elements[0].name === "-" ? _elements[0].id : null,
         );
       }
     } catch (error) {
@@ -556,11 +556,13 @@ export default ({ setPageTitle }) => {
         setIsModalVisible={setIsDownloadFilesVisible}
         downloadInventario={downloadXlsx}
       />
-      <ReadProductCode
-        visible={isModalReadProductBoxCodeVisible}
-        toggleUpdateTable={setToggleUpdateTable}
-        trigger={setIsModalReadProductBoxCodeVisible}
-      />
+      {isModalReadProductBoxCodeVisible && (
+        <ReadProductCode
+          visible={isModalReadProductBoxCodeVisible}
+          toggleUpdateTable={setToggleUpdateTable}
+          trigger={setIsModalReadProductBoxCodeVisible}
+        />
+      )}
       <Container height="auto" flexDirection="column">
         <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Select

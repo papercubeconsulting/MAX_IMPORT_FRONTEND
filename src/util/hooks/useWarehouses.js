@@ -14,6 +14,17 @@ export const useWarehouses = () => {
     fetchWarehouses();
   }, []);
 
+  // This effect is for handling the scneraio
+  // where there's only one subdivision so we will set the warehouseId
+  // to the only element in the list
+  // useEffect(() => {
+  // const fetchWarehouses = async () => {
+  //   const _warehouses = await getWarehouses("Almacén");
+  //   setWarehouses(_warehouses);
+  // };
+  // fetchWarehouses();
+  // }, [warehouseName,]);
+
   // handle the warehouses and list of subvdisions
   const { listWarehouses, wareHouseSubdivisionMap } = React.useMemo(() => {
     const mapping = warehouses.reduce(
@@ -22,14 +33,24 @@ export const useWarehouses = () => {
         const warehouseName = warehouse.name;
         const warehouseId = warehouse.id;
         const subDivision = warehouse.subDivision;
+        console.log({ prev, name: warehouse });
 
-        if (warehouse.id in prev.map) {
-          prev.map[warehouseName].push({
-            id: warehouseId,
-            name: warehouse.subDivision,
-          });
+        if (warehouse.name in prev.map) {
+          console.log("old");
+          // prev.map[warehouseName].push({
+          //   id: warehouseId,
+          //   name: warehouse.subDivision,
+          // });
+          prev.map[warehouseName] = [
+            ...prev.map[warehouseName],
+            {
+              id: warehouseId,
+              name: warehouse.subDivision,
+            },
+          ];
           // prev.listWarehouses.push({ id: warehouseId, name: warehouse.name });
         } else {
+          console.log("new");
           prev.map[warehouseName] = [
             { id: warehouseId, name: warehouse.subDivision },
           ];
@@ -42,6 +63,8 @@ export const useWarehouses = () => {
       },
       { list: [], map: {} },
     );
+
+    console.log({ mapping });
 
     return {
       listWarehouses: Object.keys(mapping.map),
