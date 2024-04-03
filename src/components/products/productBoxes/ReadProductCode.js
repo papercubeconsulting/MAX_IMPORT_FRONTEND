@@ -133,7 +133,7 @@ export const ReadProductCode = (props) => {
       render: (warehouse) => warehouse.name,
     },
     {
-      title: "Subdivision",
+      title: "Ubicacion",
       dataIndex: "warehouse",
       align: "center",
       render: (warehouse) => warehouse.subDivision || "-",
@@ -232,6 +232,53 @@ export const ReadProductCode = (props) => {
         Quagga.start();
       },
     );
+  };
+  const addCodeUbicacion = async (newCode, showNotification) => {
+    try {
+      setIsScanned(true);
+      const _warehouse = await getWarehouseById(newCode);
+      // console.log({ _warehouse });
+      console.log("warehouse", { _warehouse }, !_warehouse);
+
+      if (!_warehouse) {
+        setWarehouseInput("");
+        setIsScanned(false);
+        notification.info({
+          message: "El código de ubicacion no existe",
+        });
+      } else {
+        setWarehouseId(_warehouse.id);
+        setWarehouseInput(_warehouse.id);
+        setWarehouseName(_warehouse.name);
+        // QuaggaUbicacion.stop();
+        // videoRef.current.localStream = null;
+        setIsScanned(false);
+        // onClose();
+        notification.success({
+          message: "Ubicacion encontrada!",
+        });
+      }
+
+      // const _productBox = await getProductBox(newCode);
+      // setDataCodes((prev) => {
+      //   if (prev.some((code) => code.trackingCode == newCode)) {
+      //     showNotification &&
+      //       notification.info({
+      //         message: 'El código ingresado ya existe en la tabla',
+      //       });
+      //     return [...prev];
+      //   } else {
+      //     return [...prev, { key: prev.length + 1, ..._productBox }];
+      //   }
+      // });
+    } catch (error) {
+      console.log({ error });
+      setIsScanned(false);
+      setWarehouseInput("");
+      notification.error({
+        message: "El código ingresado de Ubicacion no fue encontrado",
+      });
+    }
   };
 
   const scanBarcode = (scanUbicacion) => {

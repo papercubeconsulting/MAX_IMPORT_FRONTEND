@@ -60,7 +60,7 @@ export default ({ setPageTitle, setShowButton }) => {
     },
     {
       width: "20%",
-      title: "Subdivision",
+      title: "Ubicacion",
       dataIndex: "warehouse",
       align: "center",
       render: (warehouse) => warehouse.subDivision || "-",
@@ -170,14 +170,14 @@ export default ({ setPageTitle, setShowButton }) => {
             />
             <Input
               disabled
-              addonBefore="Subdivision actual"
+              addonBefore="Ubicacion actual"
               // addonBefore="Ubicación actual"
               value={productBox.warehouse.subDivision || "-"}
             />
             <Input disabled addonBefore="Nuevo Almacen" value={warehouseName} />
             <Input
               disabled
-              addonBefore="Nueva Subdivision"
+              addonBefore="Nueva Ubicacion"
               value={subDivisionName}
             />
           </Grid>
@@ -274,7 +274,7 @@ export default ({ setPageTitle, setShowButton }) => {
             <Input
               disabled
               // addonBefore="Ubicación"
-              addonBefore="Almacen - Subdivision"
+              addonBefore="Almacen - Ubicacion"
               value={`${get(productBox, "warehouse.name", "-")} (${get(
                 productBox,
                 "warehouse.subDivision",
@@ -326,7 +326,7 @@ export default ({ setPageTitle, setShowButton }) => {
           />
           <Select
             value={warehouseId}
-            label="Subdivision"
+            label="Ubicacion"
             onChange={onChangeSubVisionSelect}
             // onChange={(value) => {
             //   const _warehouse = warehouses.find(

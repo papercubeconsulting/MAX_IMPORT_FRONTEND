@@ -143,7 +143,7 @@ export const ReadUbicacion = (props) => {
     try {
       setIsScanned(true);
       const _warehouse = await getWarehouseById(newCode);
-      console.log({ _warehouse });
+      console.log("warehouse", { _warehouse }, !_warehouse);
 
       if (!_warehouse) {
         setWarehouseInput("");
@@ -156,11 +156,10 @@ export const ReadUbicacion = (props) => {
         setWarehouseInput(_warehouse.id);
         console.log({ warehousename: _warehouse.name });
         setWarehouseName(_warehouse.name);
-        videoRefUbicacion.current.style.display = "none";
         QuaggaUbicacion.stop();
         // videoRef.current.localStream = null;
         setIsScanned(false);
-        onClose()
+        onClose();
         notification.success({
           message: "Ubicacion encontrada!",
         });
@@ -179,6 +178,7 @@ export const ReadUbicacion = (props) => {
       //   }
       // });
     } catch (error) {
+      console.log({error});
       setIsScanned(false);
       setWarehouseInput("");
       notification.error({
@@ -225,4 +225,3 @@ const QRScanner = styled(Container)`
     width: 100%;
   }
 `;
-
