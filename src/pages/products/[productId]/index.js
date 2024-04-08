@@ -47,10 +47,18 @@ export default () => {
 
   const stockByWarehouseAndBoxSizeColumns = [
     {
-      title: "Ubicación",
-      dataIndex: "warehouseName",
+      title: "Almacén - Ubicación",
+      // dataIndex: "warehouseName",
       width: "fit-content",
       align: "center",
+      render: (id, warehouse) => {
+        console.log({ id, warehouse });
+        return `${warehouse.warehouseName}  ${
+          warehouse.warehouseSubdivision
+            ? `- ${warehouse.warehouseSubdivision}`
+            : ""
+        }`;
+      },
     },
     {
       title: "Cajas",

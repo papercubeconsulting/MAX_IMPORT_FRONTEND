@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { Input, Modal, Alert, notification, Table, Popover } from "antd";
 import styled from "styled-components";
 import Quagga from "quagga";
-import * as QuaggaUbicacion from "quagga";
 import { get } from "lodash";
 import { faTrash, faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
 import { InboxOutlined, NumberOutlined } from "@ant-design/icons";
@@ -39,7 +38,6 @@ const DivInfo = styled(Grid)`
 export const ReadProductCode = (props) => {
   const router = useRouter();
   const videoRef = React.useRef();
-  const scanBarcodeRef = React.useRef();
   const videoRefUbicacion = React.useRef();
   const [dataCodes, setDataCodes] = useState([]);
   const [productBoxCode, setProductBoxCode] = useState("");
@@ -190,24 +188,22 @@ export const ReadProductCode = (props) => {
     }
   };
 
-  console.log("are the same?", QuaggaUbicacion === Quagga);
-
   React.useEffect(() => {
     return () => {
       // Disconnect camera
+      Quagga.offProcessed(onProcessed);
+      Quagga.offProcessed(onProcessedUbicacion);
+      videoRef.current && (videoRef.current.style.display = "none");
+      videoRefUbicacion.current &&
+        (videoRefUbicacion.current.style.display = "none");
       try {
         Quagga?.stop();
       } catch (error) {}
     };
   }, []);
 
-  const initQuagga = () => {
-    if (videoRef.current) {
-      videoRef.current.style.display = "block";
-    }
-    // if (videoRefUbicacion) {
-    //   videoRefUbicacion.current.style.display = "block";
-    // }
+  const initQuagga = (videoRef) => {
+    console.log("initQuagga", videoRef);
     Quagga.init(
       {
         inputStream: {
@@ -233,26 +229,32 @@ export const ReadProductCode = (props) => {
       },
     );
   };
-  const addCodeUbicacion = async (newCode, showNotification) => {
+  const addCodeUbicacion = async (newCode, warehouses) => {
     try {
       setIsScanned(true);
-      const _warehouse = await getWarehouseById(newCode);
-      // console.log({ _warehouse });
-      console.log("warehouse", { _warehouse }, !_warehouse);
+      // TODO: WE SHOULD CREATE AN API FOR TRACKINGCODE ID
+      // FOR NOW WE WILL LOOP IN THE WAREHOUSES
+      console.log({ warehouses, newCode });
+      const _warehouse = warehouses.find(
+        (warehouse) => warehouse.trackingCode === newCode,
+      );
+      // const _warehouse = await getWarehouseById(newCode);
 
       if (!_warehouse) {
         setWarehouseInput("");
         setIsScanned(false);
+        closeQuagga();
         notification.info({
           message: "El código de ubicacion no existe",
         });
       } else {
         setWarehouseId(_warehouse.id);
-        setWarehouseInput(_warehouse.id);
+        setWarehouseInput(_warehouse.trackingCode);
         setWarehouseName(_warehouse.name);
         // QuaggaUbicacion.stop();
         // videoRef.current.localStream = null;
         setIsScanned(false);
+        closeQuagga();
         // onClose();
         notification.success({
           message: "Ubicacion encontrada!",
@@ -281,9 +283,44 @@ export const ReadProductCode = (props) => {
     }
   };
 
+  const onProcessed = React.useCallback((data) => {
+    // console.log("dadta", JSON.stringify(data, null, 2));
+    if (get(data, "codeResult", null)) {
+      const _code = data.codeResult.code;
+      // console.log({ scanUbicacion });
+      // console.log("no ubicacion");
+      addCode(_code);
+      // videoRef.current.style.display = "none";
+      Quagga.stop();
+      setTimeout(() => {
+        initQuagga(videoRef);
+      }, 1000);
+      // }
+    }
+  }, []);
+
+  const onProcessedUbicacion = React.useCallback(
+    (data) => {
+      // console.log("dadta", JSON.stringify(data, null, 2));
+      if (get(data, "codeResult", null)) {
+        const _code = data.codeResult.code;
+        addCodeUbicacion(_code, warehouses);
+        Quagga.stop();
+        // setTimeout(() => {
+        //   initQuagga();
+        // }, 1000);
+        // }
+      }
+    },
+    [warehouses.length],
+  );
+
   const scanBarcode = (scanUbicacion) => {
-    // stopWebcam();
-    videoRef.current.style.display = "block";
+    if (scanUbicacion) {
+      videoRefUbicacion.current.style.display = "block";
+    } else {
+      videoRef.current.style.display = "block";
+    }
     navigator.getWebcam =
       navigator.getUserMedia ||
       navigator.webKitGetUserMedia ||
@@ -324,9 +361,8 @@ export const ReadProductCode = (props) => {
           });
         });
     } else {
-      console.log("Not into getUserMedia");
+      // console.log("Not into getUserMedia");
       console.log("Error de scanBarcode Not into getUserMedia");
-
       navigator
         .getWebcam({ video: true })
         .then((stream) => {
@@ -340,23 +376,16 @@ export const ReadProductCode = (props) => {
           });
         });
     }
-    initQuagga();
-    console.log("out", { scanType });
-    Quagga.onProcessed((data) => {
-      console.log("dadta", JSON.stringify(data, null, 2));
-      if (get(data, "codeResult", null)) {
-        const _code = data.codeResult.code;
-        // console.log({ scanType, scanUbicacion });
-        // console.log("no ubicacion");
-        addCode(_code);
-        // videoRef.current.style.display = "none";
-        Quagga.stop();
-        setTimeout(() => {
-          initQuagga();
-        }, 1000);
-        // }
-      }
-    });
+
+    if (scanUbicacion) {
+      initQuagga(videoRefUbicacion);
+      Quagga.offProcessed(onProcessed);
+      Quagga.onProcessed(onProcessedUbicacion);
+    } else {
+      initQuagga(videoRef);
+      Quagga.offProcessed(onProcessedUbicacion);
+      Quagga.onProcessed(onProcessed);
+    }
   };
 
   const stopWebcam = () => {
@@ -375,7 +404,7 @@ export const ReadProductCode = (props) => {
   const moveBoxes = async () => {
     if (!warehouseId) {
       notification.error({
-        message: "Por favor, ingrese un Almacen y una Subdivision",
+        message: "Por favor, ingrese un Almacen y una Ubicacion",
       });
       return;
     }
@@ -404,8 +433,6 @@ export const ReadProductCode = (props) => {
       });
     }
   };
-
-  console.log("in body", { scanType });
 
   const indicadoresTitle = () => {
     return (
@@ -440,10 +467,27 @@ export const ReadProductCode = (props) => {
 
   const closeQuagga = () => {
     try {
+      // remove all the events
+      Quagga.offProcessed(onProcessed);
+      Quagga.offProcessed(onProcessedUbicacion);
       Quagga.stop();
     } catch (error) {}
-    videoRef.current.style.display = "none";
+    videoRef.current && (videoRef.current.style.display = "none");
+    videoRefUbicacion.current &&
+      (videoRefUbicacion.current.style.display = "none");
   };
+
+  const selectedWarehouse = React.useMemo(() => {
+    if (warehouseId) {
+      const warehouse = warehouses.find(
+        (warehouse) => warehouse.id === warehouseId,
+      );
+      if (!warehouse) {
+        return;
+      }
+      setWarehouseInput(warehouse.trackingCode);
+    }
+  }, [warehouseId, warehouses]);
 
   return (
     <>
@@ -457,18 +501,74 @@ export const ReadProductCode = (props) => {
             Mover
           </>
         }
-        onCancel={() => setModalConfirm(false)}
+        onCancel={() => {
+          closeQuagga();
+          setModalConfirm(false);
+        }}
         width="600px"
         title="Movimiento de cajas"
         centered
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", gap: "4px" }} padding="0rem">
+            <Input
+              justify="center"
+              // disabled={warehouseId}
+              value={warehouseInput}
+              //onChange={(event) => { setProductBoxCode(event.target.value) }}
+              onChange={async (event) => {
+                setWarehouseInput(event.target.value);
+              }}
+              addonBefore="Código de Ubicacion"
+              // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
+            />
+            <Button
+              type="primary"
+              // disabled={!warehouseInput}
+              onClick={() => {
+                closeQuagga();
+                if (warehouseId) {
+                  setWarehouseName("");
+                  setWarehouseInput("");
+                  setWarehouseId(null);
+                  return;
+                }
+
+                // if (warehouseInput) {
+                addCodeUbicacion(warehouseInput, warehouses);
+                // } else {
+                //   setWarehouseInput("");
+                //   setWarehouseId(null);
+                // }
+
+                // setProductBoxCode("");
+              }}
+            >
+              {/* Agregar */}
+              {warehouseId ? "Reset" : "Agregar"}
+            </Button>
+            <Button
+              onClick={() => {
+                closeQuagga();
+                scanBarcode(true);
+              }}
+            >
+              {/* Leer Ubicación */}
+              Escanear
+            </Button>
+          </div>
+          <QRScanner>
+            <div ref={videoRefUbicacion} className="viewport">
+              {/* <video autoPlay="true" preload="auto" /> */}
+            </div>
+          </QRScanner>
           <Select
             value={warehouseName}
             label="Almacen"
             // onChange={(value) => setWarehouseName(value)}
             onChange={(value) => {
-              setWarehouseInput(warehouseId);
+              // setWarehouseInput(warehouseId);
+              setWarehouseInput("");
               onChangeWarehouseName(value);
             }}
             // onChange={()}
@@ -505,12 +605,17 @@ export const ReadProductCode = (props) => {
       </Modal>
       <Modal
         visible={props.visible}
+        okText={"Continuar"}
         onOk={async () => {
-          if (dataCodes.length === 1) {
-            router.push(`/products/productBoxes/${dataCodes[0].trackingCode}`);
-          } else {
-            setModalConfirm(true);
-          }
+          closeQuagga();
+          // if (dataCodes.length > 0) {
+          setModalConfirm(true);
+          // }
+          // if (dataCodes.length === 1) {
+          //   router.push(`/products/productBoxes/${dataCodes[0].trackingCode}`);
+          // } else {
+          //   setModalConfirm(true);
+          // }
         }}
         onCancel={() => {
           props.trigger && props.trigger(false);
@@ -561,60 +666,11 @@ export const ReadProductCode = (props) => {
           </Container>
           <Button
             onClick={() => {
-              setScanType("BARRA");
+              closeQuagga();
               scanBarcode();
             }}
           >
             Leer Código de barras
-          </Button>
-        </Form>
-        <Form gridGap="2rem" marginBottom="1rem">
-          <Container padding="0rem">
-            <Input
-              justify="center"
-              disabled={warehouseId}
-              value={warehouseInput}
-              //onChange={(event) => { setProductBoxCode(event.target.value) }}
-              onChange={async (event) => {
-                setWarehouseInput(event.target.value);
-              }}
-              addonBefore="Código de Ubicacion"
-              // onBlur={(event) => { console.log('OnBlur', event.target.value, isScanned); isScanned && addCode(event.target.value, true) }}
-            />
-            <Button
-              type="primary"
-              disabled={!warehouseInput}
-              onClick={() => {
-                console.log({ warehouseInput });
-                if (warehouseId) {
-                  setWarehouseInput("");
-                  setWarehouseId(null);
-                  return;
-                }
-
-                // if (warehouseInput) {
-                addCodeUbicacion(warehouseInput, true);
-                // } else {
-                //   setWarehouseInput("");
-                //   setWarehouseId(null);
-                // }
-
-                // setProductBoxCode("");
-              }}
-            >
-              {/* Agregar */}
-              {warehouseId ? "Reset" : "Agregar"}
-            </Button>
-          </Container>
-          <Button
-            onClick={() => {
-              closeQuagga();
-              setShowUbicacionScanModal(true);
-              // setScanType("UBICACION");
-              // scanBarcode(true);
-            }}
-          >
-            Leer Ubicación
           </Button>
         </Form>
         <DivInfo
@@ -637,18 +693,18 @@ export const ReadProductCode = (props) => {
               {/* <video autoPlay="true" preload="auto" /> */}
             </div>
             <canvas className="drawingBuffer"></canvas>
-            {showUbicacionScanModal ? (
-              <ReadUbicacion
-                onClose={() => {
-                  closeQuagga();
-                  setShowUbicacionScanModal(false);
-                }}
-                scanBarcodeRef={scanBarcodeRef}
-                setWarehouseInput={setWarehouseInput}
-                setWarehouseName={setWarehouseName}
-                setWarehouseId={setWarehouseId}
-              />
-            ) : null}
+            {/* {showUbicacionScanModal ? ( */}
+            {/*   <ReadUbicacion */}
+            {/*     onClose={() => { */}
+            {/*       closeQuagga(); */}
+            {/*       setShowUbicacionScanModal(false); */}
+            {/*     }} */}
+            {/*     scanBarcodeRef={scanBarcodeRef} */}
+            {/*     setWarehouseInput={setWarehouseInput} */}
+            {/*     setWarehouseName={setWarehouseName} */}
+            {/*     setWarehouseId={setWarehouseId} */}
+            {/*   /> */}
+            {/* ) : null} */}
           </QRScanner>
         </DivInfo>
       </Modal>

@@ -33,10 +33,8 @@ export const useWarehouses = () => {
         const warehouseName = warehouse.name;
         const warehouseId = warehouse.id;
         const subDivision = warehouse.subDivision;
-        console.log({ prev, name: warehouse });
 
         if (warehouse.name in prev.map) {
-          console.log("old");
           // prev.map[warehouseName].push({
           //   id: warehouseId,
           //   name: warehouse.subDivision,
@@ -50,7 +48,6 @@ export const useWarehouses = () => {
           ];
           // prev.listWarehouses.push({ id: warehouseId, name: warehouse.name });
         } else {
-          console.log("new");
           prev.map[warehouseName] = [
             { id: warehouseId, name: warehouse.subDivision },
           ];
@@ -63,8 +60,6 @@ export const useWarehouses = () => {
       },
       { list: [], map: {} },
     );
-
-    console.log({ mapping });
 
     return {
       listWarehouses: Object.keys(mapping.map),

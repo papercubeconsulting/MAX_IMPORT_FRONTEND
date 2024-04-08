@@ -37,14 +37,26 @@ export const ModalBoxesDetail = ({ productId }) => {
       title: "Ubicación actual",
       dataIndex: "warehouse",
       align: "center",
-      render: (warehouse) => warehouse.name,
+      render: (warehouse) => {
+        return `${warehouse.name}  ${
+          warehouse.subDivision ? `- ${warehouse.subDivision}` : ""
+        }`;
+      },
     },
     {
       title: "Ubicación anterior",
       dataIndex: "previousWarehouse",
       align: "center",
-      render: (previousWarehouse) =>
-        previousWarehouse ? previousWarehouse.name : "-",
+      render: (warehouse) => {
+        if (!warehouse) {
+          return "-";
+        }
+        return `${warehouse?.name}  ${
+          warehouse.subDivision ? `- ${warehouse.subDivision}` : ""
+        }`;
+      },
+      // render: (previousWarehouse) =>
+      //   previousWarehouse ? previousWarehouse.name : "-",
     },
     {
       title: "",

@@ -134,7 +134,7 @@ export default ({ setPageTitle, setShowButton }) => {
     if (!warehouseId) {
       return notification.error({
         message: "Error al intentar mover la caja",
-        description: "Debe seleccionar un Almacen y una Subdivision",
+        description: "Debe seleccionar un Almacen y una Ubicación",
       });
     }
 
@@ -202,7 +202,7 @@ export default ({ setPageTitle, setShowButton }) => {
         width: "60%",
         title: "Se ha movida la caja correctamente",
         // content: `Caja: ${productBoxCode} | Nueva ubicación: ${warehouseName}`,
-        content: `Caja: ${productBoxCode} | Nuevo Almacen: ${warehouseName} | Nueva Subvidion: ${subDivisionName}`,
+        content: `Caja: ${productBoxCode} | Nuevo Almacen: ${warehouseName} | Nueva Ubicación: ${subDivisionName}`,
         onOk: () => router.reload(),
       });
     } catch (error) {
@@ -275,11 +275,11 @@ export default ({ setPageTitle, setShowButton }) => {
               disabled
               // addonBefore="Ubicación"
               addonBefore="Almacen - Ubicacion"
-              value={`${get(productBox, "warehouse.name", "-")} (${get(
-                productBox,
-                "warehouse.subDivision",
-                "-",
-              )})`}
+              value={`${get(productBox, "warehouse.name", "-")} ${
+                get(productBox, "warehouse.subDivision", "-")
+                  ? get(productBox, "warehouse.subDivision", "-")
+                  : ""
+              }`}
             />
             <Input
               disabled
