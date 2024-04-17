@@ -8,7 +8,7 @@ export const useWarehouses = () => {
 
   useEffect(() => {
     const fetchWarehouses = async () => {
-      const _warehouses = await getWarehouses("Almacén");
+      const _warehouses = await getWarehouses();
       setWarehouses(_warehouses);
     };
     fetchWarehouses();

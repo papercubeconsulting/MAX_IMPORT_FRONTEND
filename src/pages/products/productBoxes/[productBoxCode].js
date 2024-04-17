@@ -63,7 +63,9 @@ export default ({ setPageTitle, setShowButton }) => {
       title: "Ubicacion",
       dataIndex: "warehouse",
       align: "center",
-      render: (warehouse) => warehouse.subDivision || "-",
+      render: (id,warehouse) => {
+        return warehouse?.warehouse?.subDivision || "-";
+      },
     },
   ];
 
