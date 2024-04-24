@@ -16,11 +16,13 @@ import { useRouter } from "next/router";
 import { Icon } from "./Icon";
 import Link from "next/link";
 import { get } from "lodash";
+import { useLocalStorage } from "../util/hooks/useLocalStorage";
 
 const noTokenPath = ["/resetpassword"];
 
 export const BaseLayout = (props) => {
   const [isVisibleMenu, setIsVisibleMenu] = useState(true);
+  const [userAuth, _] = useLocalStorage("authUser");
 
   const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
 
@@ -55,51 +57,103 @@ export const BaseLayout = (props) => {
     </MenuDrop>
   );
 
+  const pathLabelMap = {
+    profile: "Perfil",
+    dispatch: "Despachos",
+    proforma: "Nueva Proforma",
+    proformas: "Historial de Proformas",
+    sales: "Pagos en Caja",
+    salesAdministration: "Admin Ventas",
+    products: "Inventario",
+    supplies: "Abastecimientos",
+    customers: "BD Clients",
+    users: "Admin Usuarios",
+  };
+
+  const mapping = {
+    superuser: Object.keys(pathLabelMap),
+    logistic: ["profile", "dispatch", "supplies", "products"],
+    seller: [
+      "profile",
+      "proforma",
+      "proformas",
+      "dispatch",
+      "products",
+      "customers",
+    ],
+    manager: ["profile", "sales", "salesAdministration", "customers"],
+  };
+
+  const MenuItems = () => {
+    if (!userAuth?.user?.active) {
+      return [];
+    }
+
+    if (!(userAuth.user.role in mapping)) {
+      return [];
+    }
+
+    return (
+      <>
+        {mapping[userAuth.user.role].map((val) => {
+          return (
+            <Link href={`/${val}`}>
+              <MenuItem active={isActiveLink(val)}>
+                {pathLabelMap[val]}
+              </MenuItem>
+            </Link>
+          );
+        })}
+      </>
+    );
+
+    // const MenuItems = () => {
+    //   return (
+    //     <>
+    //       <Link href="/profile">
+    //         <MenuItem active={isActiveLink("profile")}>Perfil</MenuItem>
+    //       </Link>
+    //       <Link href="/proforma">
+    //         <MenuItem active={isActiveLink("proforma")}>Nueva Proforma</MenuItem>
+    //       </Link>
+    //       <Link href="/proformas">
+    //         <MenuItem active={isActiveLink("proformas")}>
+    //           Historial Proformas
+    //         </MenuItem>
+    //       </Link>
+    //       <Link href="/sales">
+    //         <MenuItem active={isActiveLink("sales")}>Pagos en Caja</MenuItem>
+    //       </Link>
+    //       <Link href="/dispatch">
+    //         <MenuItem active={isActiveLink("dispatch")}>Despachos</MenuItem>
+    //       </Link>
+    //       <Link href="/salesAdministration">
+    //         <MenuItem active={isActiveLink("salesAdministration")}>
+    //           Admin Ventas
+    //         </MenuItem>
+    //       </Link>
+    //       <Link href="/products">
+    //         <MenuItem active={isActiveLink("products")}>Inventario</MenuItem>
+    //       </Link>
+    //       <Link href="/supplies">
+    //         <MenuItem active={isActiveLink("supplies")}>Abastecimientos</MenuItem>
+    //       </Link>
+    //       <Link href="/customers">
+    //         <MenuItem active={isActiveLink("customers")}>BD Clientes</MenuItem>
+    //       </Link>
+    //       <Link href="/users">
+    //         <MenuItem active={isActiveLink("users")}>Admin Usuarios</MenuItem>
+    //       </Link>
+    //     </>
+    //   );
+  };
+
   return (
     <>
       <Layout>
         <Sidebar collapsed={!globalAuthUser || !isVisibleMenu}>
           <Menu>
-            <Link href="/profile">
-              <MenuItem active={isActiveLink("profile")}>Perfil</MenuItem>
-            </Link>
-            <Link href="/proforma">
-              <MenuItem active={isActiveLink("proforma")}>
-                Nueva Proforma
-              </MenuItem>
-            </Link>
-            <Link href="/proformas">
-              <MenuItem active={isActiveLink("proformas")}>
-                Historial Proformas
-              </MenuItem>
-            </Link>
-            <Link href="/sales">
-              <MenuItem active={isActiveLink("sales")}>Pagos en Caja</MenuItem>
-            </Link>
-            <Link href="/dispatch">
-              <MenuItem active={isActiveLink("dispatch")}>Despachos</MenuItem>
-            </Link>
-            <Link href="/salesAdministration">
-              <MenuItem active={isActiveLink("salesAdministration")}>
-                Admin Ventas
-              </MenuItem>
-            </Link>
-            <Link href="/products">
-              <MenuItem active={isActiveLink("products")}>Inventario</MenuItem>
-            </Link>
-            <Link href="/supplies">
-              <MenuItem active={isActiveLink("supplies")}>
-                Abastecimientos
-              </MenuItem>
-            </Link>
-            <Link href="/customers">
-              <MenuItem active={isActiveLink("customers")}>
-                BD Clientes
-              </MenuItem>
-            </Link>
-            <Link href="/users">
-              <MenuItem active={isActiveLink("users")}>Admin Usuarios</MenuItem>
-            </Link>
+            <MenuItems />
           </Menu>
         </Sidebar>
         <Grid>
