@@ -17,16 +17,30 @@ import { Icon } from "./Icon";
 import Link from "next/link";
 import { get } from "lodash";
 import { useLocalStorage } from "../util/hooks/useLocalStorage";
+import { me } from "../providers";
 
 const noTokenPath = ["/resetpassword"];
 
 export const BaseLayout = (props) => {
   const [isVisibleMenu, setIsVisibleMenu] = useState(true);
-  const [userAuth, _] = useLocalStorage("authUser");
+  // const [userAuth, _] = useLocalStorage("authUser");
+  const [userAuth, setUserAuth] = useState(null);
 
   const [globalAuthUser, setGlobalAuthUser] = useGlobal("authUser");
 
   const router = useRouter();
+
+  React.useEffect(() => {
+    const getMe = async () => {
+      const meData = await me();
+
+      setUserAuth({ user: meData });
+
+      console.log({ meData });
+    };
+
+    getMe();
+  }, [globalAuthUser]);
 
   useEffect(() => {
     router.pathname !== "/" && setIsVisibleMenu(false);
@@ -92,6 +106,12 @@ export const BaseLayout = (props) => {
     if (!(userAuth.user.role in mapping)) {
       return [];
     }
+
+    const userRole = userAuth.user.role;
+
+    const mapped = mapping[userRole];
+
+    console.log({ userRole, mapped });
 
     return (
       <>
