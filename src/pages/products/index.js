@@ -708,16 +708,18 @@ export default ({ setPageTitle }) => {
           >
             Carga Masiva
           </Button>
-          <Button
-            onClick={() => {
-              setIsDownloadFilesVisible(true);
-            }}
-            size="large"
-            width="240px"
-            type="primary"
-          >
-            Descargar Archivos
-          </Button>
+          {globalAuthUser && globalAuthUser.user.role === "superuser" && (
+            <Button
+              onClick={() => {
+                setIsDownloadFilesVisible(true);
+              }}
+              size="large"
+              width="240px"
+              type="primary"
+            >
+              Descargar Archivos
+            </Button>
+          )}
           <Button
             onClick={() => setIsModalAddProductVisible(true)}
             size="large"
