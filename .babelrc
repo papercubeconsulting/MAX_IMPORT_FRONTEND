@@ -12,14 +12,6 @@
       }
     ],
     [
-      "inline-import",
-      {
-        "extensions": [
-          ".css"
-        ]
-      }
-    ],
-    [
       "import",
       {
         "libraryName": "antd"

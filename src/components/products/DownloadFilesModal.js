@@ -65,7 +65,7 @@ const DownloadFilesModal = ({
   return (
     <Modal
       title="Descarga de archivos"
-      visible={isModalVisible}
+      open={isModalVisible}
       onOk={() => setIsModalVisible(false)}
       onCancel={() => setIsModalVisible(false)}
       closable={false}

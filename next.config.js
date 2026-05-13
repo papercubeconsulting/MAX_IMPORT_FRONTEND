@@ -1,22 +1,31 @@
-const withCSS = require("@zeit/next-css");
+const isStaticExport = process.env.NEXT_OUTPUT === "export";
 
-module.exports = withCSS({
+module.exports = {
   trailingSlash: true,
-  optimization: {
-    minimize: false,
+  output: isStaticExport ? "export" : undefined,
+  images: {
+    unoptimized: isStaticExport,
   },
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        // source: "/proformas/:proformaId/pdf",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN", // Set your desired value here
-          }
-        ],
-      },
-    ];
+  webpack: (config) => {
+    config.optimization.minimize = false;
+    return config;
   },
-});
+  ...(isStaticExport
+    ? {}
+    : {
+        async headers() {
+          return [
+            {
+              source: "/(.*)",
+              // source: "/proformas/:proformaId/pdf",
+              headers: [
+                {
+                  key: "X-Frame-Options",
+                  value: "SAMEORIGIN", // Set your desired value here
+                },
+              ],
+            },
+          ];
+        },
+      }),
+};

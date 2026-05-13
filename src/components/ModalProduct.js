@@ -88,7 +88,7 @@ export const ModalProduct = (props) => {
   return (
     <>
       <Modal
-        visible={showImagePreview}
+        open={showImagePreview}
         width="90%"
         footer={null}
         onCancel={() => setShowImagePreview(false)}

@@ -305,7 +305,7 @@ export const ReadProductCode = (props) => {
   return (
     <>
       <Modal
-        visible={modalConfirm}
+        open={modalConfirm}
         onOk={() => moveBoxes()}
         confirmLoading={isLoading}
         okText={
@@ -335,7 +335,7 @@ export const ReadProductCode = (props) => {
         </>
       </Modal>
       <Modal
-        visible={props.visible}
+        open={props.visible}
         onOk={async () => {
           if (dataCodes.length === 1) {
             router.push(`/products/productBoxes/${dataCodes[0].trackingCode}`);

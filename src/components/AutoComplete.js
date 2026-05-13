@@ -1,15 +1,21 @@
 import React from "react";
 import styled from "styled-components";
 import { AutoComplete as AntAutoComplete } from "antd";
-import { get } from "lodash";
 
-export const AutoComplete = (props) => (
-  <AutoCompleteContainer color={props.color} colorFont={props.colorFont}>
-    {props.label && (
-      <span className="ant-input-group-addon">{props.label}</span>
-    )}
-    <AntAutoComplete {...props} style={{ width: "-webkit-fill-available" }}>
-      {get(props, "_options", []).map((option) => (
+export const AutoComplete = ({
+  color,
+  colorFont,
+  label,
+  _options,
+  ...autoCompleteProps
+}) => (
+  <AutoCompleteContainer $color={color} $colorFont={colorFont}>
+    {label && <span className="ant-input-group-addon">{label}</span>}
+    <AntAutoComplete
+      {...autoCompleteProps}
+      style={{ width: "-webkit-fill-available", ...autoCompleteProps.style }}
+    >
+      {(_options || []).map((option) => (
         <AntAutoComplete.Option key={option.value} value={option.value}>
           {option.label}
         </AntAutoComplete.Option>
@@ -26,8 +32,8 @@ const AutoCompleteContainer = styled.div`
   align-items: center;
 
   .ant-select-selector {
-    background-color: ${(props) => props.color || "grey"} !important;
-    color: ${(props) => props.colorFont || "white"};
+    background-color: ${(props) => props.$color || "grey"} !important;
+    color: ${(props) => props.$colorFont || "white"};
   }
 
   .ant-input-group-addon {

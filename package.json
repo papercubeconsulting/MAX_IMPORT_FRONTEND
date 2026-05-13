@@ -2,14 +2,17 @@
   "name": "maximport",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "next build ./src",
-    "build:dev": "env-cmd -f .development.env next build ./src",
-    "start": "next start ./src -p 8080",
-    "start:dev": "env-cmd -f .development.env next ./src",
-    "start:local": "env-cmd -f .local.env next ./src",
-    "export": "next export ./src",
+    "build": "next build",
+    "build:dev": "env-cmd -f .development.env next build",
+    "start": "next start -p 8080",
+    "start:dev": "env-cmd -f .development.env next dev",
+    "start:local": "env-cmd -f .local.env next dev",
+    "export": "NEXT_OUTPUT=export next build",
     "ngrok": "ngrok http 3000"
   },
   "author": "",
@@ -19,7 +22,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.12.1",
     "@fortawesome/react-fontawesome": "^0.1.8",
     "@tanstack/react-table": "^8.9.2",
-    "@zeit/next-css": "^1.0.1",
     "antd": "^4.0.3",
     "big.js": "^6.2.1",
     "env-cmd": "^10.1.0",
@@ -28,11 +30,12 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.31",
-    "next": "^9.3.6",
+    "next": "^14.2.0",
+    "puppeteer-core": "^24.0.0",
     "quagga": "^0.12.1",
-    "react": "^16.12.0",
+    "react": "18.2.0",
     "react-barcode": "^1.4.0",
-    "react-dom": "^16.12.0",
+    "react-dom": "18.2.0",
     "react-qr-code": "^2.0.11",
     "reactn": "^2.2.7",
     "rescode": "^0.1.10",
@@ -40,9 +43,7 @@
     "url-assembler": "^2.1.1"
   },
   "devDependencies": {
-    "@zeit/next-css": "^1.0.1",
     "babel-plugin-import": "^1.13.0",
-    "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-styled-components": "^1.10.7",
     "ngrok": "^4.1.0"
   },

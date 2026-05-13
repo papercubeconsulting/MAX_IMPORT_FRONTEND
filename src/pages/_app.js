@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useGlobal } from "reactn";
 import { BaseLayout } from "../components";
 import { createGlobalStyle } from "styled-components";
-import stylesheet from "antd/dist/antd.min.css";
+import "antd/dist/antd.min.css";
 import { useRouter } from "next/router";
-import { route } from "next/dist/next-server/server/router";
 
 export default ({ Component, pageProps }) => {
   const [title, setTitle] = useState(null);
@@ -36,7 +35,6 @@ export default ({ Component, pageProps }) => {
   if (Component.isPdf) {
     return (
       <>
-        <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
         <GlobalStyle />
         <Component
           setShowButton={setShowButton}
@@ -49,7 +47,6 @@ export default ({ Component, pageProps }) => {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: stylesheet }} />
       <GlobalStyle />
       <BaseLayout showButton={showButton} title={title}>
         <Component

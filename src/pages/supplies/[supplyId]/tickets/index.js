@@ -1,5 +1,4 @@
 import React from "react";
-import { componentToPDFBuffer } from "../../../../util";
 import styled from "styled-components";
 import codes from "rescode";
 import { get } from "lodash";
@@ -30,6 +29,10 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
     let { boxes, productBoxesCodes } = query;
 
     if (isServer) {
+      const {
+        componentToPDFBuffer,
+      } = require("../../../../util/componentToPDFBuffer");
+
       //? Para caso en el que se pide solo un ticket y el query parameter no se genera como arreglo
       if (boxes.constructor !== Array) {
         boxes = [boxes];
