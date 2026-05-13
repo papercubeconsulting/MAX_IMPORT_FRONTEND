@@ -517,7 +517,7 @@ export default ({ setPageTitle }) => {
         closeModal={() => setIsCargaMasivaVisible(false)}
       />
       <Modal
-        visible={isVisibleModalDelete}
+        open={isVisibleModalDelete}
         width="40%"
         onCancel={() => setIsVisibleModalDelete(false)}
         footer={null}

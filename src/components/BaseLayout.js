@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useGlobal } from "reactn";
 import styled from "styled-components";
-import { Menu as MenuDrop, Dropdown } from "antd";
+import { Dropdown } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCalendarAlt,
@@ -16,8 +16,6 @@ import { useRouter } from "next/router";
 import { Icon } from "./Icon";
 import Link from "next/link";
 import { get } from "lodash";
-
-const noTokenPath = ["/resetpassword"];
 
 export const BaseLayout = (props) => {
   const [isVisibleMenu, setIsVisibleMenu] = useState(true);
@@ -39,67 +37,68 @@ export const BaseLayout = (props) => {
     return route === currentRoute;
   };
 
-  const menu = (
-    <MenuDrop>
-      <MenuDrop.Item key="1">
-        <span
-          onClick={() => {
-            setGlobalAuthUser(null);
-            localStorage.removeItem("authUser");
-            router.push("/");
-          }}
-        >
-          Cerrar sesión
-        </span>
-      </MenuDrop.Item>
-    </MenuDrop>
-  );
+  const menu = {
+    items: [
+      {
+        key: "logout",
+        label: "Cerrar sesión",
+        onClick: () => {
+          setGlobalAuthUser(null);
+          localStorage.removeItem("authUser");
+          router.push("/");
+        },
+      },
+    ],
+  };
 
   return (
     <>
       <Layout>
         <Sidebar collapsed={!globalAuthUser || !isVisibleMenu}>
           <Menu>
-            <Link href="/profile">
-              <MenuItem active={isActiveLink("profile")}>Perfil</MenuItem>
-            </Link>
-            <Link href="/proforma">
-              <MenuItem active={isActiveLink("proforma")}>
+            <MenuLink href="/profile" $active={isActiveLink("profile")}>
+              <MenuItem>Perfil</MenuItem>
+            </MenuLink>
+            <MenuLink href="/proforma" $active={isActiveLink("proforma")}>
+              <MenuItem>
                 Nueva Proforma
               </MenuItem>
-            </Link>
-            <Link href="/proformas">
-              <MenuItem active={isActiveLink("proformas")}>
+            </MenuLink>
+            <MenuLink href="/proformas" $active={isActiveLink("proformas")}>
+              <MenuItem>
                 Historial Proformas
               </MenuItem>
-            </Link>
-            <Link href="/sales">
-              <MenuItem active={isActiveLink("sales")}>Pagos en Caja</MenuItem>
-            </Link>
-            <Link href="/dispatch">
-              <MenuItem active={isActiveLink("dispatch")}>Despachos</MenuItem>
-            </Link>
-            <Link href="/salesAdministration">
-              <MenuItem active={isActiveLink("salesAdministration")}>
+            </MenuLink>
+            <MenuLink href="/sales" $active={isActiveLink("sales")}>
+              <MenuItem>Pagos en Caja</MenuItem>
+            </MenuLink>
+            <MenuLink href="/dispatch" $active={isActiveLink("dispatch")}>
+              <MenuItem>Despachos</MenuItem>
+            </MenuLink>
+            <MenuLink
+              href="/salesAdministration"
+              $active={isActiveLink("salesAdministration")}
+            >
+              <MenuItem>
                 Admin Ventas
               </MenuItem>
-            </Link>
-            <Link href="/products">
-              <MenuItem active={isActiveLink("products")}>Inventario</MenuItem>
-            </Link>
-            <Link href="/supplies">
-              <MenuItem active={isActiveLink("supplies")}>
+            </MenuLink>
+            <MenuLink href="/products" $active={isActiveLink("products")}>
+              <MenuItem>Inventario</MenuItem>
+            </MenuLink>
+            <MenuLink href="/supplies" $active={isActiveLink("supplies")}>
+              <MenuItem>
                 Abastecimientos
               </MenuItem>
-            </Link>
-            <Link href="/customers">
-              <MenuItem active={isActiveLink("customers")}>
+            </MenuLink>
+            <MenuLink href="/customers" $active={isActiveLink("customers")}>
+              <MenuItem>
                 BD Clientes
               </MenuItem>
-            </Link>
-            <Link href="/users">
-              <MenuItem active={isActiveLink("users")}>Admin Usuarios</MenuItem>
-            </Link>
+            </MenuLink>
+            <MenuLink href="/users" $active={isActiveLink("users")}>
+              <MenuItem>Admin Usuarios</MenuItem>
+            </MenuLink>
           </Menu>
         </Sidebar>
         <Grid>
@@ -132,7 +131,7 @@ export const BaseLayout = (props) => {
               <h3>{moment().format(clientDateFormat)}</h3>
               <Divider />
               <Dropdown
-                overlay={menu}
+                menu={menu}
                 trigger={globalAuthUser ? ["click"] : [""]}
               >
                 <h3>
@@ -169,25 +168,29 @@ const Menu = styled.div`
   overflow: hidden;
   height: 100%;
   grid-template-rows: repeat(${(props) => props.children.length}, 1fr);
-  align-items: center;
+  align-items: stretch;
 `;
 
-const MenuItem = styled.div`
+const MenuLink = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   cursor: pointer;
   background-color: ${(props) =>
-    props.active ? "rgba(0,0,0,0.3)" : "transparent"};
+    props.$active ? "rgba(0,0,0,0.3)" : "transparent"};
   color: white !important;
   text-decoration: none;
-  font-size: 1rem;
-  text-align: center;
 
   :hover {
     background-color: rgba(0, 0, 0, 0.3);
+    color: white !important;
   }
+`;
+
+const MenuItem = styled.span`
+  font-size: 1rem;
+  text-align: center;
 `;
 
 const Grid = styled.section`
