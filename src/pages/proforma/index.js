@@ -17,6 +17,7 @@ import {
   getProduct,
   getProducts,
   getSubfamilies,
+  getClients,
   getClientPerCode,
   postClient,
   getRegions,
@@ -237,6 +238,10 @@ export default ({ setPageTitle }) => {
   ];
 
   const [clientId, setClientId] = useState(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientSearchOptions, setClientSearchOptions] = useState([]);
+  const [loadingSearchClientsByName, setLoadingSearchClientsByName] =
+    useState(false);
   const [name, setName] = useState(null);
   const [lastName, setLastName] = useState("");
   const [documentNumber, setDocumentNumber] = useState(null);
@@ -265,6 +270,7 @@ export default ({ setPageTitle }) => {
 
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
+  const [isClientModalVisible, setIsClientModalVisible] = useState(false);
 
   //Modal para agregar nuevo producto
   const [addNewProduct, setAddNewProduct] = useState(false);
@@ -499,12 +505,80 @@ export default ({ setPageTitle }) => {
     // }
   }, [totalPrice]);
 
+  useEffect(() => {
+    const searchText = clientSearch?.trim();
+    if (!searchText || searchText.length < 2 || clientId) {
+      setClientSearchOptions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        setLoadingSearchClientsByName(true);
+        const clientsResult = await getClients({
+          name: searchText,
+          active: "true",
+        });
+        setClientSearchOptions(
+          (clientsResult.rows || []).map((_client) => ({
+            value: getClientOptionLabel(_client),
+            label: getClientOptionLabel(_client),
+            client: _client,
+          })),
+        );
+      } catch (error) {
+        notification.error({
+          message: "Error al buscar clientes",
+          description: error.message,
+        });
+      } finally {
+        setLoadingSearchClientsByName(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [clientSearch, clientId]);
+
   const selectOptions = (collection) =>
     // console.log("collection", collection)
     [{ id: null, name: "Todos" }, ...collection].map((document) => ({
       value: document.id,
       label: document.name,
     }));
+
+  const getClientOptionLabel = (_client) =>
+    `${_client.name || ""} ${_client.lastname || ""} - ${
+      _client.idNumber || ""
+    }`.trim();
+
+  const confirmClient = (_client) => {
+    const {
+      id,
+      name,
+      lastname,
+      email,
+      phoneNumber,
+      address,
+      regionId,
+      provinceId,
+      districtId,
+      idNumber,
+    } = _client;
+
+    setDisabled(true);
+    setClient(_client);
+    setName(name);
+    setLastName(lastname);
+    setEmail(email);
+    setPhoneNumber(phoneNumber);
+    setAddress(address);
+    setRegionId(regionId);
+    setProvinceId(provinceId);
+    setDistrictId(districtId);
+    setDocumentNumber(idNumber);
+    setClientId(id);
+    setClientSearch(getClientOptionLabel(_client));
+  };
 
   const mapproformaProducts = async (
     products,
@@ -538,37 +612,14 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-      /* console.log(client); */
-      const {
-        id,
-        active,
-        name,
-        lastname,
-        email,
-        phoneNumber,
-        address,
-        regionId,
-        provinceId,
-        districtId,
-      } = client;
+      const { active } = client;
 
       if (!active) throw Error("Usuario inactivo");
 
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`,
       });
-      setDisabled(true);
-      setClient(client);
-
-      setName(name);
-      setLastName(lastname);
-      setEmail(email);
-      setPhoneNumber(phoneNumber);
-      setAddress(address);
-      setRegionId(regionId);
-      setProvinceId(provinceId);
-      setDistrictId(districtId);
-      setClientId(id);
+      confirmClient(client);
 
       setLoadingSearchClient(false);
       return true;
@@ -702,9 +753,9 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
       });
-      setDisabled(true);
-      setClient(response);
-      setClientId(response.id);
+      confirmClient(response);
+      setIsClientModalVisible(false);
+      return true;
     } catch (error) {
       console.log(error);
       if (error.message.includes("idNumber")) {
@@ -754,6 +805,7 @@ export default ({ setPageTitle }) => {
       notification.error({
         message: error.message,
       });
+      return false;
     }
   };
 
@@ -1201,10 +1253,14 @@ export default ({ setPageTitle }) => {
           trigger={setIsModalAddProformaVisible}
         />
       )}
-
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value="En cotización" addonBefore="Estatus" disabled />
+      <Modal
+        visible={isClientModalVisible}
+        width="70%"
+        title="Crear cliente"
+        onCancel={() => setIsClientModalVisible(false)}
+        footer={null}
+      >
+        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
@@ -1219,26 +1275,7 @@ export default ({ setPageTitle }) => {
             }}
             addonBefore="DNI/RUC"
           />
-          <Grid
-            gridTemplateColumns="repeat(3, 1fr)"
-            gridGap="1rem"
-            gridColumnStart="3"
-            gridColumnEnd="5"
-          >
-            <Button
-              loading={loadingSearchClient}
-              type="primary"
-              onClick={onSearchClient}
-            >
-              Buscar
-            </Button>
-            <Button
-              type="primary"
-              disabled={queryParams.id}
-              onClick={onCreateClient}
-            >
-              Crear cliente
-            </Button>
+          <Grid gridTemplateColumns="1fr" gridGap="1rem">
             <Button onClick={probandoMigo} type="primary">
               Check RUC
             </Button>
@@ -1322,6 +1359,78 @@ export default ({ setPageTitle }) => {
             addonBefore="Dirección"
             disabled={disabled}
           />
+          <Button
+            type="primary"
+            disabled={queryParams.id || disabled}
+            onClick={onCreateClient}
+          >
+            Crear cliente
+          </Button>
+        </Grid>
+      </Modal>
+
+      <Container height="fit-content">
+        <Grid
+          gridTemplateColumns="repeat(2, minmax(240px, 1fr))"
+          gridGap="1rem"
+        >
+          <Input value="En cotización" addonBefore="Estatus" disabled />
+          <Input
+            value={clientId ? documentNumber : ""}
+            addonBefore="DNI/RUC"
+            disabled
+          />
+          <div
+            style={{
+              display: "grid",
+              gridColumn: "1 / 3",
+              gridTemplateColumns:
+                proforma.id || queryParams.id ? "1fr" : "1fr auto",
+              gridGap: "1rem",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "center", width: "100%" }}
+            >
+              <span
+                className="ant-input-group-addon"
+                style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+              >
+                Cliente
+              </span>
+              <AutoCompleteAntd
+                placeholder="Buscar cliente por nombre"
+                style={{ width: "100%" }}
+                value={clientSearch}
+                options={clientSearchOptions}
+                loading={loadingSearchClientsByName}
+                disabled={!!proforma.id || !!queryParams.id}
+                filterOption={false}
+                onSearch={(value) => {
+                  setClientSearch(value);
+                  if (clientId) {
+                    setClientId(null);
+                    setDocumentNumber(null);
+                    setClient(undefined);
+                    setDisabled(false);
+                  }
+                }}
+                onSelect={(value, option) => {
+                  confirmClient(option.client);
+                }}
+              />
+            </div>
+            {!proforma.id && !queryParams.id && (
+              <Button
+                type="primary"
+                width="5rem"
+                padding="0 0.5rem"
+                onClick={() => setIsClientModalVisible(true)}
+              >
+                +Nuevo
+              </Button>
+            )}
+          </div>
         </Grid>
       </Container>
       <Container padding="0px" width="100vw" height="35%">
