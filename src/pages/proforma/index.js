@@ -515,10 +515,16 @@ export default ({ setPageTitle }) => {
     const timeout = setTimeout(async () => {
       try {
         setLoadingSearchClientsByName(true);
-        const clientsResult = await getClients({
-          name: searchText,
-          active: "true",
-        });
+        const params = { active: "true" };
+        const isIdNumberSearch = /^\d+$/.test(searchText);
+
+        if (isIdNumberSearch) {
+          params.idNumber = searchText;
+        } else {
+          params.name = searchText;
+        }
+
+        const clientsResult = await getClients(params);
         setClientSearchOptions(
           (clientsResult.rows || []).map((_client) => ({
             value: getClientOptionLabel(_client),
