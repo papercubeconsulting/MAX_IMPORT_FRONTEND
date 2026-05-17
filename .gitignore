@@ -24,7 +24,10 @@ scss/**/*.css
 src/.next/
 
 # envs
+.development.env
 .env
+.env.*
+*.env
 
 # vscode
 /.vscode
