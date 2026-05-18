@@ -71,40 +71,25 @@ export default ({ setPageTitle }) => {
   // console.log({ products });
   const columns = [
     {
-      dataIndex: "id",
-      title: "",
-      width: "40px",
-      align: "center",
-      render: (id, record, index) => index + 1,
-    },
-    {
-      title: "Cód. Inventario",
-      dataIndex: "product",
-      /* width: "fit-content", */
-      align: "center",
-      render: (product) => get(product, "code", null),
-    },
-    {
-      title: "Modelo",
-      dataIndex: "product",
-      align: "center",
-      render: (product) => get(product, "modelName", null),
-    },
-    {
       title: "Nombre Comercial",
       dataIndex: "product",
       align: "center",
       render: (product) => get(product, "tradename", null),
     },
     {
+      title: "Stock",
+      dataIndex: "product",
+      align: "center",
+      render: (product) => get(product, "availableStock", 0),
+    },
+    {
       title: "Cantidad",
       dataIndex: "quantity",
-      width: "100px",
+      width: "120px",
       align: "center",
       render: (quantity, proformaProduct) => (
         <Input
           style={{ textAlign: "center" }}
-          key={proformaProducts.length}
           value={quantity}
           onChange={(event) => {
             setproformaProducts((prevState) => {
@@ -130,55 +115,53 @@ export default ({ setPageTitle }) => {
       title: "Precio S/",
       dataIndex: "product",
       align: "center",
-      render: (product, proformaProduct) => {
-        return (
-          <Input
-            style={{ textAlign: "center" }}
-            value={get(product, "suggestedPrice", 0)}
-            min={0}
-            onChange={(event) => {
-              setproformaProducts((prevState) => {
-                const remainingproformaProducts = prevState.filter(
-                  (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id,
-                );
-                return [
-                  ...remainingproformaProducts,
-                  {
-                    ...proformaProduct,
-                    product: {
-                      ...product,
-                      suggestedPrice: event.nativeEvent.target.value,
-                    },
+      render: (product, proformaProduct) => (
+        <Input
+          style={{ textAlign: "center" }}
+          value={get(product, "suggestedPrice", 0)}
+          min={0}
+          onChange={(event) => {
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) =>
+                  _proformaProduct.id !== proformaProduct.id,
+              );
+              return [
+                ...remainingproformaProducts,
+                {
+                  ...proformaProduct,
+                  product: {
+                    ...product,
+                    suggestedPrice: event.nativeEvent.target.value,
                   },
-                ];
-              });
-              event.persist();
-            }}
-            onBlur={(event) => {
-              setproformaProducts((prevState) => {
-                const remainingproformaProducts = prevState.filter(
-                  (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id,
-                );
-                return [
-                  ...remainingproformaProducts,
-                  {
-                    ...proformaProduct,
-                    product: {
-                      ...product,
-                      suggestedPrice: parseFloat(
-                        event.nativeEvent.target.value || "0",
-                      ).toFixed(2),
-                    },
+                },
+              ];
+            });
+            event.persist();
+          }}
+          onBlur={(event) => {
+            setproformaProducts((prevState) => {
+              const remainingproformaProducts = prevState.filter(
+                (_proformaProduct) =>
+                  _proformaProduct.id !== proformaProduct.id,
+              );
+              return [
+                ...remainingproformaProducts,
+                {
+                  ...proformaProduct,
+                  product: {
+                    ...product,
+                    suggestedPrice: parseFloat(
+                      event.nativeEvent.target.value || "0",
+                    ).toFixed(2),
                   },
-                ];
-              });
-              event.persist();
-            }}
-          />
-        );
-      },
+                },
+              ];
+            });
+            event.persist();
+          }}
+        />
+      ),
     },
     {
       title: "Subtotal",
@@ -188,12 +171,6 @@ export default ({ setPageTitle }) => {
         `S/ ${(
           get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
         ).toFixed(2)}`,
-    },
-    {
-      title: "Disponibilidad",
-      dataIndex: "product",
-      align: "center",
-      render: (product) => get(product, "availableStock", 0),
     },
     {
       dataIndex: "id",
