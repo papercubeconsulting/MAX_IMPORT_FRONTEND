@@ -20,7 +20,7 @@ DS_Store
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-scss/*/.css
+scss/**/*.css
 src/.next/
 
 # envs
