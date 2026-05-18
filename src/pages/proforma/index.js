@@ -515,14 +515,7 @@ export default ({ setPageTitle }) => {
     const timeout = setTimeout(async () => {
       try {
         setLoadingSearchClientsByName(true);
-        const params = { active: "true" };
-        const isIdNumberSearch = /^\d+$/.test(searchText);
-
-        if (isIdNumberSearch) {
-          params.idNumber = searchText;
-        } else {
-          params.name = searchText;
-        }
+        const params = { active: "true", query: searchText };
 
         const clientsResult = await getClients(params);
         setClientSearchOptions(
