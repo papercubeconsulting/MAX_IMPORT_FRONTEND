@@ -177,38 +177,20 @@ const MenuLink = styled(Link)`
   justify-content: center;
   height: 100%;
   cursor: pointer;
-
   background-color: ${(props) =>
-    props.$active ? "rgba(0, 0, 0, 0.3)" : "transparent"};
-
+    props.$active ? "rgba(0,0,0,0.3)" : "transparent"};
   color: white !important;
   text-decoration: none;
 
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    color: white !important;
-  }
-
-  &:visited {
+  :hover {
+    background-color: rgba(0, 0, 0, 0.3);
     color: white !important;
   }
 `;
 
 const MenuItem = styled.span`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   font-size: 1rem;
   text-align: center;
-  color: white !important;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    color: white !important;
-  }
 `;
 
 const Grid = styled.section`
