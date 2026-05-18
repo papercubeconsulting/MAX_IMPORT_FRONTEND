@@ -319,6 +319,8 @@ export default ({ setPageTitle }) => {
             setProvinceId(_proforma.client.provinceId);
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
+            setClient(_proforma.client);
+            setClientSearch(getClientDisplayName(_proforma.client));
             setPaid((_proforma.efectivo / 100).toFixed(2));
             setDue((_proforma.credit / 100).toFixed(2));
             setproformaProducts(
@@ -532,6 +534,9 @@ export default ({ setPageTitle }) => {
       _client.idNumber || ""
     }`.trim();
 
+  const getClientDisplayName = (_client) =>
+    `${_client.name || ""} ${_client.lastname || ""}`.trim();
+
   const confirmClient = (_client) => {
     const {
       id,
@@ -558,7 +563,7 @@ export default ({ setPageTitle }) => {
     setDistrictId(districtId);
     setDocumentNumber(idNumber);
     setClientId(id);
-    setClientSearch(getClientOptionLabel(_client));
+    setClientSearch(getClientDisplayName(_client));
   };
 
   const mapproformaProducts = async (
