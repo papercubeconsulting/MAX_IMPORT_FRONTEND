@@ -12,7 +12,7 @@ export const Select = props => (
             </span>
         }
         <AntSelect {...props}
-                   style={{width: "-webkit-fill-available"}}>
+                   style={{width: "100%", ...props.style}}>
             {
                 get(props, "options", []).map((option, index) =>
                     <AntSelect.Option key={index}
@@ -28,11 +28,18 @@ export const Select = props => (
 const SelectContainer = styled.div`
   display: flex;
   width: 100%;
+  min-width: 0;
   height: fit-content;
   flex-direction: row;
   align-items: center;
+
+  .ant-select {
+    flex: 1;
+    min-width: 0;
+  }
   
   .ant-input-group-addon {
+    flex: 0 0 auto;
     width: auto;
     height: 2rem;
     line-height: 2rem;
