@@ -13,7 +13,11 @@ export const useProducts = (queryParams = {}) => {
       // filter the queryParams that has values of null or undefined
       const updatedQueryParams = Object.keys(queryParams).reduce(
         (prev, curr) => {
-          queryParams[curr] ? (prev[curr] = queryParams[curr]) : prev;
+          if (!queryParams[curr]) return prev;
+          prev[curr] =
+            curr === "tradename" && typeof queryParams[curr] === "string"
+              ? queryParams[curr].trim().toLowerCase()
+              : queryParams[curr];
           return prev;
         },
         {},

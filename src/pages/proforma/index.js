@@ -40,7 +40,7 @@ import {
   AutoComplete as AutoCompleteAntd,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
-import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
@@ -265,6 +265,11 @@ export default ({ setPageTitle }) => {
   const [districts, setDistricts] = useState([]);
   // const [tradeNames, setTradenames] = useState([]);
   const [tradeName, setTradeName] = useState(null);
+  
+  // Estados para búsqueda de producto en el formulario principal
+  const [productSearchName, setProductSearchName] = useState("");
+  const [productSearchCode, setProductSearchCode] = useState("");
+  const [selectedProductMain, setSelectedProductMain] = useState(null);
 
   const [windowHeight, setWindowHeight] = useState(0);
 
@@ -918,19 +923,45 @@ export default ({ setPageTitle }) => {
   const prevFamiliyIdSelect = React.useRef(null);
   prevFamiliyIdSelect.current = familyId;
 
-  // if the producst has only one element, select that by default
-  const _code = code || (products.length === 1 ? products?.[0]?.code : code);
+  const _code = code;
 
   const prevCode = React.useRef(null);
 
   // track the input if changes
   prevCode.current = _code;
 
+  const selectMainProductByTradename = async (value) => {
+    const searchValue = value?.trim();
+
+    if (!searchValue) {
+      setSelectedProductMain(null);
+      return;
+    }
+
+    const productsFound = (await fetchProducts({ tradename: searchValue })) || [];
+    const normalizedSearch = searchValue.toLowerCase();
+    const exactMatches = productsFound.filter(
+      (product) => product.tradename?.toLowerCase() === normalizedSearch,
+    );
+    const selectedProduct =
+      exactMatches.length === 1
+        ? exactMatches[0]
+        : productsFound.length === 1
+          ? productsFound[0]
+          : null;
+
+    setSelectedProductMain(selectedProduct);
+
+    if (selectedProduct) {
+      setProductSearchName(selectedProduct.tradename);
+    }
+  };
+
   return (
     <>
       <Modal
         visible={addNewProduct}
-        width="60%"
+        width="72%"
         title="Seleccione los datos del producto que desea agregar"
         afterClose={() => resetDataModal()}
         onCancel={() => {
@@ -985,6 +1016,7 @@ export default ({ setPageTitle }) => {
             display: "flex",
             alignItems: "center",
             marginBottom: "12px",
+            minWidth: 0,
           }}
         >
           <span
@@ -1011,23 +1043,25 @@ export default ({ setPageTitle }) => {
                 // subfamilyId: subFamilyId,
                 // elementId,
                 // modelId: Number(value),
-              });
-
-              // only one match
-              if (products.length === 1) {
-                const product = products[0];
-                setProduct(product);
-                setFamilyId(product.familyId);
-                setElementId(product.elementId);
-                setSubFamilyId(product.subfamilyId);
-                setModelId(product.modelId);
-                setModel(product.modelName || "");
-              } else {
-                setFamilyId("Varios");
-                setElementId("Varios");
-                setSubFamilyId("Varios");
-                setModel("Varios");
-              }
+	              });
+	
+	              // only one match
+	              if (products.length === 1) {
+	                const product = products[0];
+	                setProduct(product);
+	                setFamilyId(product.familyId);
+	                setElementId(product.elementId);
+	                setSubFamilyId(product.subfamilyId);
+	                setModelId(product.modelId);
+	                setModel(product.modelName || "");
+	                setCode(product.code);
+	              } else {
+	                setFamilyId("Varios");
+	                setElementId("Varios");
+	                setSubFamilyId("Varios");
+	                setModel("Varios");
+	                setCode("");
+	              }
 
               // setCode(value);
               // setProduct(option.product);
@@ -1055,47 +1089,53 @@ export default ({ setPageTitle }) => {
             }}
           />
         </div>
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-          <Select
-            value={familyId}
-            label="Familia"
-            onChange={(value) => {
-              if (prevFamiliyIdSelect.current !== value) {
-                setSubFamilyId("");
-              }
-              setFamilyId(value);
-              resetInputsInModalAddProduct();
-            }}
-            options={selectOptions(families)}
-          />
-          <Select
-            value={subFamilyId}
-            label="Sub-Familia"
-            onChange={(value) => {
-              setSubFamilyId(value);
-              resetInputsInModalAddProduct();
-            }}
-            options={selectOptions(
-              subfamilies.filter(
-                (subFamily) => subFamily.familyId === familyId,
-              ),
-            )}
-          />
-          <Select
-            value={elementId}
-            label="Elemento"
-            onChange={(value) => {
-              setProduct({});
-              setElementId(value);
-              setModel("");
-              setCode("");
-              setProducts([]);
-            }}
-            options={selectOptions(
-              elements.filter((element) => element.subfamilyId === subFamilyId),
-            )}
-          />
-          <div style={{ display: "flex", alignItems: "center" }}>
+        <Grid gridTemplateColumns="repeat(2, minmax(0, 1fr))" gridGap="1rem">
+          <div style={{ minWidth: 0 }}>
+            <Select
+              value={familyId}
+              label="Familia"
+              onChange={(value) => {
+                if (prevFamiliyIdSelect.current !== value) {
+                  setSubFamilyId("");
+                }
+                setFamilyId(value);
+                resetInputsInModalAddProduct();
+              }}
+              options={selectOptions(families)}
+            />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <Select
+              value={subFamilyId}
+              label="Sub-Familia"
+              onChange={(value) => {
+                setSubFamilyId(value);
+                resetInputsInModalAddProduct();
+              }}
+              options={selectOptions(
+                subfamilies.filter(
+                  (subFamily) => subFamily.familyId === familyId,
+                ),
+              )}
+            />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <Select
+              value={elementId}
+              label="Elemento"
+              onChange={(value) => {
+                setProduct({});
+                setElementId(value);
+                setModel("");
+                setCode("");
+                setProducts([]);
+              }}
+              options={selectOptions(
+                elements.filter((element) => element.subfamilyId === subFamilyId),
+              )}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1121,16 +1161,17 @@ export default ({ setPageTitle }) => {
                   subfamilyId: subFamilyId,
                   elementId,
                   modelId: Number(value),
-                });
-                // Update the tradename
-                if (_products.length === 1) {
-                  const product = _products[0];
-                  setProduct(product);
-                  setAlertState({ active: false });
-                  setTradeName(product.tradename);
-                }
-                setIsCodInventarioLoading(false);
-              }}
+	                });
+	                // Update the tradename
+	                if (_products.length === 1) {
+	                  const product = _products[0];
+	                  setProduct(product);
+	                  setAlertState({ active: false });
+	                  setTradeName(product.tradename);
+	                  setCode(product.code);
+	                }
+	                setIsCodInventarioLoading(false);
+	              }}
               onSearch={(value, option) => {
                 setModel(value);
               }}
@@ -1142,7 +1183,17 @@ export default ({ setPageTitle }) => {
               }}
             />
           </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
+	          <div
+	            style={{
+	              display: "grid",
+	              gridTemplateColumns: "minmax(0, 1fr) auto auto",
+	              gridGap: "0.5rem",
+	              alignItems: "center",
+	              gridColumn: "1 / 3",
+	              minWidth: 0,
+	            }}
+	          >
+            <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1152,7 +1203,7 @@ export default ({ setPageTitle }) => {
             <AutoCompleteAntd
               // onFocus={() => resetDataModal()}
               placeholder="Codigo Inventario"
-              style={{ width: "300px" }}
+              style={{ width: "100%" }}
               color={"white"}
               colorFont={"#5F5F7F"}
               value={_code}
@@ -1167,11 +1218,11 @@ export default ({ setPageTitle }) => {
                 setModel(option.product.modelName);
                 setSubFamilyId(option.product.subfamilyId);
                 setTradeName(option.product.tradename);
-              }}
-              onPaste={(e) => {
-                const text = event.clipboardData.getData("text");
-                setCode(text.trimStart().trimEnd());
-              }}
+	              }}
+	              onPaste={(e) => {
+	                const text = e.clipboardData.getData("text");
+	                setCode(text.trimStart().trimEnd());
+	              }}
               onSearch={(value) => {
                 setCode(value);
               }}
@@ -1184,6 +1235,7 @@ export default ({ setPageTitle }) => {
                 return option.value.toLowerCase().includes(input.toLowerCase());
               }}
             />
+            </div>
             <Button
               disabled={_code === "" || _code === null}
               onClick={async () => {
@@ -1207,13 +1259,14 @@ export default ({ setPageTitle }) => {
                   const product = productsFound[0];
                   setProduct(product);
                   setAlertState({ active: false });
-                  setFamilyId(product.familyId);
-                  setElementId(product.elementId);
-                  setTradeName(product.tradename);
-                  setSubFamilyId(product.subfamilyId);
-                  setModelId(product.modelId);
-                  setModel(product.modelName || "");
-                }
+	                  setFamilyId(product.familyId);
+	                  setElementId(product.elementId);
+	                  setTradeName(product.tradename);
+	                  setSubFamilyId(product.subfamilyId);
+	                  setModelId(product.modelId);
+	                  setModel(product.modelName || "");
+	                  setCode(product.code);
+	                }
               }}
               type="primary"
             >
@@ -1369,68 +1422,188 @@ export default ({ setPageTitle }) => {
       </Modal>
 
       <Container height="fit-content">
-        <Grid
-          gridTemplateColumns="repeat(2, minmax(240px, 1fr))"
-          gridGap="1rem"
+        <div
+          style={{
+            display: "grid",
+            width: "100%",
+            gridTemplateColumns: "1fr 1fr",
+            gridGap: "1rem",
+            alignItems: "start",
+          }}
         >
-          <Input value="En cotización" addonBefore="Estatus" disabled />
-          <Input
-            value={clientId ? documentNumber : ""}
-            addonBefore="DNI/RUC"
-            disabled
-          />
+          {/* Columna Izquierda */}
           <div
-            style={{
-              display: "grid",
-              gridColumn: "1 / 3",
-              gridTemplateColumns:
-                proforma.id || queryParams.id ? "1fr" : "1fr auto",
-              gridGap: "1rem",
-            }}
+            style={{ display: "grid", gridTemplateColumns: "1fr", gridGap: "1rem" }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", width: "100%" }}
-            >
-              <span
-                className="ant-input-group-addon"
-                style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
-              >
-                Cliente
-              </span>
-              <AutoCompleteAntd
-                placeholder="Buscar cliente por nombre"
-                style={{ width: "100%" }}
-                value={clientSearch}
-                options={clientSearchOptions}
-                loading={loadingSearchClientsByName}
-                disabled={!!proforma.id || !!queryParams.id}
-                filterOption={false}
-                onSearch={(value) => {
-                  setClientSearch(value);
-                  if (clientId) {
-                    setClientId(null);
-                    setDocumentNumber(null);
-                    setClient(undefined);
-                    setDisabled(false);
-                  }
-                }}
-                onSelect={(value, option) => {
-                  confirmClient(option.client);
-                }}
-              />
-            </div>
-            {!proforma.id && !queryParams.id && (
-              <Button
-                type="primary"
-                width="5rem"
-                padding="0 0.5rem"
-                onClick={() => setIsClientModalVisible(true)}
-              >
-                +Nuevo
-              </Button>
-            )}
+            <Input value="En cotización" addonBefore="Estatus" disabled />
+            <Input
+              value={clientId ? documentNumber : ""}
+              addonBefore="DNI/RUC"
+              disabled
+            />
           </div>
-        </Grid>
+
+          {/* Columna Derecha */}
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr", gridGap: "1rem" }}
+          >
+            {/* Cliente */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  proforma.id || queryParams.id ? "1fr" : "1fr auto",
+                gridGap: "1rem",
+                alignItems: "start",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", width: "100%" }}
+              >
+                <span
+                  className="ant-input-group-addon"
+                  style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+                >
+                  Cliente
+                </span>
+                <AutoCompleteAntd
+                  placeholder="Buscar cliente por nombre"
+                  style={{ width: "100%" }}
+                  value={clientSearch}
+                  options={clientSearchOptions}
+                  loading={loadingSearchClientsByName}
+                  disabled={!!proforma.id || !!queryParams.id}
+                  filterOption={false}
+                  onSearch={(value) => {
+                    setClientSearch(value);
+                    if (clientId) {
+                      setClientId(null);
+                      setDocumentNumber(null);
+                      setClient(undefined);
+                      setDisabled(false);
+                    }
+                  }}
+                  onSelect={(value, option) => {
+                    confirmClient(option.client);
+                  }}
+                />
+              </div>
+              {!proforma.id && !queryParams.id && (
+                <Button
+                  type="primary"
+                  width="5rem"
+                  padding="0 0.5rem"
+                  onClick={() => setIsClientModalVisible(true)}
+                >
+                  +Nuevo
+                </Button>
+              )}
+            </div>
+
+            {/* Producto */}
+            <div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gridGap: "1rem",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <span
+                    className="ant-input-group-addon"
+                    style={{
+                      width: "auto",
+                      height: "2rem",
+                      lineHeight: "2rem",
+                    }}
+                  >
+                    Producto
+                  </span>
+                  <AutoCompleteAntd
+                    placeholder="Buscar por nombre comercial"
+                    style={{ width: "100%" }}
+                    value={productSearchName}
+                    options={tradeNames.map((product, index) => ({
+                      value: product,
+                      label: product,
+                    }))}
+                    loading={isCodInventarioLoading}
+                    filterOption={(input, option) => {
+                      return option.value
+                        .toLowerCase()
+                        .includes(input.toLowerCase());
+                    }}
+                    onSearch={(value) => {
+                      setProductSearchName(value);
+                      setSelectedProductMain(null);
+                    }}
+                    onBlur={() => {
+                      selectMainProductByTradename(productSearchName);
+                    }}
+                    onSelect={(value, option) => {
+                      setProductSearchName(value);
+                      selectMainProductByTradename(value);
+                    }}
+                  />
+                </div>
+                <Button
+                  type="primary"
+                  size="small"
+                  disabled={!selectedProductMain}
+                  onClick={() => {
+                    setproformaProducts((prevState) => {
+                      return [
+                        ...prevState,
+                        {
+                          id: proformaProducts.length + 1,
+                          quantity: 1,
+                          familyId: selectedProductMain.familyId,
+                          subFamilyId: selectedProductMain.subfamilyId,
+                          elementId: selectedProductMain.elementId,
+                          modelId: selectedProductMain.modelId,
+                          product: {
+                            ...selectedProductMain,
+                            suggestedPrice: (
+                              selectedProductMain.suggestedPrice / 100
+                            ).toFixed(2),
+                          },
+                        },
+                      ];
+                    });
+                    setProductSearchName("");
+                    setSelectedProductMain(null);
+                    notification.success({
+                      message: "Producto agregado correctamente",
+                    });
+                  }}
+                >
+                  Agregar
+                </Button>
+              </div>
+              {/* Avanzado link */}
+              <a
+                onClick={() => setAddNewProduct(true)}
+                style={{
+                  display: "inline-block",
+                  marginTop: "0.35rem",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Avanzado
+              </a>
+            </div>
+          </div>
+        </div>
       </Container>
       <Container padding="0px" width="100vw" height="35%">
         <Table
@@ -1441,18 +1614,6 @@ export default ({ setPageTitle }) => {
           pagination={false}
           dataSource={orderBy(proformaProducts, "id", "asc")}
         />
-      </Container>
-      <Container height="fit-content" padding="2rem 1rem 1rem">
-        <Button
-          padding="0 0.5rem"
-          type="primary"
-          onClick={() => {
-            setAddNewProduct(true);
-          }}
-        >
-          <Icon fontSize="1rem" icon={faPlus} />
-          Agregar producto
-        </Button>
       </Container>
       <Container height="fit-content">
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
