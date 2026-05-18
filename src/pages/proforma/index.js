@@ -1403,7 +1403,17 @@ export default ({ setPageTitle }) => {
         </Grid>
       </Modal>
 
-      <Container height="fit-content">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: 0,
+          overflow: "hidden",
+          paddingBottom: "0.75rem",
+        }}
+      >
+        <Container height="fit-content" padding="0.75rem 1rem">
         <div
           style={{
             display: "grid",
@@ -1587,19 +1597,70 @@ export default ({ setPageTitle }) => {
           </div>
         </div>
       </Container>
-      <Container padding="0px" width="100vw" height="35%">
+      <div
+        style={{
+          flex: "1 1 auto",
+          minHeight: "220px",
+          overflow: "hidden",
+          padding: "0 1rem",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            alignItems: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "0 0 0.5rem",
+          }}
+        >
+          <strong>Productos</strong>
+          <span style={{ color: "#606770", fontSize: "0.85rem" }}>
+            {proformaProducts.length}{" "}
+            {proformaProducts.length === 1 ? "producto" : "productos"}
+          </span>
+        </div>
         <Table
           rowKey={(record) => record.id}
           columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
+          scroll={{
+            x: 900,
+            y: Math.max(Math.min(windowHeight - 520, 420), 160),
+          }}
           bordered
           pagination={false}
+          size="small"
           dataSource={orderBy(proformaProducts, "id", "asc")}
         />
-      </Container>
-      <Container height="fit-content">
+        {proformaProducts.length > 6 && (
+          <div
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.92))",
+              bottom: 0,
+              height: "2.25rem",
+              left: "1rem",
+              pointerEvents: "none",
+              position: "absolute",
+              right: "1rem",
+            }}
+          />
+        )}
+      </div>
+      <div
+        style={{
+          background: "#fff",
+          borderTop: "1px solid #e8e8e8",
+          boxShadow: "0 -6px 18px rgba(0, 0, 0, 0.08)",
+          flex: "0 0 auto",
+          padding: "1.25rem 1rem 1rem",
+          position: "sticky",
+          bottom: 0,
+          zIndex: 10,
+        }}
+      >
         <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid>
+          <Grid gridTemplateRows="auto auto" gridGap="3.5rem">
             <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem">
               <Input
                 value={paid}
@@ -1669,7 +1730,6 @@ export default ({ setPageTitle }) => {
                 addonBefore="Crédito S/"
               />
             </Grid>
-            <br />
             <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
               <Button
                 onClick={onSaveProforma}
@@ -1695,18 +1755,23 @@ export default ({ setPageTitle }) => {
               </Button>
             </Grid>
           </Grid>
-          <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
+          <Grid
+            gridTemplateColumns="minmax(0, 5fr) minmax(8rem, 2fr)"
+            gridTemplateRows="auto auto auto"
+            gridGap="2rem"
+          >
             <Input
               disabled
               value={totalPrice.toFixed(2)}
               addonBefore="Total S/"
+              style={{ gridColumn: "1 / 2", gridRow: "1 / 2" }}
             />
-            <br />
             <Input
               value={discount}
               addonBefore="Descuento S/"
               type="number"
               min={0}
+              style={{ gridColumn: "1 / 2", gridRow: "2 / 3" }}
               onChange={(event) => {
                 // console.log("onchange");
                 setDiscount(event.target.value);
@@ -1729,6 +1794,7 @@ export default ({ setPageTitle }) => {
               type="number"
               min={0}
               max={100}
+              style={{ gridColumn: "2 / 3", gridRow: "2 / 3" }}
               onChange={(event) => {
                 const value =
                   event.target.value === "" ? 0 : event.target.value;
@@ -1780,10 +1846,15 @@ export default ({ setPageTitle }) => {
               //   );
               // }}
             />
-            <Input disabled value={finalPrice} addonBefore="Total Final S/" />
-            <br />
+            <Input
+              disabled
+              value={finalPrice}
+              addonBefore="Total Final S/"
+              style={{ gridColumn: "1 / 2", gridRow: "3 / 4" }}
+            />
           </Grid>
         </Grid>
+      </div>
         {/* <Modal /> */}
         <ModalValidateDiscount
           // isModalOpen={true || isModalDiscountOpen}
@@ -1801,7 +1872,7 @@ export default ({ setPageTitle }) => {
           onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
         />
         {/* {<Modal open={!!proforma}>Test</Modal>} */}
-      </Container>
+      </div>
       {statusValidationModal.discountTransactionId &&
         statusValidationModal.status && (
           <Alert
