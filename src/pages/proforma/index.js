@@ -40,7 +40,7 @@ import {
   AutoComplete as AutoCompleteAntd,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
@@ -70,6 +70,13 @@ export default ({ setPageTitle }) => {
   const [code, setCode] = useState(null);
   // console.log({ products });
   const columns = [
+    {
+      title: "Cód. Inventario",
+      dataIndex: "product",
+      align: "center",
+      render: (product) => get(product, "code", "-"),
+      width: "120px",
+    },
     {
       title: "Nombre Comercial",
       dataIndex: "product",
@@ -175,9 +182,18 @@ export default ({ setPageTitle }) => {
     {
       dataIndex: "id",
       align: "center",
-      width: "110px",
+      width: "140px",
       render: (id, product) => (
         <>
+          <Button
+            disabled={product.product ? false : true}
+            padding="0 0.25rem"
+            margin="0 0.25rem"
+            type="default"
+            onClick={() => openChangeModal(product)}
+          >
+            <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
+          </Button>
           <Button
             disabled={product.product ? false : true}
             padding="0 0.25rem"
@@ -291,6 +307,54 @@ export default ({ setPageTitle }) => {
 
   // States for handling modal validate discount approval
   const [isModalDiscountOpen, setIsModalDiscountOpen] = useState(false);
+
+  const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
+  const [changeModalProducts, setChangeModalProducts] = useState([]);
+  const [changeRequestedQuantity, setChangeRequestedQuantity] = useState(10);
+
+  const openChangeModal = (proformaProduct) => {
+    const requestedQuantity = get(proformaProduct, "quantity", 0);
+    const productCode = get(proformaProduct, "product.code", "-");
+    const productName = get(proformaProduct, "product.tradename", "");
+    const productStock = get(proformaProduct, "product.availableStock", 0);
+
+    setChangeModalProducts([
+      {
+        id: "current",
+        code: productCode,
+        tradename: productName,
+        stock: productStock,
+        quantity: requestedQuantity,
+        selected: true,
+      },
+      {
+        id: 1,
+        code: "MX1-02-01-FPC-1",
+        tradename: "Alternador de Hyundai Centra 2020",
+        stock: 15,
+        quantity: requestedQuantity,
+        selected: false,
+      },
+      {
+        id: 2,
+        code: "MX1-02-01-FPC-2",
+        tradename: "Arrancador de Mitsubishi Lance 2018",
+        stock: 5,
+        quantity: requestedQuantity,
+        selected: false,
+      },
+      {
+        id: 3,
+        code: "MX1-02-01-FPC-3",
+        tradename: "Disco de freno Toyota Corolla 2016",
+        stock: 20,
+        quantity: requestedQuantity,
+        selected: false,
+      },
+    ]);
+    setChangeRequestedQuantity(requestedQuantity);
+    setIsChangeModalVisible(true);
+  };
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -1401,6 +1465,114 @@ export default ({ setPageTitle }) => {
             Crear cliente
           </Button>
         </Grid>
+      </Modal>
+
+      <Modal
+        visible={isChangeModalVisible}
+        width="680px"
+        title="Cambiar producto"
+        onCancel={() => setIsChangeModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsChangeModalVisible(false)}>
+            Cerrar
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={() => setIsChangeModalVisible(false)}
+          >
+            Cambiar
+          </Button>,
+        ]}
+      >
+        <div style={{ marginBottom: "1rem" }}>
+          <div
+            style={{
+              fontWeight: 700,
+              marginBottom: "0.5rem",
+            }}
+          >
+            Cantidad solicitada: {changeRequestedQuantity}
+          </div>
+          <div style={{ color: "#333" }}>Productos relacionados</div>
+        </div>
+
+        <Grid
+          gridTemplateColumns="40px 140px 1fr 100px 100px"
+          gridGap="1rem"
+          style={{
+            fontWeight: 700,
+            padding: "0.5rem 0",
+            borderBottom: "1px solid #e8e8e8",
+          }}
+        >
+          <div />
+          <div>Cód. Inventario</div>
+          <div>Nombre comercial</div>
+          <div style={{ textAlign: "center" }}>Stock</div>
+          <div style={{ textAlign: "center" }}>Cantidad</div>
+        </Grid>
+
+        {changeModalProducts.map((item) => (
+          <Grid
+            key={item.id}
+            gridTemplateColumns="40px 140px 1fr 100px 100px"
+            gridGap="1rem"
+            alignItems="center"
+            style={{
+              marginTop: "0.5rem",
+              padding: "0.5rem 0",
+              borderRadius: "4px",
+              backgroundColor:
+                item.quantity > item.stock ? "#fff1f0" : "transparent",
+              border:
+                item.quantity > item.stock
+                  ? "1px solid #ffa39e"
+                  : "1px solid transparent",
+            }}
+          >
+            <div>
+              <input
+                type="checkbox"
+                checked={item.selected}
+                onChange={() => {
+                  setChangeModalProducts((prev) =>
+                    prev.map((product) =>
+                      product.id === item.id
+                        ? { ...product, selected: !product.selected }
+                        : product,
+                    ),
+                  );
+                }}
+                style={{ width: "16px", height: "16px" }}
+              />
+            </div>
+            <div>{item.code}</div>
+            <div
+              style={{
+                color: item.quantity > item.stock ? "#a8071a" : "#000",
+              }}
+            >
+              {item.tradename}
+            </div>
+            <div style={{ textAlign: "center" }}>{item.stock}</div>
+            <Input
+              type="number"
+              value={item.quantity}
+              onChange={(event) => {
+                const quantity = Number(event.target.value || 0);
+                setChangeModalProducts((prev) =>
+                  prev.map((product) =>
+                    product.id === item.id
+                      ? { ...product, quantity }
+                      : product,
+                  ),
+                );
+              }}
+              style={{ textAlign: "center" }}
+            />
+          </Grid>
+        ))}
       </Modal>
 
       <div
