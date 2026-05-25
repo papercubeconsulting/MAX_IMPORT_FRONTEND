@@ -40,7 +40,11 @@ import {
   AutoComplete as AutoCompleteAntd,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
-import { faTrash, faExchangeAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faTrash,
+  faExchangeAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
@@ -66,7 +70,7 @@ export default ({ setPageTitle }) => {
     type: "success",
   });
 
-  const { tradeNames, setTradeNames } = useTradeNames();
+  const { tradeNames, tradeNameProducts } = useTradeNames();
   const [code, setCode] = useState(null);
   // console.log({ products });
   const columns = [
@@ -83,12 +87,13 @@ export default ({ setPageTitle }) => {
       align: "center",
       render: (product) => get(product, "tradename", null),
     },
-    {
-      title: "Stock",
-      dataIndex: "product",
-      align: "center",
-      render: (product) => get(product, "availableStock", 0),
-    },
+	    {
+	      title: "Stock",
+	      dataIndex: "product",
+	      align: "center",
+	      width: "120px",
+	      render: (product) => get(product, "availableStock", 0),
+	    },
     {
       title: "Cantidad",
       dataIndex: "quantity",
@@ -118,11 +123,12 @@ export default ({ setPageTitle }) => {
         />
       ),
     },
-    {
-      title: "Precio S/",
-      dataIndex: "product",
-      align: "center",
-      render: (product, proformaProduct) => (
+	    {
+	      title: "Precio S/",
+	      dataIndex: "product",
+	      align: "center",
+	      width: "120px",
+	      render: (product, proformaProduct) => (
         <Input
           style={{ textAlign: "center" }}
           value={get(product, "suggestedPrice", 0)}
@@ -170,50 +176,57 @@ export default ({ setPageTitle }) => {
         />
       ),
     },
-    {
-      title: "Subtotal",
-      dataIndex: "id",
-      align: "center",
-      render: (id, row) =>
-        `S/ ${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
-        ).toFixed(2)}`,
-    },
-    {
-      dataIndex: "id",
-      align: "center",
-      width: "140px",
-      render: (id, product) => (
-        <>
-          <Button
-            disabled={product.product ? false : true}
-            padding="0 0.25rem"
-            margin="0 0.25rem"
-            type="default"
-            onClick={() => openChangeModal(product)}
-          >
-            <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
-          </Button>
-          <Button
-            disabled={product.product ? false : true}
-            padding="0 0.25rem"
-            margin="0 0.25rem"
-            type="primary"
-            onClick={() => {
-              setIsVisible(true);
-              setIdModal(product.product.id);
-            }}
-          >
-            VER
-          </Button>
-          <Button
-            padding="0 0.25rem"
-            margin="0 0.25rem"
-            type="danger"
-            onClick={() =>
-              setproformaProducts((prevState) =>
-                prevState
-                  .filter((proformaProduct) => {
+	    {
+	      title: "Subtotal",
+	      dataIndex: "id",
+	      align: "center",
+	      width: "120px",
+	      render: (id, row) =>
+	        `S/ ${(
+	          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+	        ).toFixed(2)}`,
+	    },
+	    {
+	      dataIndex: "id",
+	      align: "center",
+	      width: "132px",
+	      render: (id, product) => (
+	        <span style={{ display: "inline-flex", gap: "4px", whiteSpace: "nowrap" }}>
+	          <Button
+	            disabled={product.product ? false : true}
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="default"
+	            title="Cambiar producto"
+	            onClick={() => openChangeModal(product)}
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
+	          </Button>
+	          <Button
+	            disabled={product.product ? false : true}
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="primary"
+	            title="Ver producto"
+	            onClick={() => {
+	              setIsVisible(true);
+	              setIdModal(product.product.id);
+	            }}
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+	          </Button>
+	          <Button
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="danger"
+	            title="Eliminar producto"
+	            onClick={() =>
+	              setproformaProducts((prevState) =>
+	                prevState
+	                  .filter((proformaProduct) => {
                     return proformaProduct.id !== id;
                   })
                   .map((proformaProduct, index) => ({
@@ -222,12 +235,12 @@ export default ({ setPageTitle }) => {
                   })),
               )
             }
-          >
-            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-          </Button>
-        </>
-      ),
-    },
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+	          </Button>
+	        </span>
+	      ),
+	    },
   ];
 
   const [clientId, setClientId] = useState(null);
@@ -429,7 +442,7 @@ export default ({ setPageTitle }) => {
             setDistrictId(_proforma.client.districtId);
             setClientId(_proforma.client.id);
             setClient(_proforma.client);
-            setClientSearch(getClientDisplayName(_proforma.client));
+            setClientSearch(getClientOptionLabel(_proforma.client));
             setPaid((_proforma.efectivo / 100).toFixed(2));
             setDue((_proforma.credit / 100).toFixed(2));
             setproformaProducts(
@@ -643,9 +656,6 @@ export default ({ setPageTitle }) => {
       _client.idNumber || ""
     }`.trim();
 
-  const getClientDisplayName = (_client) =>
-    `${_client.name || ""} ${_client.lastname || ""}`.trim();
-
   const confirmClient = (_client) => {
     const {
       id,
@@ -672,7 +682,7 @@ export default ({ setPageTitle }) => {
     setDistrictId(districtId);
     setDocumentNumber(idNumber);
     setClientId(id);
-    setClientSearch(getClientDisplayName(_client));
+    setClientSearch(getClientOptionLabel(_client));
   };
 
   const mapproformaProducts = async (
@@ -1021,7 +1031,27 @@ export default ({ setPageTitle }) => {
   // track the input if changes
   prevCode.current = _code;
 
-  const selectMainProductByTradename = async (value) => {
+  const getProductTradeNameLabel = (product) =>
+    product?.tradename?.trim() || "N/A";
+
+  const getProductCodeLabel = (product) => product?.code?.trim() || "N/A";
+
+  const getProductSearchLabel = (product) =>
+    `NC: ${getProductTradeNameLabel(product)} | Cod: ${getProductCodeLabel(
+      product,
+    )}`;
+
+  const mainProductSearchOptions = useMemo(
+    () =>
+      tradeNameProducts.map((product) => ({
+        value: getProductSearchLabel(product),
+        label: getProductSearchLabel(product),
+        product,
+      })),
+    [tradeNameProducts],
+  );
+
+  const selectMainProductBySearch = (value) => {
     const searchValue = value?.trim();
 
     if (!searchValue) {
@@ -1029,22 +1059,30 @@ export default ({ setPageTitle }) => {
       return;
     }
 
-    const productsFound = (await fetchProducts({ tradename: searchValue })) || [];
     const normalizedSearch = searchValue.toLowerCase();
-    const exactMatches = productsFound.filter(
-      (product) => product.tradename?.toLowerCase() === normalizedSearch,
+    const exactMatches = tradeNameProducts.filter(
+      (product) =>
+        getProductSearchLabel(product).toLowerCase() === normalizedSearch ||
+        product.tradename?.toLowerCase() === normalizedSearch ||
+        product.code?.toLowerCase() === normalizedSearch,
+    );
+    const partialMatches = tradeNameProducts.filter(
+      (product) =>
+        getProductSearchLabel(product).toLowerCase().includes(normalizedSearch) ||
+        product.tradename?.toLowerCase().includes(normalizedSearch) ||
+        product.code?.toLowerCase().includes(normalizedSearch),
     );
     const selectedProduct =
       exactMatches.length === 1
         ? exactMatches[0]
-        : productsFound.length === 1
-          ? productsFound[0]
+        : partialMatches.length === 1
+          ? partialMatches[0]
           : null;
 
     setSelectedProductMain(selectedProduct);
 
     if (selectedProduct) {
-      setProductSearchName(selectedProduct.tradename);
+      setProductSearchName(getProductSearchLabel(selectedProduct));
     }
   };
 
@@ -1642,177 +1680,164 @@ export default ({ setPageTitle }) => {
             alignItems: "start",
           }}
         >
-          {/* Columna Izquierda */}
+          <Input value="En cotización" addonBefore="Estatus" disabled />
+
+          {/* Cliente */}
           <div
-            style={{ display: "grid", gridTemplateColumns: "1fr", gridGap: "1rem" }}
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                proforma.id || queryParams.id ? "1fr" : "1fr auto",
+              gridGap: "1rem",
+              alignItems: "start",
+            }}
           >
-            <Input value="En cotización" addonBefore="Estatus" disabled />
-            <Input
-              value={clientId ? documentNumber : ""}
-              addonBefore="DNI/RUC"
-              disabled
-            />
+            <div
+              style={{ display: "flex", alignItems: "center", width: "100%" }}
+            >
+              <span
+                className="ant-input-group-addon"
+                style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+              >
+                Cliente
+              </span>
+              <AutoCompleteAntd
+                placeholder="Buscar cliente por nombre"
+                style={{ width: "100%" }}
+                value={clientSearch}
+                options={clientSearchOptions}
+                loading={loadingSearchClientsByName}
+                disabled={!!proforma.id || !!queryParams.id}
+                filterOption={false}
+                onSearch={(value) => {
+                  setClientSearch(value);
+                  if (clientId) {
+                    setClientId(null);
+                    setDocumentNumber(null);
+                    setClient(undefined);
+                    setDisabled(false);
+                  }
+                }}
+                onSelect={(value, option) => {
+                  confirmClient(option.client);
+                }}
+              />
+            </div>
+            {!proforma.id && !queryParams.id && (
+              <Button
+                type="primary"
+                width="5rem"
+                padding="0 0.5rem"
+                onClick={() => setIsClientModalVisible(true)}
+              >
+                +Nuevo
+              </Button>
+            )}
           </div>
 
-          {/* Columna Derecha */}
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr", gridGap: "1rem" }}
-          >
-            {/* Cliente */}
+          {/* Producto */}
+          <div style={{ gridColumn: "1 / 3" }}>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns:
-                  proforma.id || queryParams.id ? "1fr" : "1fr auto",
+                gridTemplateColumns: "1fr auto",
                 gridGap: "1rem",
-                alignItems: "start",
+                alignItems: "center",
               }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", width: "100%" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                }}
               >
                 <span
                   className="ant-input-group-addon"
-                  style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
-                >
-                  Cliente
-                </span>
-                <AutoCompleteAntd
-                  placeholder="Buscar cliente por nombre"
-                  style={{ width: "100%" }}
-                  value={clientSearch}
-                  options={clientSearchOptions}
-                  loading={loadingSearchClientsByName}
-                  disabled={!!proforma.id || !!queryParams.id}
-                  filterOption={false}
-                  onSearch={(value) => {
-                    setClientSearch(value);
-                    if (clientId) {
-                      setClientId(null);
-                      setDocumentNumber(null);
-                      setClient(undefined);
-                      setDisabled(false);
-                    }
-                  }}
-                  onSelect={(value, option) => {
-                    confirmClient(option.client);
-                  }}
-                />
-              </div>
-              {!proforma.id && !queryParams.id && (
-                <Button
-                  type="primary"
-                  width="5rem"
-                  padding="0 0.5rem"
-                  onClick={() => setIsClientModalVisible(true)}
-                >
-                  +Nuevo
-                </Button>
-              )}
-            </div>
-
-            {/* Producto */}
-            <div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto",
-                  gridGap: "1rem",
-                  alignItems: "center",
-                }}
-              >
-                <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    width: "100%",
+                    width: "auto",
+                    height: "2rem",
+                    lineHeight: "2rem",
                   }}
                 >
-                  <span
-                    className="ant-input-group-addon"
-                    style={{
-                      width: "auto",
-                      height: "2rem",
-                      lineHeight: "2rem",
-                    }}
-                  >
-                    Producto
-                  </span>
-                  <AutoCompleteAntd
-                    placeholder="Buscar por nombre comercial"
-                    style={{ width: "100%" }}
-                    value={productSearchName}
-                    options={tradeNames.map((product, index) => ({
-                      value: product,
-                      label: product,
-                    }))}
-                    loading={isCodInventarioLoading}
-                    filterOption={(input, option) => {
-                      return option.value
-                        .toLowerCase()
-                        .includes(input.toLowerCase());
-                    }}
-                    onSearch={(value) => {
-                      setProductSearchName(value);
-                      setSelectedProductMain(null);
-                    }}
-                    onBlur={() => {
-                      selectMainProductByTradename(productSearchName);
-                    }}
-                    onSelect={(value, option) => {
-                      setProductSearchName(value);
-                      selectMainProductByTradename(value);
-                    }}
-                  />
-                </div>
-                <Button
-                  type="primary"
-                  size="small"
-                  disabled={!selectedProductMain}
-                  onClick={() => {
-                    setproformaProducts((prevState) => {
-                      return [
-                        ...prevState,
-                        {
-                          id: proformaProducts.length + 1,
-                          quantity: 1,
-                          familyId: selectedProductMain.familyId,
-                          subFamilyId: selectedProductMain.subfamilyId,
-                          elementId: selectedProductMain.elementId,
-                          modelId: selectedProductMain.modelId,
-                          product: {
-                            ...selectedProductMain,
-                            suggestedPrice: (
-                              selectedProductMain.suggestedPrice / 100
-                            ).toFixed(2),
-                          },
-                        },
-                      ];
-                    });
-                    setProductSearchName("");
-                    setSelectedProductMain(null);
-                    notification.success({
-                      message: "Producto agregado correctamente",
-                    });
-                  }}
-                >
-                  Agregar
-                </Button>
+                  Producto
+                </span>
+	                <AutoCompleteAntd
+	                  placeholder="Buscar por nombre comercial o código"
+	                  style={{ width: "100%" }}
+	                  value={productSearchName}
+	                  options={mainProductSearchOptions}
+	                  loading={isCodInventarioLoading}
+	                  filterOption={(input, option) => {
+	                    const searchValue = input.toLowerCase();
+	                    return (
+	                      option.value.toLowerCase().includes(searchValue) ||
+	                      option.product?.tradename
+	                        ?.toLowerCase()
+	                        .includes(searchValue) ||
+	                      option.product?.code?.toLowerCase().includes(searchValue)
+	                    );
+	                  }}
+	                  onSearch={(value) => {
+	                    setProductSearchName(value);
+	                    setSelectedProductMain(null);
+	                  }}
+	                  onBlur={() => {
+	                    selectMainProductBySearch(productSearchName);
+	                  }}
+	                  onSelect={(value, option) => {
+	                    setProductSearchName(value);
+	                    setSelectedProductMain(option.product);
+	                  }}
+	                />
               </div>
-              {/* Avanzado link */}
-              <a
-                onClick={() => setAddNewProduct(true)}
-                style={{
-                  display: "inline-block",
-                  marginTop: "0.35rem",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
+              <Button
+                type="primary"
+                size="small"
+                disabled={!selectedProductMain}
+                onClick={() => {
+                  setproformaProducts((prevState) => {
+                    return [
+                      ...prevState,
+                      {
+                        id: proformaProducts.length + 1,
+                        quantity: 1,
+                        familyId: selectedProductMain.familyId,
+                        subFamilyId: selectedProductMain.subfamilyId,
+                        elementId: selectedProductMain.elementId,
+                        modelId: selectedProductMain.modelId,
+                        product: {
+                          ...selectedProductMain,
+                          suggestedPrice: (
+                            selectedProductMain.suggestedPrice / 100
+                          ).toFixed(2),
+                        },
+                      },
+                    ];
+                  });
+                  setProductSearchName("");
+                  setSelectedProductMain(null);
+                  notification.success({
+                    message: "Producto agregado correctamente",
+                  });
                 }}
               >
-                Avanzado
-              </a>
+                Agregar
+              </Button>
             </div>
+            {/* Avanzado link */}
+            <a
+              onClick={() => setAddNewProduct(true)}
+              style={{
+                display: "inline-block",
+                marginTop: "0.35rem",
+                textDecoration: "underline",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+              }}
+            >
+              Avanzado
+            </a>
           </div>
         </div>
       </Container>
