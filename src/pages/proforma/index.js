@@ -310,7 +310,51 @@ export default ({ setPageTitle }) => {
 
   const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
   const [changeModalProducts, setChangeModalProducts] = useState([]);
+  const [changeModalTargetProductId, setChangeModalTargetProductId] = useState(
+    null,
+  );
   const [changeRequestedQuantity, setChangeRequestedQuantity] = useState(10);
+
+  const handleChangeModalSubmit = () => {
+    const selectedProduct = changeModalProducts.find(
+      (product) => product.selected,
+    );
+
+    if (!selectedProduct) {
+      notification.warning({
+        message: "Seleccione un producto para cambiar",
+      });
+      return;
+    }
+
+    if (selectedProduct.id === "current") {
+      setIsChangeModalVisible(false);
+      return;
+    }
+
+    setproformaProducts((prevState) =>
+      prevState.map((proformaProduct) => {
+        if (proformaProduct.id !== changeModalTargetProductId) {
+          return proformaProduct;
+        }
+
+        return {
+          ...proformaProduct,
+          product: {
+            ...proformaProduct.product,
+            id: selectedProduct.id,
+            code: selectedProduct.code,
+            tradename: selectedProduct.tradename,
+            availableStock: selectedProduct.stock,
+            suggestedPrice:
+              proformaProduct.product?.suggestedPrice || 0,
+          },
+        };
+      }),
+    );
+
+    setIsChangeModalVisible(false);
+  };
 
   const openChangeModal = (proformaProduct) => {
     const requestedQuantity = get(proformaProduct, "quantity", 0);
@@ -353,6 +397,7 @@ export default ({ setPageTitle }) => {
       },
     ]);
     setChangeRequestedQuantity(requestedQuantity);
+    setChangeModalTargetProductId(proformaProduct.id);
     setIsChangeModalVisible(true);
   };
 
@@ -1479,7 +1524,7 @@ export default ({ setPageTitle }) => {
           <Button
             key="submit"
             type="primary"
-            onClick={() => setIsChangeModalVisible(false)}
+            onClick={handleChangeModalSubmit}
           >
             Cambiar
           </Button>,
@@ -1537,11 +1582,13 @@ export default ({ setPageTitle }) => {
                 checked={item.selected}
                 onChange={() => {
                   setChangeModalProducts((prev) =>
-                    prev.map((product) =>
-                      product.id === item.id
-                        ? { ...product, selected: !product.selected }
-                        : product,
-                    ),
+                    prev.map((product) => ({
+                      ...product,
+                      selected:
+                        product.id === item.id
+                          ? !product.selected
+                          : false,
+                    })),
                   );
                 }}
                 style={{ width: "16px", height: "16px" }}
