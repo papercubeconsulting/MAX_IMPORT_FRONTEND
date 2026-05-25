@@ -1610,6 +1610,7 @@ export default ({ setPageTitle }) => {
               changeModalProducts.map((item) => {
                 const hasEnoughStock = item.hasEnoughStock;
                 const isSelected = item.id === changeModalSelectedProductId;
+                const isSelectedWithoutStock = isSelected && !hasEnoughStock;
 
                 return (
                   <Grid
@@ -1624,8 +1625,14 @@ export default ({ setPageTitle }) => {
                       minHeight: "52px",
                       padding: "0.6rem 0.5rem",
                       borderRadius: "6px",
-                      backgroundColor: hasEnoughStock ? "#fff" : "#f5f5f5",
-                      border: isSelected
+                      backgroundColor: isSelectedWithoutStock
+                        ? "#fff1f0"
+                        : hasEnoughStock
+                        ? "#fff"
+                        : "#f5f5f5",
+                      border: isSelectedWithoutStock
+                        ? "1px solid #ffccc7"
+                        : isSelected
                         ? "1px solid #1890ff"
                         : "1px solid #e8e8e8",
                       boxShadow: hasEnoughStock
@@ -1652,7 +1659,11 @@ export default ({ setPageTitle }) => {
                     <div
                       style={{
                         textAlign: "center",
-                        color: hasEnoughStock ? "#237804" : "#8c8c8c",
+                        color: hasEnoughStock
+                          ? "#237804"
+                          : isSelected
+                          ? "#a8071a"
+                          : "#8c8c8c",
                         fontWeight: 600,
                       }}
                     >
