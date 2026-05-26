@@ -86,6 +86,13 @@ export default ({ setPageTitle }) => {
       width: "120px",
     },
     {
+      title: "Modelo",
+      dataIndex: "product",
+      align: "center",
+      render: (product) => get(product, "modelName", "-"),
+      width: "160px",
+    },
+    {
       title: "Nombre Comercial",
       dataIndex: "product",
       align: "center",
@@ -1577,7 +1584,7 @@ export default ({ setPageTitle }) => {
         </div>
 
         <Grid
-          gridTemplateColumns="44px 150px 1fr 80px 132px"
+          gridTemplateColumns="44px 150px 120px 1fr 80px 100px"
           gridGap="0.75rem"
           style={{
             fontWeight: 700,
@@ -1588,6 +1595,7 @@ export default ({ setPageTitle }) => {
         >
           <div />
           <div style={{ textAlign: "center" }}>Cód. Inventario</div>
+          <div style={{ textAlign: "center" }}>Modelo</div>
           <div>Nombre comercial</div>
           <div style={{ textAlign: "center" }}>Stock</div>
           <div style={{ textAlign: "center" }}>Estado</div>
@@ -1616,7 +1624,7 @@ export default ({ setPageTitle }) => {
                 return (
                   <Grid
                     key={item.id}
-                    gridTemplateColumns="44px 150px 1fr 80px 132px"
+                    gridTemplateColumns="44px 150px 120px 1fr 80px 100px"
                     gridGap="0.75rem"
                     alignItems="center"
                     onClick={() => setChangeModalSelectedProductId(item.id)}
@@ -1652,6 +1660,9 @@ export default ({ setPageTitle }) => {
                     </div>
                     <div style={{ textAlign: "center", fontWeight: 600 }}>
                       {item.code}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      {item.modelName || "-"}
                     </div>
                     <div>{item.tradename || "-"}</div>
                     <div style={{ textAlign: "center", fontWeight: 600 }}>
