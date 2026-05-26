@@ -54,7 +54,7 @@ export const BaseLayout = (props) => {
   return (
     <>
       <Layout>
-        <Sidebar collapsed={!globalAuthUser || !isVisibleMenu}>
+        <Sidebar $collapsed={!globalAuthUser || !isVisibleMenu}>
           <Menu>
             <MenuLink href="/profile" $active={isActiveLink("profile")}>
               <MenuItem>Perfil</MenuItem>
@@ -153,14 +153,23 @@ const Layout = styled.section`
   flex-direction: row;
   height: 100vh;
   width: 100vw;
+  overflow: hidden;
 `;
 
 const Sidebar = styled.div`
-  display: inline;
-  height: 100vh;
-  flex: ${(props) => (props.collapsed ? 0 : 1)};
+  position: fixed;
+  top: 3.5rem;
+  left: 0;
+  z-index: 998;
+  display: block;
+  width: 25vw;
+  min-width: 220px;
+  max-width: 320px;
+  height: calc(100vh - 3.5rem);
   background: linear-gradient(to left, #1890ff, #6dd5ed);
   overflow: hidden;
+  transform: translateX(${(props) => (props.$collapsed ? "-100%" : "0")});
+  transition: transform 0.2s ease;
 `;
 
 const Menu = styled.div`
@@ -197,14 +206,16 @@ const Grid = styled.section`
   display: grid;
   grid-template-rows: 3.5rem 1fr;
   height: 100%;
-  flex: 3;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
 `;
 
 const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: inherit;
+  width: 100%;
   z-index: 999;
   padding: 1rem;
   background-color: #e9ecef;
