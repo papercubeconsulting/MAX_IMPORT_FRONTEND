@@ -54,7 +54,7 @@ import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDi
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
 import { useTradeNames } from "../../util/hooks/useTradeNames";
 
-export default ({ setPageTitle }) => {
+const ProformaPageContent = ({ setPageTitle }) => {
   const router = useRouter();
   const queryParams = router.query;
   setPageTitle(
@@ -285,7 +285,6 @@ export default ({ setPageTitle }) => {
   
   // Estados para búsqueda de producto en el formulario principal
   const [productSearchName, setProductSearchName] = useState("");
-  const [productSearchCode, setProductSearchCode] = useState("");
   const [selectedProductMain, setSelectedProductMain] = useState(null);
 
   const [windowHeight, setWindowHeight] = useState(0);
@@ -323,9 +322,8 @@ export default ({ setPageTitle }) => {
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] =
     useState(false);
 
-  // Estados para pasar al pago
-  const [salesActivated, setSalesActivated] = useState(false);
   const [proforma, setProforma] = useState([]);
+  const [savedProformaSnapshot, setSavedProformaSnapshot] = useState(null);
   const [saleWay, setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
   //
 
@@ -416,92 +414,119 @@ export default ({ setPageTitle }) => {
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
 
-  useMemo(() => {
-    if (queryParams.id) {
-      setLoadingSearchClient(true);
-      const fetchProforma = async () => {
-        try {
-          const _proforma = await getProforma(queryParams.id);
-          // const proformaDiscount = await getInfoValidationProforma()
-          if (
-            _proforma.status === "OPEN" ||
-            _proforma.status === "PENDING_DISCOUNT_APPROVAL"
-          ) {
-            setProforma(_proforma);
-            setDocumentNumber(_proforma.client.idNumber);
-            setName(_proforma.client.name);
-            setLastName(_proforma.client.lastname);
-            setEmail(_proforma.client.email);
-            setPhoneNumber(_proforma.client.phoneNumber);
-            setAddress(_proforma.client.address);
-            setRegionId(_proforma.client.regionId);
-            setProvinceId(_proforma.client.provinceId);
-            setDistrictId(_proforma.client.districtId);
-            setClientId(_proforma.client.id);
-            setClient(_proforma.client);
-            setClientSearch(getClientOptionLabel(_proforma.client));
-            setPaid((_proforma.efectivo / 100).toFixed(2));
-            setDue((_proforma.credit / 100).toFixed(2));
-            setproformaProducts(
-              _proforma.proformaProducts.map((proformaProduct) => {
-                return {
-                  ...proformaProduct,
-                  product: {
-                    ...proformaProduct.product,
-                    suggestedPrice: proformaProduct.unitPrice / 100,
-                  },
-                  familyId: proformaProduct.product.familyId,
-                  subfamilyId: proformaProduct.product.subfamilyId,
-                  modelId: proformaProduct.product.modelId,
-                  elementId: proformaProduct.product.elementId,
-                };
-              }),
-            );
-
-            setDiscount((_proforma.discount / 100).toFixed(2));
-            setDiscountPercentage(
-              ((_proforma.discountPercentage ?? 0) * 100).toFixed(2),
-            );
-            // setDiscountPercentage(
-            //   (
-            //     (parseFloat(_proforma.discount ?? 0) * 100) /
-            //     _proforma.subtotal
-            //   ).toFixed(2)
-            // );
-            // this part will cause thtat the credit equals total
-            // setDue(_proforma.total / 100);
-          } else {
-            //Lo expulsa por que esa proforma esta cerrada
-            router.push(`/proformas`);
-          }
-        } catch (error) {
-          //si hay error en query params lo expulsa a proformas
-          router.push(`/proformas`);
-        }
-      };
-      fetchProforma();
-      setLoadingSearchClient(false);
-    }
-  }, [queryParams]);
+  const toNumber = (value) => Number.parseFloat(value || "0") || 0;
+  const toCents = (value) => Math.round(toNumber(value) * 100);
+  const getProductsSnapshot = (_proformaProducts) =>
+    orderBy(
+      _proformaProducts.map((proformaProduct) => ({
+        rowId: get(proformaProduct, "id", null),
+        productId: get(proformaProduct, "product.id", null),
+        quantity: toNumber(get(proformaProduct, "quantity", 0)),
+        unitPrice: toCents(get(proformaProduct, "product.suggestedPrice", 0)),
+      })),
+      ["rowId", "productId"],
+      ["asc", "asc"],
+    );
+  const getSnapshotTotalPrice = (_proformaProducts) =>
+    _proformaProducts.reduce(
+      (accumulator, proformaProduct) =>
+        accumulator +
+        toNumber(get(proformaProduct, "quantity", 0)) *
+          toNumber(get(proformaProduct, "product.suggestedPrice", 0)),
+      0,
+    );
+  const getProformaSnapshot = ({
+    clientId,
+    paid,
+    discountPercentage,
+    proformaProducts,
+  }) =>
+    JSON.stringify({
+      clientId: clientId || null,
+      efectivo: toCents(paid),
+      discount: Math.round(
+        getSnapshotTotalPrice(proformaProducts) * toNumber(discountPercentage),
+      ),
+      proformaProducts: getProductsSnapshot(proformaProducts),
+    });
 
   useEffect(() => {
-    setSalesActivated(false);
-  }, [
-    documentNumber,
-    name,
-    lastName,
-    email,
-    phoneNumber,
-    regionId,
-    provinceId,
-    districtId,
-    address,
-    proformaProducts,
-    paid,
-    due,
-    discountPercentage,
-    discount,
-  ]);
+    if (!queryParams.id) return;
+
+    const fetchProforma = async () => {
+      try {
+        setLoadingSearchClient(true);
+        const _proforma = await getProforma(queryParams.id);
+        // const proformaDiscount = await getInfoValidationProforma()
+        if (
+          _proforma.status === "OPEN" ||
+          _proforma.status === "PENDING_DISCOUNT_APPROVAL"
+        ) {
+          setProforma(_proforma);
+          setDocumentNumber(_proforma.client.idNumber);
+          setName(_proforma.client.name);
+          setLastName(_proforma.client.lastname);
+          setEmail(_proforma.client.email);
+          setPhoneNumber(_proforma.client.phoneNumber);
+          setAddress(_proforma.client.address);
+          setRegionId(_proforma.client.regionId);
+          setProvinceId(_proforma.client.provinceId);
+          setDistrictId(_proforma.client.districtId);
+          setClientId(_proforma.client.id);
+          setClient(_proforma.client);
+          setClientSearch(getClientOptionLabel(_proforma.client));
+          setPaid((_proforma.efectivo / 100).toFixed(2));
+          setDue((_proforma.credit / 100).toFixed(2));
+          const loadedProformaProducts =
+            _proforma.proformaProducts.map((proformaProduct) => {
+              return {
+                ...proformaProduct,
+                product: {
+                  ...proformaProduct.product,
+                  suggestedPrice: proformaProduct.unitPrice / 100,
+                },
+                familyId: proformaProduct.product.familyId,
+                subfamilyId: proformaProduct.product.subfamilyId,
+                modelId: proformaProduct.product.modelId,
+                elementId: proformaProduct.product.elementId,
+              };
+            });
+          setproformaProducts(loadedProformaProducts);
+
+          setDiscount((_proforma.discount / 100).toFixed(2));
+          const loadedDiscountPercentage = (
+            (_proforma.discountPercentage ?? 0) * 100
+          ).toFixed(2);
+          setDiscountPercentage(loadedDiscountPercentage);
+          setSavedProformaSnapshot(
+            getProformaSnapshot({
+              clientId: _proforma.client.id,
+              paid: (_proforma.efectivo / 100).toFixed(2),
+              discountPercentage: loadedDiscountPercentage,
+              proformaProducts: loadedProformaProducts,
+            }),
+          );
+          // setDiscountPercentage(
+          //   (
+          //     (parseFloat(_proforma.discount ?? 0) * 100) /
+          //     _proforma.subtotal
+          //   ).toFixed(2)
+          // );
+          // this part will cause thtat the credit equals total
+          // setDue(_proforma.total / 100);
+        } else {
+          //Lo expulsa por que esa proforma esta cerrada
+          router.push(`/proformas`);
+        }
+      } catch (error) {
+        //si hay error en query params lo expulsa a proformas
+        router.push(`/proformas`);
+      } finally {
+        setLoadingSearchClient(false);
+      }
+    };
+    fetchProforma();
+  }, [queryParams.id]);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -582,6 +607,21 @@ export default ({ setPageTitle }) => {
 
     return _totalPrice;
   }, [proformaProducts]);
+
+  const currentProformaSnapshot = getProformaSnapshot({
+    clientId,
+    paid,
+    discountPercentage,
+    proformaProducts,
+  });
+
+  const hasSavedProforma = !!proforma?.id;
+  const hasUnsavedChanges =
+    !hasSavedProforma ||
+    !savedProformaSnapshot ||
+    currentProformaSnapshot !== savedProformaSnapshot;
+  const canActivateSale =
+    hasSavedProforma && !hasUnsavedChanges && proforma?.status === "OPEN";
 
   useEffect(() => {
     const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
@@ -768,15 +808,11 @@ export default ({ setPageTitle }) => {
         // if (validateProformaTransactionId) {
         //   router.push(`/proformas/validate/${validateProformaTransactionId}`);
         // }
-        // if(_response.)
-        // router.replace(router.asPath);
-        // console.log('refresh')
         setProforma(_response);
+        setSavedProformaSnapshot(currentProformaSnapshot);
         if (validateProformaTransactionId) {
           setIsModalDiscountOpen(true);
         }
-        router.replace(router.asPath);
-        // window.location.reload();
       } else {
         //Guarda la proforma
         const _response = await postProforma({
@@ -793,6 +829,7 @@ export default ({ setPageTitle }) => {
           })),
         });
         setProforma(_response);
+        setSavedProformaSnapshot(currentProformaSnapshot);
         success(_response.id);
         const validateProformaTransactionId = _response.discountValidationId;
         if (validateProformaTransactionId) {
@@ -801,7 +838,6 @@ export default ({ setPageTitle }) => {
         // setIsModalDiscountOpen(true);
       }
       setLoadingSaveProforma(false);
-      setSalesActivated(true);
     } catch (error) {
       notification.error({
         message: error.message,
@@ -1031,10 +1067,11 @@ export default ({ setPageTitle }) => {
   const getProductTradeNameLabel = (product) =>
     product?.tradename?.trim() || "N/A";
 
-  const getProductCodeLabel = (product) => product?.code?.trim() || "N/A";
+  const getProductModelNameLabel = (product) =>
+    product?.modelName?.trim() || "N/A";
 
   const getProductSearchLabel = (product) =>
-    `NC: ${getProductTradeNameLabel(product)} | Cod: ${getProductCodeLabel(
+    `NC: ${getProductTradeNameLabel(product)} | Modelo: ${getProductModelNameLabel(
       product,
     )}`;
 
@@ -1061,13 +1098,13 @@ export default ({ setPageTitle }) => {
       (product) =>
         getProductSearchLabel(product).toLowerCase() === normalizedSearch ||
         product.tradename?.toLowerCase() === normalizedSearch ||
-        product.code?.toLowerCase() === normalizedSearch,
+        product.modelName?.toLowerCase() === normalizedSearch,
     );
     const partialMatches = tradeNameProducts.filter(
       (product) =>
         getProductSearchLabel(product).toLowerCase().includes(normalizedSearch) ||
         product.tradename?.toLowerCase().includes(normalizedSearch) ||
-        product.code?.toLowerCase().includes(normalizedSearch),
+        product.modelName?.toLowerCase().includes(normalizedSearch),
     );
     const selectedProduct =
       exactMatches.length === 1
@@ -1575,8 +1612,11 @@ export default ({ setPageTitle }) => {
             Producto actual
           </div>
           <div style={{ fontWeight: 700 }}>
-            {get(changeModalCurrentProduct, "code", "-")} ·{" "}
+            {get(changeModalCurrentProduct, "modelName", "-")} ·{" "}
             {get(changeModalCurrentProduct, "tradename", "-")}
+          </div>
+          <div style={{ color: "#666", marginTop: "0.25rem" }}>
+            Cód. Inventario: {get(changeModalCurrentProduct, "code", "-")}
           </div>
           <div style={{ color: "#333", marginTop: "0.5rem" }}>
             Cantidad solicitada: <strong>{changeRequestedQuantity}</strong>
@@ -1792,7 +1832,7 @@ export default ({ setPageTitle }) => {
                   Producto
                 </span>
 	                <AutoCompleteAntd
-	                  placeholder="Buscar por nombre comercial o código"
+	                  placeholder="Buscar por nombre comercial o modelo"
 	                  style={{ width: "100%" }}
 	                  value={productSearchName}
 	                  options={mainProductSearchOptions}
@@ -1804,7 +1844,9 @@ export default ({ setPageTitle }) => {
 	                      option.product?.tradename
 	                        ?.toLowerCase()
 	                        .includes(searchValue) ||
-	                      option.product?.code?.toLowerCase().includes(searchValue)
+	                      option.product?.modelName
+	                        ?.toLowerCase()
+	                        .includes(searchValue)
 	                    );
 	                  }}
 	                  onSearch={(value) => {
@@ -2007,21 +2049,23 @@ export default ({ setPageTitle }) => {
               <Button
                 onClick={onSaveProforma}
                 loading={loadingSaveProforma}
-                disabled={!(clientId && proformaProducts.length)}
+                disabled={
+                  !(clientId && proformaProducts.length) || !hasUnsavedChanges
+                }
                 type="primary"
               >
                 Guardar
               </Button>
               <Button
                 type="primary"
-                disabled={!salesActivated}
+                disabled={!canActivateSale}
                 onClick={() => handlePayButton(1)}
               >
                 Venta en Tienda
               </Button>
               <Button
                 type="primary"
-                disabled={!salesActivated}
+                disabled={!canActivateSale}
                 onClick={() => handlePayButton(2)}
               >
                 Abono de cuenta
@@ -2165,5 +2209,14 @@ export default ({ setPageTitle }) => {
           />
         )}
     </>
+  );
+};
+
+export default ({ setPageTitle }) => {
+  const router = useRouter();
+  const proformaId = router.query.id || "new";
+
+  return (
+    <ProformaPageContent key={proformaId} setPageTitle={setPageTitle} />
   );
 };
