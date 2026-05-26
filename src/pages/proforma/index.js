@@ -15,6 +15,7 @@ import {
   getFamilies,
   getModels,
   getProduct,
+  getProductChangeOptions,
   getProducts,
   getSubfamilies,
   getClients,
@@ -39,6 +40,8 @@ import {
   Divider,
   Tooltip,
   AutoComplete as AutoCompleteAntd,
+  Empty,
+  Radio,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
 import {
@@ -324,25 +327,25 @@ export default ({ setPageTitle }) => {
 
   const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
   const [changeModalProducts, setChangeModalProducts] = useState([]);
+  const [changeModalLoading, setChangeModalLoading] = useState(false);
+  const [changeModalCurrentProduct, setChangeModalCurrentProduct] =
+    useState(null);
+  const [changeModalSelectedProductId, setChangeModalSelectedProductId] =
+    useState(null);
   const [changeModalTargetProductId, setChangeModalTargetProductId] = useState(
     null,
   );
-  const [changeRequestedQuantity, setChangeRequestedQuantity] = useState(10);
+  const [changeRequestedQuantity, setChangeRequestedQuantity] = useState(0);
 
   const handleChangeModalSubmit = () => {
     const selectedProduct = changeModalProducts.find(
-      (product) => product.selected,
+      (product) => product.id === changeModalSelectedProductId,
     );
 
     if (!selectedProduct) {
       notification.warning({
         message: "Seleccione un producto para cambiar",
       });
-      return;
-    }
-
-    if (selectedProduct.id === "current") {
-      setIsChangeModalVisible(false);
       return;
     }
 
@@ -355,13 +358,8 @@ export default ({ setPageTitle }) => {
         return {
           ...proformaProduct,
           product: {
-            ...proformaProduct.product,
-            id: selectedProduct.id,
-            code: selectedProduct.code,
-            tradename: selectedProduct.tradename,
-            availableStock: selectedProduct.stock,
-            suggestedPrice:
-              proformaProduct.product?.suggestedPrice || 0,
+            ...selectedProduct,
+            suggestedPrice: (selectedProduct.suggestedPrice / 100).toFixed(2),
           },
         };
       }),
@@ -370,49 +368,40 @@ export default ({ setPageTitle }) => {
     setIsChangeModalVisible(false);
   };
 
-  const openChangeModal = (proformaProduct) => {
+  const openChangeModal = async (proformaProduct) => {
     const requestedQuantity = get(proformaProduct, "quantity", 0);
     const productCode = get(proformaProduct, "product.code", "-");
-    const productName = get(proformaProduct, "product.tradename", "");
-    const productStock = get(proformaProduct, "product.availableStock", 0);
 
-    setChangeModalProducts([
-      {
-        id: "current",
-        code: productCode,
-        tradename: productName,
-        stock: productStock,
-        quantity: requestedQuantity,
-        selected: true,
-      },
-      {
-        id: 1,
-        code: "MX1-02-01-FPC-1",
-        tradename: "Alternador de Hyundai Centra 2020",
-        stock: 15,
-        quantity: requestedQuantity,
-        selected: false,
-      },
-      {
-        id: 2,
-        code: "MX1-02-01-FPC-2",
-        tradename: "Arrancador de Mitsubishi Lance 2018",
-        stock: 5,
-        quantity: requestedQuantity,
-        selected: false,
-      },
-      {
-        id: 3,
-        code: "MX1-02-01-FPC-3",
-        tradename: "Disco de freno Toyota Corolla 2016",
-        stock: 20,
-        quantity: requestedQuantity,
-        selected: false,
-      },
-    ]);
+    if (requestedQuantity < 1) {
+      notification.warning({
+        message: "La cantidad debe ser mayor a cero para buscar cambios",
+      });
+      return;
+    }
+
+    setChangeModalProducts([]);
+    setChangeModalCurrentProduct(proformaProduct.product);
+    setChangeModalSelectedProductId(null);
     setChangeRequestedQuantity(requestedQuantity);
     setChangeModalTargetProductId(proformaProduct.id);
     setIsChangeModalVisible(true);
+
+    try {
+      setChangeModalLoading(true);
+      const response = await getProductChangeOptions({
+        code: productCode,
+        stock: requestedQuantity,
+      });
+      setChangeModalProducts(response.rows || []);
+    } catch (error) {
+      notification.error({
+        message: "No se pudieron obtener productos de cambio",
+        description: error?.message || error?.userMessage,
+      });
+      setIsChangeModalVisible(false);
+    } finally {
+      setChangeModalLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -1553,112 +1542,140 @@ export default ({ setPageTitle }) => {
 
       <Modal
         visible={isChangeModalVisible}
-        width="680px"
+        width="720px"
         title="Cambiar producto"
         onCancel={() => setIsChangeModalVisible(false)}
         footer={[
-          <Button key="cancel" onClick={() => setIsChangeModalVisible(false)}>
+          <Button
+            key="cancel"
+            margin="0 0.5rem 0 0"
+            onClick={() => setIsChangeModalVisible(false)}
+          >
             Cerrar
           </Button>,
           <Button
             key="submit"
             type="primary"
+            disabled={!changeModalSelectedProductId || changeModalLoading}
             onClick={handleChangeModalSubmit}
           >
             Cambiar
           </Button>,
         ]}
       >
-        <div style={{ marginBottom: "1rem" }}>
-          <div
-            style={{
-              fontWeight: 700,
-              marginBottom: "0.5rem",
-            }}
-          >
-            Cantidad solicitada: {changeRequestedQuantity}
+        <div style={{ marginBottom: "0.75rem" }}>
+          <div style={{ color: "#666", marginBottom: "0.35rem" }}>
+            Producto actual
           </div>
-          <div style={{ color: "#333" }}>Productos relacionados</div>
+          <div style={{ fontWeight: 700 }}>
+            {get(changeModalCurrentProduct, "code", "-")} ·{" "}
+            {get(changeModalCurrentProduct, "tradename", "-")}
+          </div>
+          <div style={{ color: "#333", marginTop: "0.5rem" }}>
+            Cantidad solicitada: <strong>{changeRequestedQuantity}</strong>
+          </div>
         </div>
 
         <Grid
-          gridTemplateColumns="40px 140px 1fr 100px 100px"
-          gridGap="1rem"
+          gridTemplateColumns="44px 150px 1fr 80px 132px"
+          gridGap="0.75rem"
           style={{
             fontWeight: 700,
-            padding: "0.5rem 0",
+            padding: "0.5rem",
             borderBottom: "1px solid #e8e8e8",
+            color: "#4a4a4a",
           }}
         >
           <div />
-          <div>Cód. Inventario</div>
+          <div style={{ textAlign: "center" }}>Cód. Inventario</div>
           <div>Nombre comercial</div>
           <div style={{ textAlign: "center" }}>Stock</div>
-          <div style={{ textAlign: "center" }}>Cantidad</div>
+          <div style={{ textAlign: "center" }}>Estado</div>
         </Grid>
 
-        {changeModalProducts.map((item) => (
-          <Grid
-            key={item.id}
-            gridTemplateColumns="40px 140px 1fr 100px 100px"
-            gridGap="1rem"
-            alignItems="center"
+        <Spin spinning={changeModalLoading}>
+          <div
             style={{
-              marginTop: "0.5rem",
-              padding: "0.5rem 0",
-              borderRadius: "4px",
-              backgroundColor:
-                item.quantity > item.stock ? "#fff1f0" : "transparent",
-              border:
-                item.quantity > item.stock
-                  ? "1px solid #ffa39e"
-                  : "1px solid transparent",
+              maxHeight: "260px",
+              overflowY: "auto",
+              paddingRight: "0.35rem",
+              paddingBottom: "0.25rem",
             }}
           >
-            <div>
-              <input
-                type="checkbox"
-                checked={item.selected}
-                onChange={() => {
-                  setChangeModalProducts((prev) =>
-                    prev.map((product) => ({
-                      ...product,
-                      selected:
-                        product.id === item.id
-                          ? !product.selected
-                          : false,
-                    })),
-                  );
-                }}
-                style={{ width: "16px", height: "16px" }}
+            {!changeModalLoading && changeModalProducts.length === 0 ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No hay productos del mismo grupo para sugerir"
               />
-            </div>
-            <div>{item.code}</div>
-            <div
-              style={{
-                color: item.quantity > item.stock ? "#a8071a" : "#000",
-              }}
-            >
-              {item.tradename}
-            </div>
-            <div style={{ textAlign: "center" }}>{item.stock}</div>
-            <Input
-              type="number"
-              value={item.quantity}
-              onChange={(event) => {
-                const quantity = Number(event.target.value || 0);
-                setChangeModalProducts((prev) =>
-                  prev.map((product) =>
-                    product.id === item.id
-                      ? { ...product, quantity }
-                      : product,
-                  ),
+            ) : (
+              changeModalProducts.map((item) => {
+                const hasEnoughStock = item.hasEnoughStock;
+                const isSelected = item.id === changeModalSelectedProductId;
+                const isSelectedWithoutStock = isSelected && !hasEnoughStock;
+
+                return (
+                  <Grid
+                    key={item.id}
+                    gridTemplateColumns="44px 150px 1fr 80px 132px"
+                    gridGap="0.75rem"
+                    alignItems="center"
+                    onClick={() => setChangeModalSelectedProductId(item.id)}
+                    style={{
+                      cursor: "pointer",
+                      marginTop: "0.5rem",
+                      minHeight: "52px",
+                      padding: "0.6rem 0.5rem",
+                      borderRadius: "6px",
+                      backgroundColor: isSelectedWithoutStock
+                        ? "#fff1f0"
+                        : hasEnoughStock
+                        ? "#fff"
+                        : "#f5f5f5",
+                      border: isSelectedWithoutStock
+                        ? "1px solid #ffccc7"
+                        : isSelected
+                        ? "1px solid #1890ff"
+                        : "1px solid #e8e8e8",
+                      boxShadow: hasEnoughStock
+                        ? "0 1px 3px rgba(0,0,0,0.04)"
+                        : "inset 0 0 0 1px #e8e8e8",
+                      color: hasEnoughStock ? "#222" : "#777",
+                    }}
+                  >
+                    <div style={{ textAlign: "center" }}>
+                      <Radio
+                        checked={isSelected}
+                        onChange={() =>
+                          setChangeModalSelectedProductId(item.id)
+                        }
+                      />
+                    </div>
+                    <div style={{ textAlign: "center", fontWeight: 600 }}>
+                      {item.code}
+                    </div>
+                    <div>{item.tradename || "-"}</div>
+                    <div style={{ textAlign: "center", fontWeight: 600 }}>
+                      {item.availableStock || 0}
+                    </div>
+                    <div
+                      style={{
+                        textAlign: "center",
+                        color: hasEnoughStock
+                          ? "#237804"
+                          : isSelected
+                          ? "#a8071a"
+                          : "#8c8c8c",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {hasEnoughStock ? "Disponible" : "Sin stock suficiente"}
+                    </div>
+                  </Grid>
                 );
-              }}
-              style={{ textAlign: "center" }}
-            />
-          </Grid>
-        ))}
+              })
+            )}
+          </div>
+        </Spin>
       </Modal>
 
       <div
