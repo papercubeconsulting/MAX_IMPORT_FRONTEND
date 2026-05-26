@@ -96,7 +96,25 @@ const ProformaPageContent = ({ setPageTitle }) => {
       title: "Nombre Comercial",
       dataIndex: "product",
       align: "center",
-      render: (product) => get(product, "tradename", null),
+      width: "180px",
+      render: (product) => (
+        <div
+          style={{
+            display: "-webkit-box",
+            fontSize: "0.82rem",
+            lineHeight: "1.15rem",
+            maxHeight: "2.3rem",
+            overflow: "hidden",
+            textAlign: "center",
+            whiteSpace: "normal",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            wordBreak: "break-word",
+          }}
+        >
+          {get(product, "tradename", null)}
+        </div>
+      ),
     },
 	    {
 	      title: "Stock",
@@ -1624,7 +1642,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
         </div>
 
         <Grid
-          gridTemplateColumns="44px 150px 120px 1fr 80px 100px"
+          gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
           gridGap="0.75rem"
           style={{
             fontWeight: 700,
@@ -1664,7 +1682,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
                 return (
                   <Grid
                     key={item.id}
-                    gridTemplateColumns="44px 150px 120px 1fr 80px 100px"
+                    gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
                     gridGap="0.75rem"
                     alignItems="center"
                     onClick={() => setChangeModalSelectedProductId(item.id)}
@@ -1698,7 +1716,15 @@ const ProformaPageContent = ({ setPageTitle }) => {
                         }
                       />
                     </div>
-                    <div style={{ textAlign: "center", fontWeight: 600 }}>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        lineHeight: "1.15rem",
+                        overflowWrap: "anywhere",
+                        textAlign: "center",
+                        whiteSpace: "normal",
+                      }}
+                    >
                       {item.code}
                     </div>
                     <div style={{ textAlign: "center" }}>
