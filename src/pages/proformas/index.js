@@ -3,34 +3,67 @@ import { useRouter } from "next/router";
 import {
   CheckCircleFilled,
   WarningTwoTone,
-  UserOutlined,
 } from "@ant-design/icons";
 import {
   Button,
-  Container,
   DatePicker,
   Grid,
   Icon,
   Select,
 } from "../../components";
 import {
-  getProforma,
   getProformas,
   getUsers,
-  userProvider,
 } from "../../providers";
-import { Input, notification, Table, Tooltip, Tag, List } from "antd";
+import {
+  Drawer,
+  Input,
+  notification,
+  Table,
+  Tooltip,
+  Tag,
+  List,
+  Pagination,
+} from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import {
   faCalendarAlt,
   faEye,
-  faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  DesktopHistoryTable,
+  HistoryContent,
+  HistoryFilters,
+  HistoryFiltersGrid,
+  HistoryFooter,
+  HistoryFooterGrid,
+  HistoryPage,
+  MobileFilterDrawerActions,
+  MobileFilterDrawerGrid,
+  MobileFilterSummary,
+  MobileQuickFilters,
+  MobileQuickSearch,
+  MobileHistoryList,
+  MobilePagination,
+  ProformaCard,
+  ProformaCardActions,
+  ProformaCardDate,
+  ProformaCardHeader,
+  ProformaCardMeta,
+  ProformaCardTitle,
+  ProformaCardTotal,
+  ProformaMetaRow,
+} from "../../components/proforma/ProformasHistoryStyles";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Historial de proformas");
+  const formatMoney = (value) =>
+    value ? `S/ ${(value / 100).toFixed(2)}` : "-";
+  const formatDate = (value) =>
+    `${moment(value).format("DD/MM/YY")} ${moment(value).format("hh:mm")}`;
+
   const columns = [
     {
       dataIndex: "id",
@@ -62,10 +95,7 @@ export default ({ setPageTitle }) => {
       title: "Fecha de creación",
       width: "fit-content",
       align: "center",
-      render: (createdAt) =>
-        `${moment(createdAt).format("DD/MM/YY")} ${moment(createdAt).format(
-          "hh:mm",
-        )}`,
+      render: (createdAt) => formatDate(createdAt),
     },
     {
       dataIndex: "id",
@@ -110,7 +140,7 @@ export default ({ setPageTitle }) => {
       title: "Total Final",
       width: "fit-content",
       align: "center",
-      render: (total) => `S/ ${(total / 100).toFixed(2)}`,
+      render: (total) => formatMoney(total),
     },
 
     {
@@ -120,7 +150,7 @@ export default ({ setPageTitle }) => {
       title: "Efectivo",
       width: "fit-content",
       align: "center",
-      render: (efectivo) => (efectivo ? `S/ ${(efectivo / 100).toFixed(2)}` : "-"),
+      render: (efectivo) => formatMoney(efectivo),
     },
 
     {
@@ -129,7 +159,7 @@ export default ({ setPageTitle }) => {
       title: "Crédito",
       width: "fit-content",
       align: "center",
-      render: (credit) => (credit ? `S/ ${(credit / 100).toFixed(2)}` : "-"),
+      render: (credit) => formatMoney(credit),
     },
   ];
 
@@ -154,7 +184,7 @@ export default ({ setPageTitle }) => {
   //para el filtro por vendedor
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [me, setMe] = useState({ name: null });
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   //extraccion de params de url
   const stateUpdateOrigin = useRef("url");
@@ -171,8 +201,6 @@ export default ({ setPageTitle }) => {
       try {
         const _users = await getUsers();
         setUsers(_users.rows);
-        const _me = await userProvider.getUser();
-        setMe(_me);
       } catch (error) {
         notification.error({
           message: "Error en el servidor",
@@ -259,6 +287,18 @@ export default ({ setPageTitle }) => {
 
   const searchWithState = () => {
     stateToUrl();
+  };
+
+  const clearFilters = () => {
+    setFrom(undefined);
+    setTo(undefined);
+    setDocumentNumber(null);
+    setIdNumber(null);
+    setUserId(null);
+    setStatus(null);
+    setSaleStatus(null);
+    setDispatchStatus(null);
+    setPage(undefined);
   };
 
   const urlToState = () => {
@@ -359,16 +399,20 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  const hasExpandableDiscountRows = proformas.some((record) =>
+    record?.discountProformas?.some((discount) => discount.userId !== null),
+  );
+
   return (
-    <>
-      <Container height="20%">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value={me.name} disabled addonBefore="Usuario" />
+    <HistoryPage>
+      <HistoryFilters>
+        <HistoryFiltersGrid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Grid
+            className="history-date-range"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
-            gridColumnStart="2"
-            gridColumnEnd="5"
+            gridColumnStart="1"
+            gridColumnEnd="3"
           >
             <DatePicker
               value={from}
@@ -431,78 +475,256 @@ export default ({ setPageTitle }) => {
             options={dispatchStatusOptions}
           />
           <Button
+            className="history-search-button"
             type="primary"
             gridColumnStart="4"
             onClick={async () => searchWithState()}
           >
             Buscar
           </Button>
-        </Grid>
-      </Container>
-      <Container height="fit-content">
-        <Table
-          columns={columns}
-          scroll={{ y: windowHeight * 0.4 - 48 }}
-          bordered
-          rowKey={(record) => record.id}
-          pagination={pagination}
-          expandable={{
-            expandedRowRender: (record) => {
-              const discountProformasApproved =
-                record?.discountProformas?.filter(
-                  (discount) => discount.userId,
-                );
-              // return <p>hola</p>
-              return (
-                <List
-                  itemLayout="horizontal"
-                  dataSource={discountProformasApproved}
-                  renderItem={(item, index) => (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={
-                          <CheckCircleFilled style={{ color: "green" }} />
-                        }
-                        title={`Descuento aprobado por  ${
-                          item?.user?.name || "No name found"
-                        } (User ID: ${item.userId})`}
-                        description={`Monto S/ ${(
-                          Number(item.approvedDiscount) / 100
-                        ).toFixed(2)} Fecha: ${new Date(
-                          item.updatedAt,
-                        ).toLocaleDateString("es-PE", {
-                          timeZone: "America/Lima",
-                        })}`}
-                      />
-                    </List.Item>
+        </HistoryFiltersGrid>
+        <MobileQuickFilters>
+          <MobileQuickSearch>
+            <Input
+              value={documentNumber}
+              onChange={(event) => setDocumentNumber(event.target.value)}
+              placeholder="Proforma"
+            />
+            <Input
+              value={idNumber}
+              onChange={(event) => setIdNumber(event.target.value)}
+              placeholder="DNI/RUC"
+            />
+          </MobileQuickSearch>
+          <MobileQuickSearch>
+            <Button onClick={() => setIsFilterDrawerOpen(true)}>
+              Filtros
+            </Button>
+            <Button type="primary" onClick={async () => searchWithState()}>
+              Buscar
+            </Button>
+          </MobileQuickSearch>
+          <MobileFilterSummary>
+            <span>
+              {from ? from.format(clientDateFormat) : "Sin fecha inicio"}
+            </span>
+            <span>{to ? to.format(clientDateFormat) : "Sin fecha fin"}</span>
+            <span>
+              {statusOptions.find((option) => option.value === status)?.label ||
+                "Todos los estados"}
+            </span>
+          </MobileFilterSummary>
+        </MobileQuickFilters>
+        <Drawer
+          className="history-filter-drawer"
+          placement="bottom"
+          height="82vh"
+          title="Filtros"
+          visible={isFilterDrawerOpen}
+          onClose={() => setIsFilterDrawerOpen(false)}
+        >
+          <MobileFilterDrawerGrid>
+            <Input
+              value={documentNumber}
+              onChange={(event) => setDocumentNumber(event.target.value)}
+              placeholder="Nº Proforma"
+              addonBefore="Proforma"
+            />
+            <Input
+              value={idNumber}
+              onChange={(event) => setIdNumber(event.target.value)}
+              addonBefore="DNI/RUC"
+            />
+            <DatePicker
+              value={from}
+              onChange={(value) => setFrom(value)}
+              format={clientDateFormat}
+              disabledDate={(value) => value >= to}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Inicio
+                </>
+              }
+            />
+            <DatePicker
+              value={to}
+              onChange={(value) => setTo(value)}
+              format={clientDateFormat}
+              disabledDate={(value) => value <= from}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Fin
+                </>
+              }
+            />
+            <Select
+              value={userId}
+              label="Vendedor"
+              onChange={(value) => setUserId(value)}
+              options={usersList()}
+            />
+            <Select
+              value={status}
+              label="Estatus"
+              onChange={(value) => setStatus(value)}
+              options={statusOptions}
+            />
+            <Select
+              value={saleStatus}
+              label="Pago"
+              onChange={(value) => setSaleStatus(value)}
+              options={saleStatusOptions}
+            />
+            <Select
+              value={dispatchStatus}
+              label="Despacho"
+              onChange={(value) => setDispatchStatus(value)}
+              options={dispatchStatusOptions}
+            />
+          </MobileFilterDrawerGrid>
+          <MobileFilterDrawerActions>
+            <Button onClick={clearFilters}>Limpiar</Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                setIsFilterDrawerOpen(false);
+                searchWithState();
+              }}
+            >
+              Aplicar
+            </Button>
+          </MobileFilterDrawerActions>
+        </Drawer>
+      </HistoryFilters>
+      <HistoryContent>
+        <DesktopHistoryTable>
+          <Table
+            columns={columns}
+            scroll={{ y: windowHeight * 0.4 - 48 }}
+            bordered
+            rowKey={(record) => record.id}
+            pagination={pagination}
+            expandable={
+              hasExpandableDiscountRows
+                ? {
+                    expandedRowRender: (record) => {
+                      const discountProformasApproved =
+                        record?.discountProformas?.filter(
+                          (discount) => discount.userId,
+                        );
+                      return (
+                        <List
+                          itemLayout="horizontal"
+                          dataSource={discountProformasApproved}
+                          renderItem={(item) => (
+                            <List.Item>
+                              <List.Item.Meta
+                                avatar={
+                                  <CheckCircleFilled
+                                    style={{ color: "green" }}
+                                  />
+                                }
+                                title={`Descuento aprobado por  ${
+                                  item?.user?.name || "No name found"
+                                } (User ID: ${item.userId})`}
+                                description={`Monto S/ ${(
+                                  Number(item.approvedDiscount) / 100
+                                ).toFixed(2)} Fecha: ${new Date(
+                                  item.updatedAt,
+                                ).toLocaleDateString("es-PE", {
+                                  timeZone: "America/Lima",
+                                })}`}
+                              />
+                            </List.Item>
+                          )}
+                        />
+                      );
+                    },
+                    rowExpandable: (record) =>
+                      record?.discountProformas?.some(
+                        (discount) => discount.userId !== null,
+                      ),
+                  }
+                : undefined
+            }
+            dataSource={proformas}
+            onChange={(pagination) =>
+              updateState(setPage, pagination.current, true)
+            }
+          />
+        </DesktopHistoryTable>
+        <MobileHistoryList>
+          {proformas.map((proforma) => (
+            <ProformaCard key={proforma.id}>
+              <ProformaCardHeader>
+                <div>
+                  <ProformaCardTitle>Proforma N° {proforma.id}</ProformaCardTitle>
+                  <ProformaCardDate>{formatDate(proforma.createdAt)}</ProformaCardDate>
+                </div>
+                <ProformaCardTotal>{formatMoney(proforma.total)}</ProformaCardTotal>
+              </ProformaCardHeader>
+              <ProformaCardMeta>
+                <ProformaMetaRow>
+                  <span>Cliente</span>
+                  <strong>{proforma.client?.name || "-"}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Estatus</span>
+                  <strong>{proforma.statusDescription || "-"}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Despacho</span>
+                  <strong>{proforma.dispatchStatusDescription || "-"}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Vendedor</span>
+                  <strong>{proforma.user?.name || "-"}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Unidades</span>
+                  <strong>{proforma.totalUnits || 0}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Efectivo</span>
+                  <strong>{formatMoney(proforma.efectivo)}</strong>
+                </ProformaMetaRow>
+                <ProformaMetaRow>
+                  <span>Crédito</span>
+                  <strong>{formatMoney(proforma.credit)}</strong>
+                </ProformaMetaRow>
+              </ProformaCardMeta>
+              <ProformaCardActions>
+                <div>
+                  {proforma.status === "PENDING_DISCOUNT_APPROVAL" && (
+                    <Tag color="warning">Pendiente descuento</Tag>
                   )}
-                />
-              );
-            },
-            rowExpandable: (record) => {
-              return (
-                record?.discountProformas?.filter((d) => d.userId !== null)
-                  .length > 0
-              );
-              // if (record?.discountProformas?.length === 0) {
-              //   return false;
-              // }
-              // return true;
-
-              // if (record.discountProformas) {
-              // }
-
-              // return false;
-            },
-          }}
-          dataSource={proformas}
-          onChange={(pagination) =>
-            updateState(setPage, pagination.current, true)
-          }
-        />
-      </Container>
-      <Container height="15%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+                </div>
+                <Button
+                  onClick={async () => router.push(`/proformas/${proforma.id}`)}
+                  type="primary"
+                >
+                  Ver
+                </Button>
+              </ProformaCardActions>
+            </ProformaCard>
+          ))}
+        </MobileHistoryList>
+        {pagination && (
+          <MobilePagination>
+            <Pagination
+              current={pagination.current}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              showSizeChanger={false}
+              onChange={(current) => updateState(setPage, current, true)}
+            />
+          </MobilePagination>
+        )}
+      </HistoryContent>
+      <HistoryFooter>
+        <HistoryFooterGrid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Button
             type="primary"
             gridColumnStart="2"
@@ -511,8 +733,8 @@ export default ({ setPageTitle }) => {
           >
             Salir
           </Button>
-        </Grid>
-      </Container>
-    </>
+        </HistoryFooterGrid>
+      </HistoryFooter>
+    </HistoryPage>
   );
 };
