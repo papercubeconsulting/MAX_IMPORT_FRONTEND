@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { Grid } from "../";
 
 export const DetailPage = styled.div`
@@ -358,5 +358,90 @@ export const MobileBackButton = styled.div`
       margin: 0 !important;
       width: 100% !important;
     }
+  }
+`;
+
+export const ProformaPreviewModalStyles = createGlobalStyle`
+  .proforma-preview-modal .ant-modal {
+    max-width: calc(100vw - 24px);
+    padding-bottom: 24px;
+    top: 24px;
+  }
+
+  .proforma-preview-modal .ant-modal-content {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .proforma-preview-modal .ant-modal-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 14px 18px;
+  }
+
+  .proforma-preview-modal .ant-modal-body {
+    background: #f3f4f6;
+    padding: 0;
+  }
+
+  .proforma-preview-modal .ant-modal-close-x {
+    height: 54px;
+    line-height: 54px;
+    width: 54px;
+  }
+
+  @media (max-width: 768px) {
+    .proforma-preview-modal .ant-modal {
+      max-width: calc(100vw - 16px);
+      top: 8px;
+    }
+
+    .proforma-preview-modal .ant-modal-header {
+      padding: 12px 48px 12px 14px;
+    }
+  }
+`;
+
+export const ProformaPreviewTitle = styled.div`
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+`;
+
+export const ProformaPreviewTitleMain = styled.div`
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+`;
+
+export const ProformaPreviewTitleMeta = styled.div`
+  color: #667085;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const ProformaPreviewFrame = styled.div`
+  height: 78vh;
+  max-height: 860px;
+  min-height: 520px;
+  overflow: hidden;
+  width: 100%;
+
+  iframe {
+    background: #fff;
+    border: 0;
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    height: 82vh;
+    min-height: 420px;
   }
 `;

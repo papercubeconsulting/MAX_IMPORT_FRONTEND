@@ -8,10 +8,14 @@ import {
   sendEmail,
 } from "../../../providers";
 import { get } from "lodash";
-import { MailOutlined, MailFilled, DownloadOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  FileSearchOutlined,
+  MailFilled,
+  MailOutlined,
+} from "@ant-design/icons";
 import { Input, Table, Modal, Alert, notification, Spin, Drawer } from "antd";
 import { ModalValidateDiscount } from "../../../components/proforma/ModalValidateDiscount";
-import { getLocalHostWithPath } from "../../../util";
 import { useSendEmailProforma } from "../../../util/hooks/useSendEmail";
 import {
   DesktopProductTable,
@@ -32,6 +36,11 @@ import {
   DetailTotalsGrid,
   MobileBackButton,
   MobileProductList,
+  ProformaPreviewFrame,
+  ProformaPreviewModalStyles,
+  ProformaPreviewTitle,
+  ProformaPreviewTitleMain,
+  ProformaPreviewTitleMeta,
   ProductCard,
   ProductCardActions,
   ProductCardCode,
@@ -239,23 +248,31 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <ProformaPreviewModalStyles />
       <Modal
         visible={isEmailModalOpen}
-        onOk={() => setIsEmailModalOpen(false)}
         onCancel={() => setIsEmailModalOpen(false)}
-        title="Vista previa de proforma"
-        style={{ minWidth: "1360px", overflowX: "auto" }}
-        wrapClassName="test-antd"
-        width={"90%"}
+        title={
+          <ProformaPreviewTitle>
+            <ProformaPreviewTitleMain>
+              Vista previa de proforma
+            </ProformaPreviewTitleMain>
+            <ProformaPreviewTitleMeta>
+              {`Proforma ${proforma?.id || proformaId || ""}${
+                clientFullName ? ` - ${clientFullName}` : ""
+              }`}
+            </ProformaPreviewTitleMeta>
+          </ProformaPreviewTitle>
+        }
+        centered
+        destroyOnClose
+        footer={null}
+        width="min(1180px, 96vw)"
+        wrapClassName="proforma-preview-modal"
       >
-        <iframe
-          src={bodyUrlPDF}
-          width="100%"
-          title="Vista Previa Proforma"
-          style={{ transform: "scale(0.8)" }}
-          height="700px"
-          frameBorder={0}
-        />
+        <ProformaPreviewFrame>
+          <iframe src={bodyUrlPDF} title="Vista previa de proforma" />
+        </ProformaPreviewFrame>
       </Modal>
       <Modal
         visible={isVisible}
@@ -534,7 +551,7 @@ export default ({ setPageTitle }) => {
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
-                  icon={<MailOutlined />}
+                  icon={<FileSearchOutlined />}
                   disabled={
                     proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
                     proforma?.status === "EXPIRED"
