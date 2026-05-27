@@ -54,49 +54,90 @@ export const BaseLayout = (props) => {
   return (
     <>
       <Layout>
+        <MenuBackdrop
+          $visible={!!globalAuthUser && isVisibleMenu}
+          onClick={() => setIsVisibleMenu(false)}
+        />
         <Sidebar $collapsed={!globalAuthUser || !isVisibleMenu}>
           <Menu>
-            <MenuLink href="/profile" $active={isActiveLink("profile")}>
+            <MenuLink
+              href="/profile"
+              $active={isActiveLink("profile")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>Perfil</MenuItem>
             </MenuLink>
-            <MenuLink href="/proforma" $active={isActiveLink("proforma")}>
+            <MenuLink
+              href="/proforma"
+              $active={isActiveLink("proforma")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>
                 Nueva Proforma
               </MenuItem>
             </MenuLink>
-            <MenuLink href="/proformas" $active={isActiveLink("proformas")}>
+            <MenuLink
+              href="/proformas"
+              $active={isActiveLink("proformas")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>
                 Historial Proformas
               </MenuItem>
             </MenuLink>
-            <MenuLink href="/sales" $active={isActiveLink("sales")}>
+            <MenuLink
+              href="/sales"
+              $active={isActiveLink("sales")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>Pagos en Caja</MenuItem>
             </MenuLink>
-            <MenuLink href="/dispatch" $active={isActiveLink("dispatch")}>
+            <MenuLink
+              href="/dispatch"
+              $active={isActiveLink("dispatch")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>Despachos</MenuItem>
             </MenuLink>
             <MenuLink
               href="/salesAdministration"
               $active={isActiveLink("salesAdministration")}
+              onClick={() => setIsVisibleMenu(false)}
             >
               <MenuItem>
                 Admin Ventas
               </MenuItem>
             </MenuLink>
-            <MenuLink href="/products" $active={isActiveLink("products")}>
+            <MenuLink
+              href="/products"
+              $active={isActiveLink("products")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>Inventario</MenuItem>
             </MenuLink>
-            <MenuLink href="/supplies" $active={isActiveLink("supplies")}>
+            <MenuLink
+              href="/supplies"
+              $active={isActiveLink("supplies")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>
                 Abastecimientos
               </MenuItem>
             </MenuLink>
-            <MenuLink href="/customers" $active={isActiveLink("customers")}>
+            <MenuLink
+              href="/customers"
+              $active={isActiveLink("customers")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>
                 BD Clientes
               </MenuItem>
             </MenuLink>
-            <MenuLink href="/users" $active={isActiveLink("users")}>
+            <MenuLink
+              href="/users"
+              $active={isActiveLink("users")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
               <MenuItem>Admin Usuarios</MenuItem>
             </MenuLink>
           </Menu>
@@ -156,6 +197,18 @@ const Layout = styled.section`
   overflow: hidden;
 `;
 
+const MenuBackdrop = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    background: rgba(15, 23, 42, 0.34);
+    display: ${(props) => (props.$visible ? "block" : "none")};
+    inset: 3.75rem 0 0 0;
+    position: fixed;
+    z-index: 997;
+  }
+`;
+
 const Sidebar = styled.div`
   position: fixed;
   top: 3.5rem;
@@ -170,6 +223,14 @@ const Sidebar = styled.div`
   overflow: hidden;
   transform: translateX(${(props) => (props.$collapsed ? "-100%" : "0")});
   transition: transform 0.2s ease;
+
+  @media (max-width: 768px) {
+    top: 3.75rem;
+    width: 78vw;
+    min-width: 0;
+    max-width: 300px;
+    height: calc(100vh - 3.75rem);
+  }
 `;
 
 const Menu = styled.div`
@@ -209,6 +270,10 @@ const Grid = styled.section`
   width: 100%;
   min-width: 0;
   flex: 1;
+
+  @media (max-width: 768px) {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
 `;
 
 const Header = styled.header`
@@ -224,6 +289,46 @@ const Header = styled.header`
   h3 {
     margin: 0;
   }
+
+  @media (max-width: 768px) {
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.75rem;
+    padding: 0.5rem 0.75rem;
+
+    > div:first-child {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    > div:last-child {
+      flex: 0 0 auto;
+      gap: 0.25rem;
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      line-height: 1.2rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    h3 {
+      font-size: 0.85rem;
+      line-height: 1rem;
+      max-width: 6rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > div:last-child > svg:first-of-type,
+    > div:last-child > h3:first-of-type,
+    > div:last-child > div {
+      display: none;
+    }
+  }
 `;
 
 const Divider = styled.div`
@@ -237,6 +342,11 @@ const Trigger = styled(FontAwesomeIcon)`
   cursor: pointer;
   font-size: 1.5rem;
   margin-right: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+    margin-right: 0.55rem;
+  }
 `;
 
 const Content = styled.main`

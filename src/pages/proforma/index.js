@@ -53,6 +53,33 @@ import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
 import { useTradeNames } from "../../util/hooks/useTradeNames";
+import {
+  ProformaWorkspace,
+  ProductSearchOption,
+  ProformaResponsiveStyles,
+  TopFormGrid,
+  ProductSearchRow,
+  AdvancedProductLink,
+  ProductSearchBlock,
+  ProductsSection,
+  DesktopProductsTable,
+  DesktopTableFade,
+  MobileProductsList,
+  MobileProductCard,
+  MobileProductHeader,
+  MobileProductCode,
+  MobileProductModel,
+  MobileSubtotal,
+  MobileTradeName,
+  MobileProductMeta,
+  MobileInputsGrid,
+  MobileActions,
+  FooterSummary,
+  FooterSummaryGrid,
+  PaymentGrid,
+  ActionsGrid,
+  TotalsGrid,
+} from "../../components/proforma/ProformaPageStyles";
 
 const ProformaPageContent = ({ setPageTitle }) => {
   const router = useRouter();
@@ -76,6 +103,58 @@ const ProformaPageContent = ({ setPageTitle }) => {
 
   const { tradeNames, tradeNameProducts } = useTradeNames();
   const [code, setCode] = useState(null);
+
+  const updateProformaProduct = (productId, updater) => {
+    setproformaProducts((prevState) =>
+      prevState.map((proformaProduct) =>
+        proformaProduct.id === productId ? updater(proformaProduct) : proformaProduct,
+      ),
+    );
+  };
+
+  const updateProductQuantity = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      quantity: parseFloat(value || "0"),
+    }));
+  };
+
+  const updateProductPrice = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      product: {
+        ...currentProduct.product,
+        suggestedPrice: value,
+      },
+    }));
+  };
+
+  const normalizeProductPrice = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      product: {
+        ...currentProduct.product,
+        suggestedPrice: parseFloat(value || "0").toFixed(2),
+      },
+    }));
+  };
+
+  const removeProformaProduct = (id) => {
+    setproformaProducts((prevState) =>
+      prevState
+        .filter((proformaProduct) => proformaProduct.id !== id)
+        .map((proformaProduct, index) => ({
+          ...proformaProduct,
+          id: index + 1,
+        })),
+    );
+  };
+
+  const getProductSubtotal = (row) =>
+    (
+      get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+    ).toFixed(2);
+
   // console.log({ products });
   const columns = [
     {
@@ -133,20 +212,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
           style={{ textAlign: "center" }}
           value={quantity}
           onChange={(event) => {
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) =>
-                  _proformaProduct.id !== proformaProduct.id,
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  ...proformaProduct,
-                  quantity: parseFloat(event.nativeEvent.target.value || "0"),
-                },
-              ];
-            });
+            updateProductQuantity(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
             event.persist();
           }}
         />
@@ -163,43 +232,17 @@ const ProformaPageContent = ({ setPageTitle }) => {
           value={get(product, "suggestedPrice", 0)}
           min={0}
           onChange={(event) => {
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) =>
-                  _proformaProduct.id !== proformaProduct.id,
-              );
-              return [
-                ...remainingproformaProducts,
-                {
-                  ...proformaProduct,
-                  product: {
-                    ...product,
-                    suggestedPrice: event.nativeEvent.target.value,
-                  },
-                },
-              ];
-            });
+            updateProductPrice(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
             event.persist();
           }}
           onBlur={(event) => {
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) =>
-                  _proformaProduct.id !== proformaProduct.id,
-              );
-              return [
-                ...remainingproformaProducts,
-                {
-                  ...proformaProduct,
-                  product: {
-                    ...product,
-                    suggestedPrice: parseFloat(
-                      event.nativeEvent.target.value || "0",
-                    ).toFixed(2),
-                  },
-                },
-              ];
-            });
+            normalizeProductPrice(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
             event.persist();
           }}
         />
@@ -210,10 +253,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
 	      dataIndex: "id",
 	      align: "center",
 	      width: "120px",
-	      render: (id, row) =>
-	        `S/ ${(
-	          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
-	        ).toFixed(2)}`,
+	      render: (id, row) => `S/ ${getProductSubtotal(row)}`,
 	    },
 	    {
 	      dataIndex: "id",
@@ -252,18 +292,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
 	            margin="0"
 	            type="danger"
 	            title="Eliminar producto"
-	            onClick={() =>
-	              setproformaProducts((prevState) =>
-	                prevState
-	                  .filter((proformaProduct) => {
-                    return proformaProduct.id !== id;
-                  })
-                  .map((proformaProduct, index) => ({
-                    ...proformaProduct,
-                    id: index + 1,
-                  })),
-              )
-            }
+	            onClick={() => removeProformaProduct(id)}
 	          >
 	            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
 	          </Button>
@@ -640,6 +669,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
     currentProformaSnapshot !== savedProformaSnapshot;
   const canActivateSale =
     hasSavedProforma && !hasUnsavedChanges && proforma?.status === "OPEN";
+  const sortedProformaProducts = useMemo(
+    () => orderBy(proformaProducts, "id", "asc"),
+    [proformaProducts],
+  );
 
   useEffect(() => {
     const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
@@ -1093,11 +1126,18 @@ const ProformaPageContent = ({ setPageTitle }) => {
       product,
     )}`;
 
+  const renderProductSearchOption = (product) => (
+    <ProductSearchOption>
+      <strong>{getProductTradeNameLabel(product)}</strong>
+      <span>Modelo: {getProductModelNameLabel(product)}</span>
+    </ProductSearchOption>
+  );
+
   const mainProductSearchOptions = useMemo(
     () =>
       tradeNameProducts.map((product) => ({
         value: getProductSearchLabel(product),
-        label: getProductSearchLabel(product),
+        label: renderProductSearchOption(product),
         product,
       })),
     [tradeNameProducts],
@@ -1140,8 +1180,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
 
   return (
     <>
+      <ProformaResponsiveStyles />
       <Modal
         visible={addNewProduct}
+        className="advanced-product-modal"
         width="72%"
         title="Seleccione los datos del producto que desea agregar"
         afterClose={() => resetDataModal()}
@@ -1193,6 +1235,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
         ]}
       >
         <div
+          className="advanced-field-row"
           style={{
             display: "flex",
             alignItems: "center",
@@ -1270,8 +1313,12 @@ const ProformaPageContent = ({ setPageTitle }) => {
             }}
           />
         </div>
-        <Grid gridTemplateColumns="repeat(2, minmax(0, 1fr))" gridGap="1rem">
-          <div style={{ minWidth: 0 }}>
+        <Grid
+          className="advanced-product-grid"
+          gridTemplateColumns="repeat(2, minmax(0, 1fr))"
+          gridGap="1rem"
+        >
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
             <Select
               value={familyId}
               label="Familia"
@@ -1285,7 +1332,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
               options={selectOptions(families)}
             />
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
             <Select
               value={subFamilyId}
               label="Sub-Familia"
@@ -1300,7 +1347,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
               )}
             />
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
             <Select
               value={elementId}
               label="Elemento"
@@ -1316,7 +1363,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
               )}
             />
           </div>
-          <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+          <div
+            className="advanced-field-row"
+            style={{ display: "flex", alignItems: "center", minWidth: 0 }}
+          >
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1365,6 +1415,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
             />
           </div>
 	          <div
+              className="advanced-inventory-row"
 	            style={{
 	              display: "grid",
 	              gridTemplateColumns: "minmax(0, 1fr) auto auto",
@@ -1374,7 +1425,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
 	              minWidth: 0,
 	            }}
 	          >
-            <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+            <div
+              className="advanced-field-row"
+              style={{ display: "flex", alignItems: "center", minWidth: 0 }}
+            >
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1488,12 +1542,17 @@ const ProformaPageContent = ({ setPageTitle }) => {
       )}
       <Modal
         visible={isClientModalVisible}
+        className="create-client-modal"
         width="70%"
         title="Crear cliente"
         onCancel={() => setIsClientModalVisible(false)}
         footer={null}
       >
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+        <Grid
+          className="create-client-grid"
+          gridTemplateColumns="repeat(2, 1fr)"
+          gridGap="1rem"
+        >
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
@@ -1604,6 +1663,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
 
       <Modal
         visible={isChangeModalVisible}
+        className="change-product-modal"
         width="720px"
         title="Cambiar producto"
         onCancel={() => setIsChangeModalVisible(false)}
@@ -1642,6 +1702,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
         </div>
 
         <Grid
+          className="change-product-grid change-product-grid-head"
           gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
           gridGap="0.75rem"
           style={{
@@ -1682,6 +1743,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
                 return (
                   <Grid
                     key={item.id}
+                    className="change-product-grid change-product-grid-row"
                     gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
                     gridGap="0.75rem"
                     alignItems="center"
@@ -1755,30 +1817,18 @@ const ProformaPageContent = ({ setPageTitle }) => {
         </Spin>
       </Modal>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          minHeight: 0,
-          overflow: "hidden",
-          paddingBottom: "0.75rem",
-        }}
-      >
+      <ProformaWorkspace>
         <Container height="fit-content" padding="0.75rem 1rem">
-        <div
-          style={{
-            display: "grid",
-            width: "100%",
-            gridTemplateColumns: "1fr 1fr",
-            gridGap: "1rem",
-            alignItems: "start",
-          }}
-        >
+        <TopFormGrid>
           <Input value="En cotización" addonBefore="Estatus" disabled />
 
           {/* Cliente */}
           <div
+            className={
+              proforma.id || queryParams.id
+                ? "client-search-row client-search-row-full"
+                : "client-search-row"
+            }
             style={{
               display: "grid",
               gridTemplateColumns:
@@ -1820,6 +1870,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
             </div>
             {!proforma.id && !queryParams.id && (
               <Button
+                className="new-client-button"
                 type="primary"
                 width="5rem"
                 padding="0 0.5rem"
@@ -1831,8 +1882,8 @@ const ProformaPageContent = ({ setPageTitle }) => {
           </div>
 
           {/* Producto */}
-          <div style={{ gridColumn: "1 / 3" }}>
-            <div
+          <ProductSearchBlock>
+            <ProductSearchRow
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr auto",
@@ -1889,6 +1940,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
 	                />
               </div>
               <Button
+                className="add-product-button"
                 type="primary"
                 size="small"
                 disabled={!selectedProductMain}
@@ -1921,32 +1973,17 @@ const ProformaPageContent = ({ setPageTitle }) => {
               >
                 Agregar
               </Button>
-            </div>
+            </ProductSearchRow>
             {/* Avanzado link */}
-            <a
+            <AdvancedProductLink
               onClick={() => setAddNewProduct(true)}
-              style={{
-                display: "inline-block",
-                marginTop: "0.35rem",
-                textDecoration: "underline",
-                cursor: "pointer",
-                fontSize: "0.9rem",
-              }}
             >
               Avanzado
-            </a>
-          </div>
-        </div>
+            </AdvancedProductLink>
+          </ProductSearchBlock>
+        </TopFormGrid>
       </Container>
-      <div
-        style={{
-          flex: "1 1 auto",
-          minHeight: "220px",
-          overflow: "hidden",
-          padding: "0 1rem",
-          position: "relative",
-        }}
-      >
+      <ProductsSection>
         <div
           style={{
             alignItems: "center",
@@ -1961,48 +1998,135 @@ const ProformaPageContent = ({ setPageTitle }) => {
             {proformaProducts.length === 1 ? "producto" : "productos"}
           </span>
         </div>
-        <Table
-          rowKey={(record) => record.id}
-          columns={columns}
-          scroll={{
-            x: 900,
-            y: Math.max(Math.min(windowHeight - 520, 420), 160),
-          }}
-          bordered
-          pagination={false}
-          size="small"
-          dataSource={orderBy(proformaProducts, "id", "asc")}
-        />
-        {proformaProducts.length > 6 && (
-          <div
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.92))",
-              bottom: 0,
-              height: "2.25rem",
-              left: "1rem",
-              pointerEvents: "none",
-              position: "absolute",
-              right: "1rem",
+        <DesktopProductsTable>
+          <Table
+            rowKey={(record) => record.id}
+            columns={columns}
+            scroll={{
+              x: 900,
+              y: Math.max(Math.min(windowHeight - 520, 420), 160),
             }}
+            bordered
+            pagination={false}
+            size="small"
+            dataSource={sortedProformaProducts}
           />
-        )}
-      </div>
-      <div
-        style={{
-          background: "#fff",
-          borderTop: "1px solid #e8e8e8",
-          boxShadow: "0 -6px 18px rgba(0, 0, 0, 0.08)",
-          flex: "0 0 auto",
-          padding: "1.25rem 1rem 1rem",
-          position: "sticky",
-          bottom: 0,
-          zIndex: 10,
-        }}
-      >
-        <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid gridTemplateRows="auto auto" gridGap="3.5rem">
-            <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem">
+        </DesktopProductsTable>
+        <MobileProductsList>
+          {sortedProformaProducts.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Agregue productos a la proforma"
+            />
+          ) : (
+            sortedProformaProducts.map((proformaProduct) => (
+              <MobileProductCard key={proformaProduct.id}>
+                <MobileProductHeader>
+                  <div>
+                    <MobileProductModel>
+                      {get(proformaProduct, "product.modelName", "-")}
+                    </MobileProductModel>
+                    <MobileProductCode>
+                      {get(proformaProduct, "product.code", "-")}
+                    </MobileProductCode>
+                  </div>
+                  <MobileSubtotal>
+                    S/ {getProductSubtotal(proformaProduct)}
+                  </MobileSubtotal>
+                </MobileProductHeader>
+                <MobileTradeName>
+                  {get(proformaProduct, "product.tradename", "-")}
+                </MobileTradeName>
+                <MobileProductMeta>
+                  <span>Stock</span>
+                  <strong>{get(proformaProduct, "product.availableStock", 0)}</strong>
+                </MobileProductMeta>
+                <MobileInputsGrid>
+                  <Input
+                    addonBefore="Cant."
+                    type="number"
+                    min={0}
+                    value={get(proformaProduct, "quantity", 0)}
+                    onChange={(event) =>
+                      updateProductQuantity(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                  />
+                  <Input
+                    addonBefore="Precio S/"
+                    type="number"
+                    min={0}
+                    value={get(proformaProduct, "product.suggestedPrice", 0)}
+                    onChange={(event) =>
+                      updateProductPrice(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                    onBlur={(event) =>
+                      normalizeProductPrice(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                  />
+                </MobileInputsGrid>
+                <MobileActions>
+                  <Tooltip title="Cambiar producto">
+                    <Button
+                      disabled={!proformaProduct.product}
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="default"
+                      onClick={() => openChangeModal(proformaProduct)}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Ver producto">
+                    <Button
+                      disabled={!proformaProduct.product}
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="primary"
+                      onClick={() => {
+                        setIsVisible(true);
+                        setIdModal(proformaProduct.product.id);
+                      }}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Eliminar producto">
+                    <Button
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="danger"
+                      onClick={() => removeProformaProduct(proformaProduct.id)}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+                    </Button>
+                  </Tooltip>
+                </MobileActions>
+              </MobileProductCard>
+            ))
+          )}
+        </MobileProductsList>
+        {proformaProducts.length > 6 && <DesktopTableFade />}
+      </ProductsSection>
+      <FooterSummary>
+        <FooterSummaryGrid gridTemplateColumns="45% 45%" gridGap="10%">
+          <Grid
+            className="footer-payment-actions"
+            gridTemplateRows="auto auto"
+            gridGap="3.5rem"
+          >
+            <PaymentGrid gridTemplateColumns="1fr 1fr" gridGap="2rem">
               <Input
                 value={paid}
                 type="number"
@@ -2070,8 +2194,8 @@ const ProformaPageContent = ({ setPageTitle }) => {
                 }}
                 addonBefore="Crédito S/"
               />
-            </Grid>
-            <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+            </PaymentGrid>
+            <ActionsGrid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
               <Button
                 onClick={onSaveProforma}
                 loading={loadingSaveProforma}
@@ -2096,20 +2220,22 @@ const ProformaPageContent = ({ setPageTitle }) => {
               >
                 Abono de cuenta
               </Button>
-            </Grid>
+            </ActionsGrid>
           </Grid>
-          <Grid
+          <TotalsGrid
             gridTemplateColumns="minmax(0, 5fr) minmax(8rem, 2fr)"
             gridTemplateRows="auto auto auto"
             gridGap="2rem"
           >
             <Input
+              className="total-money-input"
               disabled
               value={totalPrice.toFixed(2)}
               addonBefore="Total S/"
               style={{ gridColumn: "1 / 2", gridRow: "1 / 2" }}
             />
             <Input
+              className="discount-money-input"
               value={discount}
               addonBefore="Descuento S/"
               type="number"
@@ -2132,6 +2258,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
               }}
             />
             <Input
+              className="discount-percent-input"
               addonBefore="%"
               value={discountPercentage}
               type="number"
@@ -2190,14 +2317,15 @@ const ProformaPageContent = ({ setPageTitle }) => {
               // }}
             />
             <Input
+              className="final-money-input"
               disabled
               value={finalPrice}
               addonBefore="Total Final S/"
               style={{ gridColumn: "1 / 2", gridRow: "3 / 4" }}
             />
-          </Grid>
-        </Grid>
-      </div>
+          </TotalsGrid>
+        </FooterSummaryGrid>
+      </FooterSummary>
         {/* <Modal /> */}
         <ModalValidateDiscount
           // isModalOpen={true || isModalDiscountOpen}
@@ -2215,7 +2343,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
           onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
         />
         {/* {<Modal open={!!proforma}>Test</Modal>} */}
-      </div>
+      </ProformaWorkspace>
       {statusValidationModal.discountTransactionId &&
         statusValidationModal.status && (
           <Alert
