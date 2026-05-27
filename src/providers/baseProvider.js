@@ -8,7 +8,7 @@ export const buildUrl = (url, params = {}) => {
     )
     .join("&");
 
-  if (!queries.length) return `${config.serverUrl}${url}?`;
+  if (!queries.length) return `${config.serverUrl}${url}`;
 
   return `${config.serverUrl}${url}?${queries}`;
 };
@@ -50,14 +50,19 @@ export const baseProvider = {
   httpPost: async (url, body = {}) => {
     const token = await getToken();
 
+    const headers = {
+      "Content-Type": "application/json",
+      accept: " */*",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(buildUrl(url), {
       method: "POST",
       body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-        accept: " */*",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
     const responseJson = await response.json();

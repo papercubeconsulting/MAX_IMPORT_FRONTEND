@@ -10,9 +10,22 @@ const layoutProps = new Set([
   "background",
 ]);
 
+const antButtonProps = new Set([
+  "htmlType",
+  "type",
+  "onClick",
+  "disabled",
+  "loading",
+  "danger",
+  "ghost",
+  "block",
+  "size",
+  "shape",
+]);
+
 export const Button = styled(AntButton).withConfig({
   shouldForwardProp: (prop, defaultValidatorFn) =>
-    defaultValidatorFn(prop) && !layoutProps.has(prop),
+    antButtonProps.has(prop) || (defaultValidatorFn(prop) && !layoutProps.has(prop)),
 })`
   width: ${props => props.width || "auto"};
   height: ${props => props.height || "2rem"} !important;
