@@ -8,14 +8,52 @@ import {
   sendEmail,
 } from "../../../providers";
 import { get } from "lodash";
-import { MailOutlined, MailFilled, DownloadOutlined } from "@ant-design/icons";
-import { Input, Table, Modal, Alert, notification, Spin } from "antd";
+import {
+  DownloadOutlined,
+  FileSearchOutlined,
+  MailFilled,
+  MailOutlined,
+} from "@ant-design/icons";
+import { Input, Table, Modal, Alert, notification, Spin, Drawer } from "antd";
 import { ModalValidateDiscount } from "../../../components/proforma/ModalValidateDiscount";
-import { getLocalHostWithPath } from "../../../util";
 import { useSendEmailProforma } from "../../../util/hooks/useSendEmail";
+import {
+  DesktopProductTable,
+  DetailActionsGrid,
+  DetailFooter,
+  DetailFooterGrid,
+  DetailHeader,
+  DetailHeaderGrid,
+  DetailInfoDrawerActions,
+  DetailInfoDrawerGrid,
+  DetailInfoRow,
+  DetailMobileSummary,
+  DetailMobileSummaryMeta,
+  DetailMobileSummaryTitle,
+  DetailPage,
+  DetailPaymentsGrid,
+  DetailProducts,
+  DetailTotalsGrid,
+  MobileBackButton,
+  MobileProductList,
+  ProformaPreviewFrame,
+  ProformaPreviewModalStyles,
+  ProformaPreviewTitle,
+  ProformaPreviewTitleMain,
+  ProformaPreviewTitleMeta,
+  ProductCard,
+  ProductCardActions,
+  ProductCardCode,
+  ProductCardHeader,
+  ProductCardMeta,
+  ProductCardSubtotal,
+  ProductCardTitle,
+  ProductMetaRow,
+} from "../../../components/proforma/ProformaDetailStyles";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Información de proforma");
+  const formatMoney = (value) => `S/ ${((value || 0) / 100).toFixed(2)}`;
   // States for handling modal validate discount approval
   const [isModalDiscountOpen, setIsModalDiscountOpen] = useState(false);
   //extraccion de params de url
@@ -25,8 +63,8 @@ export default ({ setPageTitle }) => {
   const columns = [
     {
       dataIndex: "id",
-      title: "",
-      width: "fit-content",
+      title: "#",
+      width: 56,
       align: "center",
       render: (id, record, index) => index + 1,
     },
@@ -203,25 +241,38 @@ export default ({ setPageTitle }) => {
     proforma?.status === "PENDING_DISCOUNT_APPROVAL";
 
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
+  const [isInfoDrawerOpen, setIsInfoDrawerOpen] = React.useState(false);
+  const clientFullName = `${proforma?.client?.name || ""} ${
+    proforma?.client?.lastname || ""
+  }`.trim();
+
   return (
     <>
+      <ProformaPreviewModalStyles />
       <Modal
         visible={isEmailModalOpen}
-        onOk={() => setIsEmailModalOpen(false)}
         onCancel={() => setIsEmailModalOpen(false)}
-        title="Vista previa de proforma"
-        style={{ minWidth: "1360px", overflowX: "auto" }}
-        wrapClassName="test-antd"
-        width={"90%"}
+        title={
+          <ProformaPreviewTitle>
+            <ProformaPreviewTitleMain>
+              Vista previa de proforma
+            </ProformaPreviewTitleMain>
+            <ProformaPreviewTitleMeta>
+              {`Proforma ${proforma?.id || proformaId || ""}${
+                clientFullName ? ` - ${clientFullName}` : ""
+              }`}
+            </ProformaPreviewTitleMeta>
+          </ProformaPreviewTitle>
+        }
+        centered
+        destroyOnClose
+        footer={null}
+        width="min(1180px, 96vw)"
+        wrapClassName="proforma-preview-modal"
       >
-        <iframe
-          src={bodyUrlPDF}
-          width="100%"
-          title="Vista Previa Proforma"
-          style={{ transform: "scale(0.8)" }}
-          height="700px"
-          frameBorder={0}
-        />
+        <ProformaPreviewFrame>
+          <iframe src={bodyUrlPDF} title="Vista previa de proforma" />
+        </ProformaPreviewFrame>
       </Modal>
       <Modal
         visible={isVisible}
@@ -238,9 +289,85 @@ export default ({ setPageTitle }) => {
         onOk={() => setIsModalDiscountOpen((prev) => !prev)}
         onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
       />
+      <Drawer
+        className="proforma-info-drawer"
+        placement="bottom"
+        height="78vh"
+        title="Detalle de proforma"
+        visible={isInfoDrawerOpen}
+        onClose={() => setIsInfoDrawerOpen(false)}
+      >
+        <DetailInfoDrawerGrid>
+          <DetailInfoRow>
+            <span>Proforma</span>
+            <strong>{proformaId}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Estatus</span>
+            <strong>{proforma?.statusDescription || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Despacho</span>
+            <strong>{proforma?.dispatchStatusDescription || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>DNI/RUC</span>
+            <strong>{proforma?.client?.idNumber || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Cliente</span>
+            <strong>{clientFullName || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Correo</span>
+            <strong>{proforma?.client?.email || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Teléfono</span>
+            <strong>{proforma?.client?.phoneNumber || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Departamento</span>
+            <strong>{proforma?.client?.region || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Provincia</span>
+            <strong>{proforma?.client?.province || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Distrito</span>
+            <strong>{proforma?.client?.district || "-"}</strong>
+          </DetailInfoRow>
+          <DetailInfoRow>
+            <span>Dirección</span>
+            <strong>{proforma?.client?.address || "-"}</strong>
+          </DetailInfoRow>
+        </DetailInfoDrawerGrid>
+        <DetailInfoDrawerActions>
+          <Button type="primary" onClick={() => setIsInfoDrawerOpen(false)}>
+            Cerrar
+          </Button>
+        </DetailInfoDrawerActions>
+      </Drawer>
 
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+      <DetailPage>
+      <DetailHeader>
+        <DetailMobileSummary>
+          <div>
+            <DetailMobileSummaryTitle>
+              Proforma N° {proformaId}
+            </DetailMobileSummaryTitle>
+            <DetailMobileSummaryMeta>
+              {proforma?.statusDescription || "-"} ·{" "}
+              {proforma?.dispatchStatusDescription || "-"}
+            </DetailMobileSummaryMeta>
+            <DetailMobileSummaryMeta>
+              Cliente: {clientFullName || "-"}
+            </DetailMobileSummaryMeta>
+          </div>
+          <Button onClick={() => setIsInfoDrawerOpen(true)}>Detalles</Button>
+        </DetailMobileSummary>
+        <DetailHeaderGrid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={proformaId} disabled addonBefore="Proforma" />
           <Input
             value={proforma?.statusDescription}
@@ -303,25 +430,83 @@ export default ({ setPageTitle }) => {
             disabled
             addonBefore="Dirección"
           />
-        </Grid>
-      </Container>
-      <Container padding="0px" width="100vw" height="35%">
-        <Table
-          rowKey={(record) => record.id}
-          columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
-          bordered
-          pagination={false}
-          dataSource={
-            proforma?.proformaProducts ? proforma.proformaProducts : []
-          }
-        />
-      </Container>
-      <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid gridTemplateColumns="2fr 5fr" gridGap="2rem">
-            <br />
+        </DetailHeaderGrid>
+      </DetailHeader>
+      <DetailProducts>
+        <DesktopProductTable>
+          <Table
+            rowKey={(record) => record.id}
+            columns={columns}
+            scroll={{ y: windowHeight * 0.3 - 48 }}
+            bordered
+            pagination={false}
+            dataSource={
+              proforma?.proformaProducts ? proforma.proformaProducts : []
+            }
+          />
+        </DesktopProductTable>
+        <MobileProductList>
+          {(proforma?.proformaProducts || []).map((item) => (
+            <ProductCard key={item.id}>
+              <ProductCardHeader>
+                <div>
+                  <ProductCardTitle>
+                    {get(item, "product.modelName", "-")}
+                  </ProductCardTitle>
+                  <ProductCardCode>
+                    Cód. Inventario: {get(item, "product.code", "-")}
+                  </ProductCardCode>
+                </div>
+                <ProductCardSubtotal>
+                  {formatMoney(get(item, "subtotal", 0))}
+                </ProductCardSubtotal>
+              </ProductCardHeader>
+              <ProductCardMeta>
+                <ProductMetaRow>
+                  <span>Familia</span>
+                  <strong>{get(item, "product.familyName", "-")}</strong>
+                </ProductMetaRow>
+                <ProductMetaRow>
+                  <span>Sub-Familia</span>
+                  <strong>{get(item, "product.subfamilyName", "-")}</strong>
+                </ProductMetaRow>
+                <ProductMetaRow>
+                  <span>Elemento</span>
+                  <strong>{get(item, "product.elementName", "-")}</strong>
+                </ProductMetaRow>
+                <ProductMetaRow>
+                  <span>Cantidad</span>
+                  <strong>{get(item, "quantity", 0)}</strong>
+                </ProductMetaRow>
+                <ProductMetaRow>
+                  <span>Precio</span>
+                  <strong>{formatMoney(get(item, "unitPrice", 0))}</strong>
+                </ProductMetaRow>
+                <ProductMetaRow>
+                  <span>Stock</span>
+                  <strong>{get(item, "product.availableStock", 0)}</strong>
+                </ProductMetaRow>
+              </ProductCardMeta>
+              <ProductCardActions>
+                <Button
+                  padding="0 0.5rem"
+                  type="primary"
+                  onClick={() => {
+                    setIsVisible(true);
+                    setIdModal(item.productId);
+                  }}
+                >
+                  Ver producto
+                </Button>
+              </ProductCardActions>
+            </ProductCard>
+          ))}
+        </MobileProductList>
+      </DetailProducts>
+      <DetailFooter>
+        <DetailFooterGrid gridTemplateColumns="45% 45%" gridGap="10%">
+          <Grid gridTemplateRows="auto auto" gridGap="0.75rem">
+          <DetailPaymentsGrid gridTemplateColumns="2fr 5fr" gridGap="2rem">
             <Input
               value={
                 proforma?.efectivo
@@ -333,7 +518,6 @@ export default ({ setPageTitle }) => {
               disabled
               addonBefore="Efectivo"
             />
-            <br />
 
             <Input
               value={
@@ -346,7 +530,8 @@ export default ({ setPageTitle }) => {
               disabled
               addonBefore="Crédito"
             />
-            <br />
+          </DetailPaymentsGrid>
+          <DetailActionsGrid gridTemplateColumns="2fr 5fr" gridGap="2rem">
             <Button
               type="primary"
               disabled={
@@ -357,20 +542,16 @@ export default ({ setPageTitle }) => {
               Editar
             </Button>
             {proforma?.status === "EXPIRED" && (
-              <>
-                <br />
-                <Button type="primary" onClick={handleOnRenovar}>
-                  Renovar
-                </Button>
-              </>
+              <Button type="primary" onClick={handleOnRenovar}>
+                Renovar
+              </Button>
             )}
-            <br />
             {proforma ? (
               <>
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
-                  icon={<MailOutlined />}
+                  icon={<FileSearchOutlined />}
                   disabled={
                     proforma?.status === "PENDING_DISCOUNT_APPROVAL" ||
                     proforma?.status === "EXPIRED"
@@ -380,7 +561,6 @@ export default ({ setPageTitle }) => {
                 >
                   Vista previa proforma
                 </Button>
-                <br />
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
@@ -394,7 +574,6 @@ export default ({ setPageTitle }) => {
                 >
                   Descargar proforma
                 </Button>
-                <br />
                 <Button
                   // type="dashed"
                   loading={loadingEmail}
@@ -411,9 +590,11 @@ export default ({ setPageTitle }) => {
             ) : (
               <Spin />
             )}
+          </DetailActionsGrid>
           </Grid>
-          <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
+          <DetailTotalsGrid gridTemplateColumns="5fr 2fr" gridGap="2rem">
             <Input
+              className="detail-total-input"
               value={
                 proforma?.subtotal
                   ? `S/ ${(proforma.subtotal / 100).toFixed(2)}`
@@ -422,8 +603,8 @@ export default ({ setPageTitle }) => {
               disabled
               addonBefore="Total"
             />
-            <br />
             <Input
+              className="detail-discount-input"
               value={
                 proforma?.discount
                   ? `S/ ${(proforma.discount / 100).toFixed(2)}`
@@ -433,6 +614,7 @@ export default ({ setPageTitle }) => {
               addonBefore="Descuento"
             />
             <Input
+              className="detail-discount-percent-input"
               value={
                 proforma?.discount
                   ? `${((proforma.discount * 100) / proforma.subtotal).toFixed(
@@ -443,6 +625,7 @@ export default ({ setPageTitle }) => {
               disabled
             />
             <Input
+              className="detail-final-input"
               value={
                 proforma?.total
                   ? `S/ ${(proforma.total / 100).toFixed(2)}`
@@ -451,18 +634,20 @@ export default ({ setPageTitle }) => {
               disabled
               addonBefore="Total Final"
             />
-            <br />
-          </Grid>
-        </Grid>
-      </Container>
-      <Button
-        width="20%"
-        margin="2% 5% 2% 40%"
-        type="primary"
-        onClick={async () => router.back()}
-      >
-        Regresar
-      </Button>
+          </DetailTotalsGrid>
+        </DetailFooterGrid>
+        <MobileBackButton>
+          <Button
+            width="20%"
+            margin="2% 5% 2% 40%"
+            type="primary"
+            onClick={async () => router.back()}
+          >
+            Regresar
+          </Button>
+        </MobileBackButton>
+      </DetailFooter>
+      </DetailPage>
       {statusValidationModal.discountTransactionId &&
         statusValidationModal.status && (
           <Alert

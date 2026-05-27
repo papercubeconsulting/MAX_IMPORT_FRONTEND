@@ -4,6 +4,8 @@ import { Skeleton, Space, Table, Tag } from "antd";
 import styled from "styled-components";
 import { getProforma } from "../../../providers";
 import { useRouter } from "next/router";
+import moment from "moment";
+import { clientDateFormat } from "../../../util";
 // import { faCalendarAlt } from "@fortawesome/fontawesome-svg-core";
 
 export const ProformaPdf = () => {
@@ -15,7 +17,7 @@ export const ProformaPdf = () => {
   const { proformaId } = router.query;
   const [proforma, setProforma] = React.useState([]);
 
-  React.useMemo(() => {
+  React.useEffect(() => {
     const fetchProforma = async () => {
       try {
         const _proforma = await getProforma(proformaId);
@@ -25,7 +27,7 @@ export const ProformaPdf = () => {
       }
     };
     proformaId && fetchProforma();
-  }, [router]);
+  }, [proformaId]);
 
   if (proforma.length === 0) {
     return (
@@ -65,17 +67,23 @@ export const ProformaPdf = () => {
     },
   ];
 
-  const data = proforma?.proformaProducts.map((producto, index) => {
+  const formatMoney = (value) => ((value || 0) / 100).toFixed(2);
+  const proformaDate = moment(proforma.createdAt || proforma.updatedAt);
+  const formattedDate = proformaDate.isValid()
+    ? proformaDate.format(clientDateFormat)
+    : "-";
+
+  const data = (proforma?.proformaProducts || []).map((producto, index) => {
     return {
       key: index,
       cantidad: producto?.quantity,
       descripcion: producto?.product.tradename || "",
-      punit: producto?.unitPrice / 100 ?? "Precio no encontrado",
-      importe: (producto?.unitPrice / 100) * producto?.quantity,
+      punit: formatMoney(producto?.unitPrice),
+      importe: ((producto?.unitPrice || 0) / 100) * producto?.quantity,
     };
   });
 
-  const total = (proforma.subtotal - proforma.discount) / 100;
+  const total = formatMoney(proforma.subtotal - proforma.discount);
 
   return (
     <div className={styles.invoiceContainer} style={{ padding: "40px 10px" }}>
@@ -89,6 +97,7 @@ export const ProformaPdf = () => {
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <img
             src="/new_log_max.png"
+            alt="Max Importaciones"
             style={{ maxWidth: "100%", width: "200px" }}
           />
         </div>
@@ -147,9 +156,9 @@ export const ProformaPdf = () => {
                 borderRadius: "4px",
               }}
             >
-              <img src="/whatsapp.png" height="20px"></img>
+              <img src="/whatsapp.png" alt="WhatsApp" height="20px"></img>
               <div
-                classNumber="whatsapp-number"
+                className="whatsapp-number"
                 style={{
                   paddingLeft: "8px",
                   color: "white",
@@ -187,6 +196,7 @@ export const ProformaPdf = () => {
               SOLICITUD DE FACTURA:{" "}
               <img
                 src="/whatsapp-orange.svg"
+                alt="WhatsApp"
                 style={{ marginLeft: "4px" }}
                 height="18px"
               ></img>{" "}
@@ -196,6 +206,7 @@ export const ProformaPdf = () => {
               SOLICITUD DE GUÍA DE TRANSPORTE:
               <img
                 src="/whatsapp-orange.svg"
+                alt="WhatsApp"
                 style={{ marginLeft: "4px" }}
                 height="18px"
               ></img>
@@ -213,12 +224,14 @@ export const ProformaPdf = () => {
           >
             <img
               src="/location_icon.svg"
+              alt="Dirección"
               height="18px"
               style={{ marginRight: "4px" }}
             />
             Jr. García Naranjo 127 - La Victoria{" "}
             <img
               src="/telephone_icon.svg"
+              alt="Teléfono"
               height="18px"
               style={{ margin: "4px 4px" }}
             ></img>{" "}
@@ -329,7 +342,7 @@ export const ProformaPdf = () => {
           </div>
         </div>
         <div className="date" style={{ padding: "0px 12px", flex: 0.2 }}>
-          <span>Fecha:</span> 12/03/22
+          <span>Fecha:</span> {formattedDate}
         </div>
       </UserInfo>
 
@@ -351,7 +364,7 @@ export const ProformaPdf = () => {
                   DESCUENTO S/
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={3} align="center">
-                  {proforma.discount / 100}
+                  {formatMoney(proforma.discount)}
                 </Table.Summary.Cell>
               </Table.Summary.Row>
               <Table.Summary.Row>
