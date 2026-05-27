@@ -3,27 +3,60 @@ import styled from "styled-components";
 import {Select as AntSelect} from "antd";
 import {get} from "lodash";
 
-export const Select = props => (
-    <SelectContainer>
+const NULL_OPTION_VALUE = "__MAX_IMPORT_NULL_OPTION__";
+
+const normalizeOptionValue = (value) =>
+    value === null ? NULL_OPTION_VALUE : value;
+
+const normalizeSelectedValue = (value, hasNullOption) => {
+    if (value !== null) return value;
+    return hasNullOption ? NULL_OPTION_VALUE : undefined;
+};
+
+const denormalizeValue = (value) =>
+    value === NULL_OPTION_VALUE ? null : value;
+
+export const Select = ({
+    label,
+    options,
+    value,
+    defaultValue,
+    onChange,
+    style,
+    ...props
+}) => {
+    const hasNullOption = get({options}, "options", []).some(
+        (option) => option.value === null,
+    );
+
+    return (
+        <SelectContainer>
         {
-            props.label &&
+            label &&
             <span className="ant-input-group-addon">
-                {props.label}
+                {label}
             </span>
         }
-        <AntSelect {...props}
-                   style={{width: "100%", ...props.style}}>
+        <AntSelect
+            {...props}
+            value={normalizeSelectedValue(value, hasNullOption)}
+            defaultValue={normalizeSelectedValue(defaultValue, hasNullOption)}
+            onChange={(selectedValue, option) =>
+                onChange && onChange(denormalizeValue(selectedValue), option)
+            }
+            style={{width: "100%", ...style}}>
             {
-                get(props, "options", []).map((option, index) =>
+                get({options}, "options", []).map((option, index) =>
                     <AntSelect.Option key={index}
-                                      value={option.value}>
+                                      value={normalizeOptionValue(option.value)}>
                         {option.label}
                     </AntSelect.Option>
                 )
             }
         </AntSelect>
-    </SelectContainer>
-);
+        </SelectContainer>
+    );
+};
 
 const SelectContainer = styled.div`
   display: flex;

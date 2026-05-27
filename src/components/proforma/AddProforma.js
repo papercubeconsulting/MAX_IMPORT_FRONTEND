@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { Input, Modal, notification, Tag, Upload, Radio } from "antd";
+import { createGlobalStyle } from "styled-components";
 import { DatePicker } from "../DatePicker";
 import { RadioGroup } from "../RadioGroup";
 import { useRouter } from "next/router";
@@ -137,143 +138,285 @@ export const AddProforma = (props) => {
   };
 
   return (
-    <Modal
-      visible={props.visible}
-      onOk={summitActive && summitSale}
-      //() => props.trigger && props.trigger(false)}
-      onCancel={() => props.trigger && props.trigger(false)}
-      width="60%"
-      title="¿Está seguro de realizar la venta?"
-    >
-      <Grid gridTemplateRows="repeat(1, 1fr)" gridGap="1rem">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
-          <h3>Forma de pago:</h3>
-          <RadioGroup
-            gridColumnStart="2"
-            gridColumnEnd="4"
-            gridTemplateColumns="repeat(2, 1fr)"
-            onChange={(event) => setPayWay(event.target.value)}
-            value={payWay}
+    <>
+      <SaleModalResponsiveStyles />
+      <Modal
+        visible={props.visible}
+        className="sale-proforma-modal"
+        onOk={summitActive && summitSale}
+        //() => props.trigger && props.trigger(false)}
+        onCancel={() => props.trigger && props.trigger(false)}
+        width="60%"
+        title="¿Está seguro de realizar la venta?"
+      >
+        <Grid gridTemplateRows="repeat(1, 1fr)" gridGap="1rem">
+          <Grid
+            className="sale-options-grid"
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="1rem"
           >
-            <Radio value={1}>Venta</Radio>
-            <Radio value={2}>Consignación</Radio>
-          </RadioGroup>
-          <h3>Tipo de venta:</h3>
-          <RadioGroup
-            gridColumnStart="2"
-            gridColumnEnd="4"
-            gridTemplateColumns="repeat(2, 1fr)"
-            value={saleType}
-          >
-            <Radio value={1} disabled>
-              Contado
-            </Radio>
-            <Radio value={2} disabled>
-              Crédito
-            </Radio>
-          </RadioGroup>{" "}
-        </Grid>
+            <h3>Forma de pago:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="4"
+              gridTemplateColumns="repeat(2, 1fr)"
+              onChange={(event) => setPayWay(event.target.value)}
+              value={payWay}
+            >
+              <Radio value={1}>Venta</Radio>
+              <Radio value={2}>Consignación</Radio>
+            </RadioGroup>
+            <h3>Tipo de venta:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="4"
+              gridTemplateColumns="repeat(2, 1fr)"
+              value={saleType}
+            >
+              <Radio value={1} disabled>
+                Contado
+              </Radio>
+              <Radio value={2} disabled>
+                Crédito
+              </Radio>
+            </RadioGroup>{" "}
+          </Grid>
 
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-          <Input
-            value={parseFloat(props.totalPaid).toFixed(2)}
-            disabled
-            type="number"
-            addonBefore="Efectivo S/."
-          />
-          <Input
-            value={parseFloat(props.totalDebt).toFixed(2)}
-            disabled
-            type="number"
-            addonBefore="Total crédito S/."
-          />
-        </Grid>
-
-        <Grid
-          gridTemplateColumns="repeat(2, 1fr)"
-          gridGap="1rem"
-          hidden={props.saleWay === 1 || props.totalPaid == 0 ? true : false}
-        >
-          <h3>Datos del depósito:</h3>
-          <div></div>
-          <Input
-            value={voucherNum}
-            onChange={(event) => setVoucherNum(event.target.value)}
-            type="number"
-            placeholder="Nº Operación"
-            addonBefore="Voucher"
-          />
-          <Select
-            value={bank.name}
-            label="Banco"
-            onChange={(value) => {
-              const _bank = banks.find((bank) => bank.id === value);
-              setBank(_bank);
-            }}
-            options={selectOptions(banks)}
-          />
-          <Select
-            value={bankAccount.name}
-            label="Cuenta"
-            onChange={(value) => {
-              const _bankAccount = bankAccounts.find(
-                (bankAccount) => bankAccount.id === value
-              );
-              setBankAccount(_bankAccount);
-            }}
-            options={selectOptions(bankAccounts)}
-          />
-          <DatePicker
-            value={paymentDate}
-            onChange={(value) => setPaymentDate(value)}
-            format={clientDateFormat}
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha de depósito
-              </>
-            }
-          />
-          <Upload
-            className="ant-upload-wrapper"
-            beforeUpload={async (file) => {
-              const encodedImage = await toBase64(file);
-              setImageBase64(encodedImage);
-            }}
-            accept="image/png, image/jpeg"
-          >
-            <Button>
-              <Icon icon={faUpload} />
-              Imagen
-            </Button>
-          </Upload>
-        </Grid>
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
-          <h3>Forma de despacho:</h3>
-          <RadioGroup
-            gridColumnStart="2"
-            gridColumnEnd="2"
+          <Grid
+            className="sale-totals-grid"
             gridTemplateColumns="repeat(2, 1fr)"
-            onChange={(event) => setDispatchWay(event.target.value)}
-            value={dispatchWay}
+            gridGap="1rem"
           >
-            <Radio value={1}>Tienda</Radio>
-            <Radio value={2}>Envío</Radio>
-          </RadioGroup>
-          <Select
-            disabled={dispatchWay === 1 ? true : false}
-            value={deliveryAgency.name}
-            label="Agencia"
-            onChange={(value) => {
-              const _deliveryAgency = deliveryAgencies.find(
-                (deliveryAgency) => deliveryAgency.id === value
-              );
-              setDeliveryAgency(_deliveryAgency);
-            }}
-            options={selectOptions(deliveryAgencies)}
-          />
+            <Input
+              value={parseFloat(props.totalPaid).toFixed(2)}
+              disabled
+              type="number"
+              addonBefore="Efectivo S/."
+            />
+            <Input
+              value={parseFloat(props.totalDebt).toFixed(2)}
+              disabled
+              type="number"
+              addonBefore="Total crédito S/."
+            />
+          </Grid>
+
+          <Grid
+            className="deposit-data-grid"
+            gridTemplateColumns="repeat(2, 1fr)"
+            gridGap="1rem"
+            hidden={props.saleWay === 1 || props.totalPaid == 0 ? true : false}
+          >
+            <h3>Datos del depósito:</h3>
+            <div></div>
+            <Input
+              value={voucherNum}
+              onChange={(event) => setVoucherNum(event.target.value)}
+              type="number"
+              placeholder="Nº Operación"
+              addonBefore="Voucher"
+            />
+            <Select
+              value={bank.name}
+              label="Banco"
+              onChange={(value) => {
+                const _bank = banks.find((bank) => bank.id === value);
+                setBank(_bank);
+              }}
+              options={selectOptions(banks)}
+            />
+            <Select
+              value={bankAccount.name}
+              label="Cuenta"
+              onChange={(value) => {
+                const _bankAccount = bankAccounts.find(
+                  (bankAccount) => bankAccount.id === value
+                );
+                setBankAccount(_bankAccount);
+              }}
+              options={selectOptions(bankAccounts)}
+            />
+            <DatePicker
+              value={paymentDate}
+              onChange={(value) => setPaymentDate(value)}
+              format={clientDateFormat}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha de depósito
+                </>
+              }
+            />
+            <Upload
+              className="ant-upload-wrapper"
+              beforeUpload={async (file) => {
+                const encodedImage = await toBase64(file);
+                setImageBase64(encodedImage);
+              }}
+              accept="image/png, image/jpeg"
+            >
+              <Button>
+                <Icon icon={faUpload} />
+                Imagen
+              </Button>
+            </Upload>
+          </Grid>
+          <Grid
+            className="dispatch-options-grid"
+            gridTemplateColumns="repeat(3, 1fr)"
+            gridGap="1rem"
+          >
+            <h3>Forma de despacho:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="2"
+              gridTemplateColumns="repeat(2, 1fr)"
+              onChange={(event) => setDispatchWay(event.target.value)}
+              value={dispatchWay}
+            >
+              <Radio value={1}>Tienda</Radio>
+              <Radio value={2}>Envío</Radio>
+            </RadioGroup>
+            <Select
+              disabled={dispatchWay === 1 ? true : false}
+              value={deliveryAgency.name}
+              label="Agencia"
+              onChange={(value) => {
+                const _deliveryAgency = deliveryAgencies.find(
+                  (deliveryAgency) => deliveryAgency.id === value
+                );
+                setDeliveryAgency(_deliveryAgency);
+              }}
+              options={selectOptions(deliveryAgencies)}
+            />
+          </Grid>
         </Grid>
-      </Grid>
-    </Modal>
+      </Modal>
+    </>
   );
 };
+
+const SaleModalResponsiveStyles = createGlobalStyle`
+  @media (max-width: 768px) {
+    .sale-proforma-modal {
+      margin: 0 auto;
+      max-width: calc(100vw - 0.5rem);
+      top: 0.75rem;
+      width: calc(100vw - 0.5rem) !important;
+    }
+
+    .sale-proforma-modal .ant-modal-content {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sale-proforma-modal .ant-modal-header {
+      padding: 0.85rem 1rem;
+    }
+
+    .sale-proforma-modal .ant-modal-title {
+      font-size: 1rem;
+      line-height: 1.25rem;
+      padding-right: 1.75rem;
+    }
+
+    .sale-proforma-modal .ant-modal-body {
+      max-height: calc(100vh - 9.5rem);
+      overflow: auto;
+      padding: 0.9rem;
+    }
+
+    .sale-proforma-modal .ant-modal-footer {
+      display: grid;
+      gap: 0.5rem;
+      grid-template-columns: 1fr 1fr;
+      padding: 0.75rem 0.9rem;
+    }
+
+    .sale-proforma-modal .ant-modal-footer button {
+      margin: 0 !important;
+      width: 100%;
+    }
+
+    .sale-options-grid,
+    .sale-totals-grid,
+    .deposit-data-grid,
+    .dispatch-options-grid {
+      grid-gap: 0.75rem !important;
+      grid-template-columns: 1fr !important;
+    }
+
+    .sale-options-grid h3,
+    .deposit-data-grid h3,
+    .dispatch-options-grid h3 {
+      font-size: 0.92rem;
+      line-height: 1.15rem;
+      margin: 0;
+    }
+
+    .sale-options-grid > *,
+    .deposit-data-grid > *,
+    .dispatch-options-grid > * {
+      grid-column: auto !important;
+      min-width: 0;
+    }
+
+    .deposit-data-grid > div:nth-child(2) {
+      display: none;
+    }
+
+    .sale-proforma-modal .ant-radio-group {
+      display: grid !important;
+      gap: 0.5rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      width: 100%;
+    }
+
+    .sale-proforma-modal .ant-radio-wrapper {
+      margin-right: 0;
+      min-width: 0;
+      white-space: normal;
+    }
+
+    .sale-proforma-modal .ant-input-wrapper.ant-input-group,
+    .sale-proforma-modal div:has(> .ant-input-group-addon + .ant-select),
+    .sale-proforma-modal div:has(> .ant-input-group-addon + .ant-picker) {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: 100%;
+    }
+
+    .sale-proforma-modal .ant-input-group-addon {
+      border-radius: 4px 4px 0 0;
+      font-size: 0.88rem !important;
+      height: auto !important;
+      line-height: 1.1rem !important;
+      padding: 0.35rem 0.55rem;
+      text-align: left;
+      width: 100% !important;
+    }
+
+    .sale-proforma-modal .ant-input,
+    .sale-proforma-modal .ant-select,
+    .sale-proforma-modal .ant-select-selector,
+    .sale-proforma-modal .ant-select-selection-item,
+    .sale-proforma-modal .ant-select-selection-placeholder {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    .sale-proforma-modal .ant-input[type="number"] {
+      text-align: right;
+    }
+
+    .sale-proforma-modal .ant-upload-wrapper {
+      display: block;
+      width: 100%;
+    }
+
+    .sale-proforma-modal .ant-upload-wrapper button {
+      width: 100%;
+    }
+  }
+`;
