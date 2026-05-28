@@ -1527,6 +1527,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
         title="Información del producto"
         onCancel={() => setIsVisible(false)}
         footer={null}
+        wrapClassName="product-info-modal"
       >
         <ModalProduct id={idModal}></ModalProduct>
       </Modal>
