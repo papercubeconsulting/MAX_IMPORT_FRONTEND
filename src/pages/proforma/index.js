@@ -210,7 +210,8 @@ const ProformaPageContent = ({ setPageTitle }) => {
       render: (quantity, proformaProduct) => (
         <Input
           style={{ textAlign: "center" }}
-          value={quantity}
+          value={quantity === 0 ? undefined : quantity}
+          placeholder="Ingrese cantidad"
           onChange={(event) => {
             updateProductQuantity(
               proformaProduct,
@@ -1211,13 +1212,13 @@ const ProformaPageContent = ({ setPageTitle }) => {
             onClick={() => {
               setproformaProducts((prevState) => {
                 return [
-                  ...prevState,
-                  {
-                    id: proformaProducts.length + 1,
-                    quantity: 1,
-                    familyId,
-                    subFamilyId,
-                    elementId,
+                      ...prevState,
+                      {
+                        id: proformaProducts.length + 1,
+                        quantity: 0,
+                        familyId,
+                        subFamilyId,
+                        elementId,
                     modelId,
                     product: {
                       ...product,
@@ -1951,7 +1952,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
                       ...prevState,
                       {
                         id: proformaProducts.length + 1,
-                        quantity: 1,
+                        quantity: 0,
                         familyId: selectedProductMain.familyId,
                         subFamilyId: selectedProductMain.subfamilyId,
                         elementId: selectedProductMain.elementId,
@@ -2047,7 +2048,12 @@ const ProformaPageContent = ({ setPageTitle }) => {
                     addonBefore="Cant."
                     type="number"
                     min={0}
-                    value={get(proformaProduct, "quantity", 0)}
+                    value={
+                      get(proformaProduct, "quantity", 0) === 0
+                        ? undefined
+                        : get(proformaProduct, "quantity", 0)
+                    }
+                    placeholder="Ingrese cantidad"
                     onChange={(event) =>
                       updateProductQuantity(
                         proformaProduct,
