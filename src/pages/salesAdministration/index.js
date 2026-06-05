@@ -294,12 +294,20 @@ export default ({ setPageTitle }) => {
       label: "Todos",
     },
     {
-      value: "CONSIGNMENT",
-      label: "Consignación",
-    },
-    {
       value: "SALE",
       label: "Venta",
+    },
+    {
+      value: "INVOICE",
+      label: "Factura",
+    },
+    {
+      value: "PROFORMA",
+      label: "Proforma",
+    },
+    {
+      value: "CONSIGNMENT",
+      label: "Consignación",
     },
   ];
 

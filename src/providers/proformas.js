@@ -9,6 +9,8 @@ const postProforma = async (proforma) =>
   baseProvider.httpPost("proformas", proforma);
 const putProforma = async (productId, proforma) =>
   baseProvider.httpPut(`proformas/${productId}`, proforma);
+const deleteProforma = async (proformaId) =>
+  baseProvider.httpDelete(`proformas/${proformaId}`);
 const sendEmail = async (proformaId, url) =>
   baseProvider.httpPost(`proforma/pdf/${proformaId}`, { url });
 const resetExpireStatus = async (proformaId) =>
@@ -19,6 +21,7 @@ export {
   getProforma,
   postProforma,
   putProforma,
+  deleteProforma,
   sendEmail,
   resetExpireStatus,
   /* postProduct*/

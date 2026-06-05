@@ -604,7 +604,7 @@ export const PaymentGrid = styled(Grid)`
 export const ActionsGrid = styled(Grid)`
   @media (max-width: 768px) {
     grid-gap: 0.5rem !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 
     button {
       font-size: 0.76rem;
@@ -613,6 +613,10 @@ export const ActionsGrid = styled(Grid)`
       padding: 0 0.35rem;
       white-space: normal;
       width: 100%;
+    }
+
+    .delete-proforma-button {
+      grid-column: 1 / -1;
     }
   }
 `;

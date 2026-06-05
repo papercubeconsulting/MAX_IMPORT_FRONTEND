@@ -23,8 +23,9 @@ export const AddProforma = (props) => {
 
   // * Fields to create source
   // Para todas las ventas
-  const [payWay, setPayWay] = useState(1);
+  const [billingType, setBillingType] = useState("SALE");
   const [saleType, setSaleType] = useState(1);
+  const [saleWay, setSaleWay] = useState(1);
   // Solo para venta no presencial
   const [voucherNum, setVoucherNum] = useState(null);
   const [bank, setBank] = useState({});
@@ -97,21 +98,21 @@ export const AddProforma = (props) => {
     try {
       const body = {
         proformaId: props.proforma.id,
-        type: props.saleWay === 1 ? "STORE" : "REMOTE",
+        type: saleWay === 1 ? "STORE" : "REMOTE",
         paymentType: saleType === 1 ? "CASH" : "CREDIT",
         initialPayment: Math.round(props.totalPaid * 100),
-        billingType: payWay === 1 ? "SALE" : "CONSIGNMENT",
+        billingType,
         dispatchmentType: dispatchWay === 1 ? "PICK_UP" : "DELIVERY",
       };
 
       dispatchWay === 2 && (body.deliveryAgencyId = deliveryAgency.id);
-      props.saleWay === 2 && (body.voucherCode = voucherNum + "");
-      props.saleWay === 2 && (body.voucherImage = imageBase64);
-      props.saleWay === 2 && (body.paymentMethod = "Depósito");
-      props.saleWay === 2 && (body.bankAccountId = bankAccount.id);
-      props.saleWay === 2 && (body.paymentDate = paymentDate);
+      saleWay === 2 && (body.voucherCode = voucherNum + "");
+      saleWay === 2 && (body.voucherImage = imageBase64);
+      saleWay === 2 && (body.paymentMethod = "Depósito");
+      saleWay === 2 && (body.bankAccountId = bankAccount.id);
+      saleWay === 2 && (body.paymentDate = paymentDate);
 
-      if (props.saleWay !== 1 && props.totalPaid != 0) {
+      if (saleWay !== 1 && props.totalPaid != 0) {
         if (!voucherNum || !imageBase64 || !bankAccount.id) {
           Modal.warning({
             title: "Datos faltantes",
@@ -147,7 +148,7 @@ export const AddProforma = (props) => {
         //() => props.trigger && props.trigger(false)}
         onCancel={() => props.trigger && props.trigger(false)}
         width="60%"
-        title="¿Está seguro de realizar la venta?"
+        title="Confirmar Proforma"
       >
         <Grid gridTemplateRows="repeat(1, 1fr)" gridGap="1rem">
           <Grid
@@ -159,12 +160,24 @@ export const AddProforma = (props) => {
             <RadioGroup
               gridColumnStart="2"
               gridColumnEnd="4"
-              gridTemplateColumns="repeat(2, 1fr)"
-              onChange={(event) => setPayWay(event.target.value)}
-              value={payWay}
+              gridTemplateColumns="repeat(3, 1fr)"
+              onChange={(event) => setBillingType(event.target.value)}
+              value={billingType}
             >
-              <Radio value={1}>Venta</Radio>
-              <Radio value={2}>Consignación</Radio>
+              <Radio value="SALE">Venta</Radio>
+              <Radio value="INVOICE">Factura</Radio>
+              <Radio value="PROFORMA">Proforma</Radio>
+            </RadioGroup>
+            <h3>Medio de pago:</h3>
+            <RadioGroup
+              gridColumnStart="2"
+              gridColumnEnd="4"
+              gridTemplateColumns="repeat(2, 1fr)"
+              onChange={(event) => setSaleWay(event.target.value)}
+              value={saleWay}
+            >
+              <Radio value={1}>Tienda</Radio>
+              <Radio value={2}>Abono en cuenta</Radio>
             </RadioGroup>
             <h3>Tipo de venta:</h3>
             <RadioGroup
@@ -205,7 +218,7 @@ export const AddProforma = (props) => {
             className="deposit-data-grid"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
-            hidden={props.saleWay === 1 || props.totalPaid == 0 ? true : false}
+            hidden={saleWay === 1 || props.totalPaid == 0 ? true : false}
           >
             <h3>Datos del depósito:</h3>
             <div></div>

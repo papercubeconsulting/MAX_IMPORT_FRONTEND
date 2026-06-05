@@ -27,6 +27,7 @@ import {
   getProforma,
   postProforma,
   putProforma,
+  deleteProforma,
   getTradenames,
 } from "../../providers";
 import { get, orderBy } from "lodash";
@@ -339,6 +340,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
 
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
+  const [loadingDeleteProforma, setLoadingDeleteProforma] = useState(false);
   const [isClientModalVisible, setIsClientModalVisible] = useState(false);
 
   //Modal para agregar nuevo producto
@@ -372,7 +374,6 @@ const ProformaPageContent = ({ setPageTitle }) => {
 
   const [proforma, setProforma] = useState([]);
   const [savedProformaSnapshot, setSavedProformaSnapshot] = useState(null);
-  const [saleWay, setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
   //
 
   // States for handling modal validate discount approval
@@ -670,6 +671,9 @@ const ProformaPageContent = ({ setPageTitle }) => {
     currentProformaSnapshot !== savedProformaSnapshot;
   const canActivateSale =
     hasSavedProforma && !hasUnsavedChanges && proforma?.status === "OPEN";
+  const canDeleteProforma =
+    hasSavedProforma &&
+    ["OPEN", "PENDING_DISCOUNT_APPROVAL"].includes(proforma?.status);
   const sortedProformaProducts = useMemo(
     () => orderBy(proformaProducts, "id", "asc"),
     [proformaProducts],
@@ -826,9 +830,38 @@ const ProformaPageContent = ({ setPageTitle }) => {
     }
   };
 
-  const handlePayButton = (_saleWay) => {
-    setSaleWay(_saleWay);
+  const handlePayButton = () => {
     setIsModalAddProformaVisible(true);
+  };
+
+  const onDeleteProforma = () => {
+    if (!proforma.id) return;
+
+    Modal.confirm({
+      title: `Eliminar proforma N°${proforma.id}`,
+      content:
+        "Esta acción eliminará la proforma y sus productos. No se puede deshacer.",
+      okText: "Eliminar",
+      okType: "danger",
+      cancelText: "Cancelar",
+      onOk: async () => {
+        try {
+          setLoadingDeleteProforma(true);
+          await deleteProforma(proforma.id);
+          notification.success({
+            message: "Proforma eliminada correctamente",
+          });
+          router.push("/proformas");
+        } catch (error) {
+          notification.error({
+            message: "Error al eliminar la proforma",
+            description: error.message,
+          });
+        } finally {
+          setLoadingDeleteProforma(false);
+        }
+      },
+    });
   };
 
   const hasInvalidProductQuantities = proformaProducts.some(
@@ -1551,7 +1584,6 @@ const ProformaPageContent = ({ setPageTitle }) => {
           proforma={proforma}
           totalPaid={paid}
           totalDebt={due}
-          saleWay={saleWay}
           trigger={setIsModalAddProformaVisible}
         />
       )}
@@ -2229,16 +2261,18 @@ const ProformaPageContent = ({ setPageTitle }) => {
               <Button
                 type="primary"
                 disabled={!canActivateSale}
-                onClick={() => handlePayButton(1)}
+                onClick={handlePayButton}
               >
-                Venta en Tienda
+                Confirmar Proforma
               </Button>
               <Button
-                type="primary"
-                disabled={!canActivateSale}
-                onClick={() => handlePayButton(2)}
+                className="delete-proforma-button"
+                type="danger"
+                loading={loadingDeleteProforma}
+                disabled={!canDeleteProforma}
+                onClick={onDeleteProforma}
               >
-                Abono de cuenta
+                Eliminar Proforma
               </Button>
             </ActionsGrid>
           </Grid>
