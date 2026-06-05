@@ -279,8 +279,20 @@ export const AddProforma = (props) => {
             </RadioGroup>
             <Select
               disabled={dispatchWay === 1 ? true : false}
-              value={deliveryAgency.name}
+              value={deliveryAgency.id}
               label="Agencia"
+              showSearch
+              filterOption={(input, option) => {
+                const optionLabel = (
+                  option?.label ||
+                  option?.children ||
+                  ""
+                ).toString();
+
+                return (
+                  optionLabel.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                );
+              }}
               onChange={(value) => {
                 const _deliveryAgency = deliveryAgencies.find(
                   (deliveryAgency) => deliveryAgency.id === value
