@@ -831,7 +831,20 @@ const ProformaPageContent = ({ setPageTitle }) => {
     setIsModalAddProformaVisible(true);
   };
 
+  const hasInvalidProductQuantities = proformaProducts.some(
+    (proformaProduct) => toNumber(get(proformaProduct, "quantity", 0)) < 1,
+  );
+
   const onSaveProforma = async () => {
+    if (hasInvalidProductQuantities) {
+      notification.warning({
+        message: "Complete la cantidad de los productos",
+        description:
+          "Todos los productos de la proforma deben tener una cantidad mayor o igual a 1 antes de guardar.",
+      });
+      return;
+    }
+
     try {
       setLoadingSaveProforma(true);
       if (proforma.id) {
