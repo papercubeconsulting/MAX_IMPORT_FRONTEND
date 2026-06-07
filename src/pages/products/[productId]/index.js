@@ -13,7 +13,7 @@ import {
 import styled from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getProduct, me, updateProduct } from "../../../providers";
+import { getProduct, getProducts, me, updateProduct, addProductToGroup, removeProductFromGroup } from "../../../providers";
 import { toBase64 } from "../../../util";
 
 import {
@@ -80,7 +80,11 @@ export default () => {
   const [compatibility, setCompatibility] = useState("");
   const [tradename, setTradename] = useState("");
   //images
-  const [imagesList, setImageList] = useState([]);
+  const [imagesList, setImagesList] = useState([]);
+  const [groupProducts, setGroupProducts] = useState([]);
+  const [isGroupRelationModalVisible, setIsGroupRelationModalVisible] = useState(false);
+  const [groupSearchText, setGroupSearchText] = useState("");
+  const [isAddingToGroup, setIsAddingToGroup] = useState(false);
 
   // preview
   const [previewImage, setPreviewImage] = useState(null);
@@ -135,7 +139,7 @@ export default () => {
         };
         return image;
       });
-    setImageList(_images);
+    setImagesList(_images);
     await getPreviews(_images);
   };
 
@@ -154,12 +158,211 @@ export default () => {
       await setImagesFromProduct(_product);
     } catch (error) {
       console.log("error", error);
-      router.back();
+      notification.error({
+        message: "No se pudo cargar el producto",
+        description: error.message,
+      });
     }
   };
-  useMemo(() => {
-    productId && fetchProduct();
-  }, [router]);
+
+  const getGroupRelatedTradename = (groupProduct) =>
+    get(groupProduct, 'tradename', get(groupProduct, 'product.tradename', '-'));
+
+  const getGroupRelatedModelCode = (groupProduct) =>
+    get(groupProduct, 'model.code',
+      get(groupProduct, 'product.model.code',
+        get(groupProduct, 'modelName', get(groupProduct, 'product.modelName', '-'))
+      )
+    );
+
+  const getProductGroupCode = (productItem) =>
+    get(productItem, 'group.code',
+      get(productItem, 'product.group.code',
+        get(productItem, 'groupCode', get(productItem, 'product.groupCode', '-'))
+      )
+    );
+
+  const getProductGroupSize = (productItem) => {
+    const groupArray = get(productItem, 'productGroups',
+      get(productItem, 'product.productGroups', []));
+    if (Array.isArray(groupArray) && groupArray.length > 0) {
+      return groupArray.length + 1;
+    }
+    return get(productItem, 'group.size', get(productItem, 'product.group.size', 1));
+  };
+
+  const findProductToAdd = (products, searchText) => {
+    const normalized = (searchText || '').trim().toLowerCase();
+    if (!normalized) return null;
+    const exact = (products || []).find(
+      (item) =>
+        get(item, 'tradename', '').toLowerCase() === normalized ||
+        get(item, 'code', '').toString().toLowerCase() === normalized
+    );
+    return exact || (products || [])[0] || null;
+  };
+
+  const loadGroupProducts = async () => {
+    const relatedProducts = get(product, 'productGroups', []);
+    if (relatedProducts && relatedProducts.length > 0) {
+      setGroupProducts(relatedProducts);
+      setIsGroupRelationModalVisible(true);
+      return;
+    }
+
+    if (!product?.tradename) {
+      setGroupProducts([]);
+      setIsGroupRelationModalVisible(true);
+      return;
+    }
+
+    try {
+      const response = await getProducts({ tradename: product.tradename });
+      const rows = get(response, 'rows', response);
+      const filtered = (rows || []).filter(
+        (item) => get(item, 'id') !== get(product, 'id')
+      );
+      setGroupProducts(filtered);
+      setIsGroupRelationModalVisible(true);
+    } catch (error) {
+      console.log('error loading group products', error);
+      notification.error({
+        message: 'No se pudo cargar los productos relacionados',
+        description: error.message,
+      });
+      setGroupProducts([]);
+      setIsGroupRelationModalVisible(true);
+    }
+  };
+
+  const removeProductFromGroup = async (groupProduct) => {
+    try {
+      await removeProductFromGroup(productId, get(groupProduct, 'id'));
+      notification.success({
+        message: 'Producto retirado del grupo correctamente',
+      });
+      await fetchProduct();
+      setIsGroupRelationModalVisible(false);
+    } catch (error) {
+      notification.error({
+        message: error.message,
+      });
+    }
+  };
+
+  const addProductToCurrentGroup = async () => {
+    if (!groupSearchText.trim()) {
+      notification.warning({
+        message: 'Ingrese un nombre comercial o código para buscar el producto',
+      });
+      return;
+    }
+
+    setIsAddingToGroup(true);
+    try {
+      const response = await getProducts({ tradename: groupSearchText });
+      const rows = get(response, 'rows', response);
+      const productToAdd = findProductToAdd(rows, groupSearchText);
+      if (!productToAdd) {
+        notification.error({
+          message: 'No se encontró ningún producto para agregar',
+        });
+        return;
+      }
+
+      if (get(productToAdd, 'id') === get(product, 'id')) {
+        notification.warning({
+          message: 'No puede agregar el mismo producto al grupo',
+        });
+        return;
+      }
+
+      const targetGroupSize = getProductGroupSize(productToAdd);
+      const targetGroupCode = getProductGroupCode(productToAdd);
+
+      const executeAdd = async () => {
+        const existingGroups = get(product, 'productGroups', []) || [];
+        const alreadyInGroup = existingGroups.some(
+          (item) => get(item, 'id') === get(productToAdd, 'id')
+        );
+        if (alreadyInGroup) {
+          notification.info({
+            message: 'El producto ya pertenece a este grupo',
+          });
+          return;
+        }
+
+        await addProductToGroup(productId, get(productToAdd, 'id'));
+        notification.success({
+          message: 'Producto agregado al grupo correctamente',
+        });
+        await fetchProduct();
+        setGroupSearchText('');
+      };
+
+      if (targetGroupSize > 1) {
+        Modal.confirm({
+          title: `Este producto pertenece al grupo ${targetGroupCode}. ¿Está seguro que quiere moverlo de grupo?`,
+          okText: 'ok',
+          cancelText: 'cancelar',
+          onOk: executeAdd,
+        });
+      } else {
+        await executeAdd();
+      }
+    } catch (error) {
+      notification.error({
+        message: 'Error al buscar o agregar el producto',
+        description: error.message,
+      });
+    } finally {
+      setIsAddingToGroup(false);
+    }
+  };
+
+  const confirmRemoveFromGroup = (groupProduct) => {
+    Modal.confirm({
+      title: '¿Está seguro que quiere retirar este producto del grupo?',
+      okText: 'ok',
+      cancelText: 'cancelar',
+      onOk: () => removeProductFromGroup(groupProduct),
+    });
+  };
+
+  const groupColumns = [
+    {
+      title: 'Nombre comercial',
+      dataIndex: 'tradename',
+      key: 'tradename',
+      render: (_, record) => getGroupRelatedTradename(record),
+    },
+    {
+      title: 'Código de modelo',
+      key: 'modelCode',
+      render: (_, record) => getGroupRelatedModelCode(record),
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: '140px',
+      align: 'center',
+      render: (_, record) => (
+        <Button
+          type="danger"
+          shape="circle"
+          icon={<DeleteOutlined />}
+          title="eliminar producto de grupo"
+          onClick={() => confirmRemoveFromGroup(record)}
+        />
+      ),
+    },
+  ];
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+    }
+  }, [productId]);
 
   const parsedMargin = (_product) => {
     return _product?.margin === 1
@@ -293,6 +496,38 @@ export default () => {
         />
       )}
       <Modal
+        title="Productos relacionados"
+        open={isGroupRelationModalVisible}
+        width="80%"
+        footer={null}
+        onCancel={() => setIsGroupRelationModalVisible(false)}
+      >
+        <Table
+          columns={groupColumns}
+          dataSource={(groupProducts || []).map((item, index) => ({
+            ...item,
+            key: get(item, 'id', index),
+          }))}
+          pagination={false}
+          scroll={{ y: 400 }}
+          rowKey={(record) => get(record, 'id', record.key)}
+        />
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <Input
+            placeholder="Buscar producto para agregar al grupo"
+            value={groupSearchText}
+            onChange={(e) => setGroupSearchText(e.target.value)}
+          />
+          <Button
+            type="primary"
+            onClick={addProductToCurrentGroup}
+            loading={isAddingToGroup}
+          >
+            Agregar
+          </Button>
+        </div>
+      </Modal>
+      <Modal
         open={showImagePreview}
         width="90%"
         footer={null}
@@ -371,7 +606,15 @@ export default () => {
               onChange={(e) => {
                 setTradename(e.target.value);
               }}
+              style={{ gridColumn: 'span 2' }}
             />
+            <CustomButton
+              type="primary"
+              style={{ whiteSpace: 'nowrap', height: '2rem' }}
+              onClick={loadGroupProducts}
+            >
+              Prod.Relacionados - Grupo
+            </CustomButton>
           </Grid>
         </Grid>
         {user !== null && !isLogistic && (

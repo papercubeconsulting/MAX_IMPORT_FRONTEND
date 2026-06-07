@@ -24,6 +24,12 @@ const getTradenamesWithQueryParams = async (params) =>
 const deleteProduct = async (productId) =>
   baseProvider.httpDelete(`products/${productId}`);
 
+const addProductToGroup = async (productId, targetProductId) =>
+  baseProvider.httpPost(`products/${productId}/add-group`, { targetProductId });
+
+const removeProductFromGroup = async (productId, targetProductId) =>
+  baseProvider.httpDelete(`products/${productId}/remove-group/${targetProductId}`);
+
 const getFileXlsx = async () =>
   baseProvider.httpGetFile(`productboxes/availableReport`);
 
@@ -45,4 +51,6 @@ export {
   getFileXlsxMovimientoCajas,
   getTradenamesWithQueryParams,
   getTradenamesAll,
+  addProductToGroup,
+  removeProductFromGroup,
 };

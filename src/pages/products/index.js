@@ -86,6 +86,7 @@ export default ({ setPageTitle }) => {
             padding="0 0.25rem"
             onClick={async () => router.push(`/products/${productId}`)}
             type="primary"
+            title="ver detalle"
           >
             <Icon marginRight="0px" icon={faEye} />
           </Button>
@@ -98,6 +99,7 @@ export default ({ setPageTitle }) => {
               padding="0 0.25rem"
               margin="0 0 0 0.25rem"
               type="danger"
+              title="eliminar"
             >
               <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
             </Button>
