@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useGlobal } from "reactn";
 import { useRouter } from "next/router";
 import { Input, notification, message, Table, Modal } from "antd";
+import { createGlobalStyle } from "styled-components";
 import { get } from "lodash";
 import * as FileSaver from "file-saver";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -86,6 +87,7 @@ export default ({ setPageTitle }) => {
             padding="0 0.25rem"
             onClick={async () => router.push(`/products/${productId}`)}
             type="primary"
+            title="ver detalle"
           >
             <Icon marginRight="0px" icon={faEye} />
           </Button>
@@ -98,6 +100,7 @@ export default ({ setPageTitle }) => {
               padding="0 0.25rem"
               margin="0 0 0 0.25rem"
               type="danger"
+              title="eliminar"
             >
               <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
             </Button>
@@ -510,6 +513,7 @@ export default ({ setPageTitle }) => {
 
   return (
     <>
+      <InventoryResponsiveStyles />
       <ModalCargaMasiva
         propsModal1={propsModal1}
         propsModal2={propsModal2}
@@ -561,8 +565,16 @@ export default ({ setPageTitle }) => {
         toggleUpdateTable={setToggleUpdateTable}
         trigger={setIsModalReadProductBoxCodeVisible}
       />
-      <Container height="auto" flexDirection="column">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+      <Container
+        className="inventory-filter-panel"
+        height="auto"
+        flexDirection="column"
+      >
+        <Grid
+          className="inventory-filter-grid inventory-filter-grid-primary"
+          gridTemplateColumns="repeat(4, 1fr)"
+          gridGap="1rem"
+        >
           <Select
             value={familyId}
             onChange={(value) => updateState(setFamilyId, value)}
@@ -610,7 +622,11 @@ export default ({ setPageTitle }) => {
           />
         </Grid>
         <br />
-        <Grid gridTemplateColumns="2fr 1fr 2fr" gridGap="1rem">
+        <Grid
+          className="inventory-filter-grid inventory-filter-grid-secondary"
+          gridTemplateColumns="2fr 1fr 2fr"
+          gridGap="1rem"
+        >
           <AutoComplete
             label="Nombre comercial"
             color={"white"}
@@ -682,20 +698,22 @@ export default ({ setPageTitle }) => {
       </Container>
       <br />
       <Table
+        className="inventory-table"
         columns={columns}
         rowKey={(record) => record.id}
         bordered
         scrollToFirstRowOnChange
         pagination={pagination}
-        scroll={{ y: windowHeight * 0.5 - 32 }}
+        scroll={{ x: 980, y: Math.max(windowHeight * 0.5 - 32, 260) }}
         onChange={(pagination) =>
           updateState(setPage, pagination.current, true)
         }
         dataSource={products}
       />
       <br />
-      <Container height="15%">
+      <Container className="inventory-actions-panel" height="15%">
         <Grid
+          className="inventory-actions-grid"
           gridTemplateColumns="repeat(4, 1fr)"
           gridGap="2rem"
           justifyItems="center"
@@ -748,3 +766,107 @@ function s2ab(s) {
   for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xff;
   return buf;
 }
+
+const InventoryResponsiveStyles = createGlobalStyle`
+  .inventory-filter-panel {
+    width: 100%;
+  }
+
+  .inventory-filter-grid {
+    width: 100%;
+  }
+
+  .inventory-table .ant-table {
+    min-width: 980px;
+  }
+
+  .inventory-table .ant-table-thead > tr > th,
+  .inventory-table .ant-table-tbody > tr > td {
+    padding: 0.55rem 0.45rem;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .inventory-actions-panel {
+    width: 100%;
+  }
+
+  .inventory-actions-grid {
+    width: 100%;
+  }
+
+  @media (min-width: 1200px) {
+    .inventory-filter-panel,
+    .inventory-actions-panel {
+      max-width: 100%;
+    }
+
+    .inventory-table .ant-table-thead > tr > th,
+    .inventory-table .ant-table-tbody > tr > td {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .inventory-filter-panel {
+      padding: 0 0.75rem;
+    }
+
+    .inventory-filter-grid-primary,
+    .inventory-filter-grid-secondary {
+      grid-template-columns: 1fr !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    .inventory-filter-panel br {
+      display: none;
+    }
+
+    .inventory-filter-grid-secondary {
+      margin-top: 0.75rem;
+    }
+
+    .inventory-filter-grid .ant-input-wrapper.ant-input-group,
+    .inventory-filter-grid div:has(> .ant-input-group-addon + .ant-select) {
+      width: 100%;
+    }
+
+    .inventory-filter-grid .ant-input-group-addon {
+      min-width: 8.75rem;
+      text-align: left;
+      white-space: normal;
+    }
+
+    .inventory-table {
+      margin: 0 0.75rem;
+    }
+
+    .inventory-table .ant-table {
+      min-width: 920px;
+    }
+
+    .inventory-table .ant-table-pagination {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 0.35rem;
+    }
+
+    .inventory-actions-panel {
+      height: auto !important;
+      padding: 0 0.75rem 1rem;
+    }
+
+    .inventory-actions-grid {
+      grid-template-columns: 1fr !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    .inventory-actions-grid button {
+      max-width: 100%;
+      width: 100% !important;
+    }
+  }
+`;
