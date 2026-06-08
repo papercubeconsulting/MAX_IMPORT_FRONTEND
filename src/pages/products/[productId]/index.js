@@ -9,17 +9,28 @@ import {
   notification,
   Upload,
   Carousel,
+  Tooltip,
+  Tag,
 } from "antd";
 import styled, { createGlobalStyle } from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getProduct, getProducts, me, updateProduct, addProductToGroup, removeProductFromGroup } from "../../../providers";
+import {
+  getProduct,
+  getProductGroups,
+  getProducts,
+  me,
+  postProductGroup,
+  updateProduct,
+} from "../../../providers";
 import { toBase64 } from "../../../util";
 
 import {
   Container,
   Grid,
   Icon,
+  AutoComplete,
+  Select,
   Button as CustomButton,
 } from "../../../components";
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
@@ -82,9 +93,17 @@ export default () => {
   //images
   const [imagesList, setImagesList] = useState([]);
   const [groupProducts, setGroupProducts] = useState([]);
+  const [groupSearchProducts, setGroupSearchProducts] = useState([]);
+  const [productGroups, setProductGroups] = useState([]);
+  const [groupToAssign, setGroupToAssign] = useState({});
   const [isGroupRelationModalVisible, setIsGroupRelationModalVisible] = useState(false);
   const [groupSearchText, setGroupSearchText] = useState("");
+  const [groupProductSearchText, setGroupProductSearchText] = useState("");
+  const [groupProductSearchType, setGroupProductSearchType] =
+    useState("modelName");
+  const [groupProductSearchResults, setGroupProductSearchResults] = useState([]);
   const [isAddingToGroup, setIsAddingToGroup] = useState(false);
+  const [isAssigningGroup, setIsAssigningGroup] = useState(false);
 
   // preview
   const [previewImage, setPreviewImage] = useState(null);
@@ -165,6 +184,78 @@ export default () => {
     }
   };
 
+  const fetchGroupSearchProducts = async () => {
+    try {
+      const response = await getProducts({ stock: "all", pageSize: 10000 });
+      setGroupSearchProducts(get(response, "rows", response) || []);
+    } catch (error) {
+      notification.error({
+        message: "No se pudo cargar la lista de productos",
+        description: error.message,
+      });
+    }
+  };
+
+  const getGroupSearchProductLabel = (productItem) =>
+    `Modelo: ${get(productItem, "modelName", "-")} - NC: ${get(
+      productItem,
+      "tradename",
+      "-"
+    )} - Cod: ${get(productItem, "code", "-")}`;
+
+  const groupSearchOptions = () =>
+    groupSearchProducts.map((productItem) => ({
+      label: getGroupSearchProductLabel(productItem),
+      value: get(productItem, "code", ""),
+    }));
+
+  const uniqueSearchValues = (key) =>
+    [
+      ...new Set(
+        groupSearchProducts
+          .filter((productItem) => getProductGroup(productItem))
+          .map((productItem) => get(productItem, key))
+          .filter(Boolean)
+      ),
+    ].sort();
+
+  const groupProductSearchOptions = () => {
+    const key =
+      groupProductSearchType === "modelName" ? "modelName" : "tradename";
+
+    return uniqueSearchValues(key).map((value) => ({
+      label:
+        groupProductSearchType === "modelName"
+          ? `Modelo: ${value}`
+          : `NC: ${value}`,
+      value,
+    }));
+  };
+
+  const fetchProductGroups = async () => {
+    try {
+      const _productGroups = await getProductGroups({ isActive: true });
+      setProductGroups(_productGroups);
+    } catch (error) {
+      notification.error({
+        message: "No se pudo cargar la lista de grupos",
+        description: error.message,
+      });
+    }
+  };
+
+  const productGroupOptions = () =>
+    productGroups.map((productGroup) => ({
+      label: productGroup.name,
+      value: productGroup.id,
+    }));
+
+  const autoCompleteColor = (id, name) => {
+    if (id) return "#28a746";
+    if (name) return "#17a3b8";
+    return "#dc3546";
+  };
+
   const getGroupRelatedTradename = (groupProduct) =>
     get(groupProduct, 'tradename', get(groupProduct, 'product.tradename', '-'));
 
@@ -175,21 +266,14 @@ export default () => {
       )
     );
 
-  const getProductGroupCode = (productItem) =>
-    get(productItem, 'group.code',
-      get(productItem, 'product.group.code',
-        get(productItem, 'groupCode', get(productItem, 'product.groupCode', '-'))
-      )
-    );
+  const getProductGroup = (productItem) =>
+    get(productItem, "productGroup", get(productItem, "ProductGroup", null));
 
-  const getProductGroupSize = (productItem) => {
-    const groupArray = get(productItem, 'productGroups',
-      get(productItem, 'product.productGroups', []));
-    if (Array.isArray(groupArray) && groupArray.length > 0) {
-      return groupArray.length + 1;
-    }
-    return get(productItem, 'group.size', get(productItem, 'product.group.size', 1));
-  };
+  const getProductGroupCode = (productItem = product) =>
+    get(getProductGroup(productItem), "code", "-");
+
+  const getProductGroupId = (productItem = product) =>
+    get(productItem, "groupId", get(getProductGroup(productItem), "id"));
 
   const findProductToAdd = (products, searchText) => {
     const normalized = (searchText || '').trim().toLowerCase();
@@ -202,47 +286,187 @@ export default () => {
     return exact || (products || [])[0] || null;
   };
 
-  const loadGroupProducts = async () => {
-    const relatedProducts = get(product, 'productGroups', []);
-    if (relatedProducts && relatedProducts.length > 0) {
-      setGroupProducts(relatedProducts);
-      setIsGroupRelationModalVisible(true);
-      return;
-    }
+  const loadGroupProducts = async (sourceProduct = product) => {
+    const groupId = getProductGroupId(sourceProduct);
+    setIsGroupRelationModalVisible(true);
+    setGroupProducts([]);
 
-    if (!product?.tradename) {
-      setGroupProducts([]);
-      setIsGroupRelationModalVisible(true);
-      return;
-    }
+    if (!groupId) return;
 
     try {
-      const response = await getProducts({ tradename: product.tradename });
+      const response = await getProducts({
+        groupId,
+        stock: "all",
+        pageSize: 200,
+      });
       const rows = get(response, 'rows', response);
-      const filtered = (rows || []).filter(
-        (item) => get(item, 'id') !== get(product, 'id')
-      );
-      setGroupProducts(filtered);
-      setIsGroupRelationModalVisible(true);
+      setGroupProducts(rows || []);
     } catch (error) {
       console.log('error loading group products', error);
       notification.error({
-        message: 'No se pudo cargar los productos relacionados',
+        message: 'No se pudo cargar los productos del grupo',
         description: error.message,
       });
       setGroupProducts([]);
-      setIsGroupRelationModalVisible(true);
     }
   };
 
-  const removeProductFromGroup = async (groupProduct) => {
+  const ensureCurrentProductGroup = async () => {
+    const currentGroupId = getProductGroupId(product);
+    if (currentGroupId) return currentGroupId;
+
+    const groupCode = get(product, "code", `P-${productId}`);
+    const newGroup = await postProductGroup({
+      name: groupCode,
+      code: groupCode,
+    });
+
+    const updatedCurrentProduct = await updateProduct(productId, {
+      groupId: newGroup.id,
+    });
+    setProduct({
+      ...product,
+      ...updatedCurrentProduct,
+      productGroup: newGroup,
+      ProductGroup: newGroup,
+    });
+
+    return newGroup.id;
+  };
+
+  const assignCurrentProductToGroup = async () => {
+    if (!groupToAssign.name) {
+      notification.warning({
+        message: "Ingrese o seleccione un grupo",
+      });
+      return;
+    }
+
+    if (!groupToAssign.code) {
+      notification.warning({
+        message: "Ingrese el código del grupo",
+      });
+      return;
+    }
+
+    setIsAssigningGroup(true);
     try {
-      await removeProductFromGroup(productId, get(groupProduct, 'id'));
+      const selectedGroup = groupToAssign.id
+        ? groupToAssign
+        : await postProductGroup({
+            name: groupToAssign.name,
+            code: groupToAssign.code,
+          });
+
+      const updatedProduct = await updateProduct(productId, {
+        groupId: selectedGroup.id,
+      });
+
+      const nextProduct = {
+        ...product,
+        ...updatedProduct,
+        groupId: selectedGroup.id,
+        productGroup: selectedGroup,
+        ProductGroup: selectedGroup,
+      };
+
+      setProduct(nextProduct);
+      setGroupToAssign({});
+      await fetchProductGroups();
+      await loadGroupProducts(nextProduct);
+      notification.success({
+        message: "Producto agregado al grupo correctamente",
+      });
+    } catch (error) {
+      notification.error({
+        message: "No se pudo asignar el grupo",
+        description: error.message,
+      });
+    } finally {
+      setIsAssigningGroup(false);
+    }
+  };
+
+  const searchProductGroupsByProduct = () => {
+    const searchText = groupProductSearchText.trim().toLowerCase();
+
+    if (!searchText) {
+      notification.warning({
+        message: "Ingrese un texto de búsqueda",
+      });
+      return;
+    }
+
+    const key =
+      groupProductSearchType === "modelName" ? "modelName" : "tradename";
+    const results = groupSearchProducts.filter(
+      (productItem) =>
+        getProductGroup(productItem) &&
+        get(productItem, key, "").toLowerCase().includes(searchText)
+    );
+
+    setGroupProductSearchResults(results);
+
+    if (!results.length) {
+      notification.warning({
+        message: "No se encontraron productos con grupo",
+      });
+    }
+  };
+
+  const assignCurrentProductToSearchedProductGroup = async (selectedProduct) => {
+    const selectedGroup = getProductGroup(selectedProduct);
+
+    if (!selectedGroup) return;
+    setIsAssigningGroup(true);
+    try {
+      const updatedProduct = await updateProduct(productId, {
+        groupId: selectedGroup.id,
+      });
+      const nextProduct = {
+        ...product,
+        ...updatedProduct,
+        groupId: selectedGroup.id,
+        productGroup: selectedGroup,
+        ProductGroup: selectedGroup,
+      };
+
+      setProduct(nextProduct);
+      setGroupProductSearchText("");
+      setGroupProductSearchResults([]);
+      await loadGroupProducts(nextProduct);
+      notification.success({
+        message: "Producto agregado al grupo correctamente",
+      });
+    } catch (error) {
+      notification.error({
+        message: "No se pudo asignar el grupo",
+        description: error.message,
+      });
+    } finally {
+      setIsAssigningGroup(false);
+    }
+  };
+
+  const getGroupProductCount = async (groupId) => {
+    if (!groupId) return 0;
+    const response = await getProducts({ groupId, stock: "all", pageSize: 1 });
+    return get(response, "length", get(response, "rows.length", 0));
+  };
+
+  const removeProductFromCurrentGroup = async (groupProduct) => {
+    try {
+      await updateProduct(get(groupProduct, 'id'), { groupId: null });
       notification.success({
         message: 'Producto retirado del grupo correctamente',
       });
       await fetchProduct();
-      setIsGroupRelationModalVisible(false);
+      const removedCurrentProduct = get(groupProduct, "id") === get(product, "id");
+      if (removedCurrentProduct) {
+        setGroupProducts([]);
+      } else {
+        await loadGroupProducts();
+      }
     } catch (error) {
       notification.error({
         message: error.message,
@@ -260,9 +484,17 @@ export default () => {
 
     setIsAddingToGroup(true);
     try {
-      const response = await getProducts({ tradename: groupSearchText });
-      const rows = get(response, 'rows', response);
-      const productToAdd = findProductToAdd(rows, groupSearchText);
+      const searchText = groupSearchText.trim();
+      const byCodeResponse = await getProducts({ code: searchText, stock: "all" });
+      const byCodeRows = get(byCodeResponse, "rows", byCodeResponse);
+      const byTradenameResponse =
+        byCodeRows && byCodeRows.length
+          ? null
+          : await getProducts({ tradename: searchText, stock: "all" });
+      const rows = byCodeRows && byCodeRows.length
+        ? byCodeRows
+        : get(byTradenameResponse, "rows", byTradenameResponse);
+      const productToAdd = findProductToAdd(rows, searchText);
       if (!productToAdd) {
         notification.error({
           message: 'No se encontró ningún producto para agregar',
@@ -277,14 +509,21 @@ export default () => {
         return;
       }
 
-      const targetGroupSize = getProductGroupSize(productToAdd);
+      const targetGroupId = getProductGroupId(productToAdd);
+      const targetGroupSize = await getGroupProductCount(targetGroupId);
       const targetGroupCode = getProductGroupCode(productToAdd);
+      const currentGroupId = getProductGroupId(product);
+
+      if (targetGroupId && currentGroupId && targetGroupId === currentGroupId) {
+        notification.info({
+          message: 'El producto ya pertenece a este grupo',
+        });
+        return;
+      }
 
       const executeAdd = async () => {
-        const existingGroups = get(product, 'productGroups', []) || [];
-        const alreadyInGroup = existingGroups.some(
-          (item) => get(item, 'id') === get(productToAdd, 'id')
-        );
+        const ensuredCurrentGroupId = await ensureCurrentProductGroup();
+        const alreadyInGroup = targetGroupId === ensuredCurrentGroupId;
         if (alreadyInGroup) {
           notification.info({
             message: 'El producto ya pertenece a este grupo',
@@ -292,11 +531,17 @@ export default () => {
           return;
         }
 
-        await addProductToGroup(productId, get(productToAdd, 'id'));
+        await updateProduct(get(productToAdd, 'id'), {
+          groupId: ensuredCurrentGroupId,
+        });
         notification.success({
           message: 'Producto agregado al grupo correctamente',
         });
         await fetchProduct();
+        await loadGroupProducts({
+          ...product,
+          groupId: ensuredCurrentGroupId,
+        });
         setGroupSearchText('');
       };
 
@@ -325,11 +570,19 @@ export default () => {
       title: '¿Está seguro que quiere retirar este producto del grupo?',
       okText: 'ok',
       cancelText: 'cancelar',
-      onOk: () => removeProductFromGroup(groupProduct),
+      onOk: () => removeProductFromCurrentGroup(groupProduct),
     });
   };
 
   const groupColumns = [
+    {
+      title: 'Cod.',
+      dataIndex: 'code',
+      key: 'code',
+      width: 90,
+      align: "center",
+      render: (_, record) => get(record, "code", "-"),
+    },
     {
       title: 'Nombre comercial',
       dataIndex: 'tradename',
@@ -347,13 +600,14 @@ export default () => {
       width: '140px',
       align: 'center',
       render: (_, record) => (
-        <Button
-          type="danger"
-          shape="circle"
-          icon={<DeleteOutlined />}
-          title="eliminar producto de grupo"
-          onClick={() => confirmRemoveFromGroup(record)}
-        />
+        <Tooltip title="Retirar producto del grupo">
+          <Button
+            type="danger"
+            shape="circle"
+            icon={<DeleteOutlined />}
+            onClick={() => confirmRemoveFromGroup(record)}
+          />
+        </Tooltip>
       ),
     },
   ];
@@ -361,6 +615,8 @@ export default () => {
   useEffect(() => {
     if (productId) {
       fetchProduct();
+      fetchGroupSearchProducts();
+      fetchProductGroups();
     }
   }, [productId]);
 
@@ -497,64 +753,196 @@ export default () => {
         />
       )}
       <Modal
-        title="Productos relacionados"
+        title={`Mantenimiento de grupo ${
+          getProductGroupId(product) ? getProductGroupCode(product) : ""
+        }`}
         open={isGroupRelationModalVisible}
         width="80%"
         wrapClassName="group-products-modal"
         footer={null}
         onCancel={() => setIsGroupRelationModalVisible(false)}
       >
-        <Table
-          className="group-products-table"
-          columns={groupColumns}
-          dataSource={(groupProducts || []).map((item, index) => ({
-            ...item,
-            key: get(item, 'id', index),
-          }))}
-          pagination={false}
-          scroll={{ x: 520, y: 400 }}
-          rowKey={(record) => get(record, 'id', record.key)}
-        />
-        <div className="group-products-mobile-list">
-          {(groupProducts || []).map((item, index) => (
-            <div
-              className="group-products-mobile-card"
-              key={get(item, 'id', index)}
-            >
-              <div className="group-products-mobile-field">
-                <span>Nombre comercial</span>
-                <strong>{getGroupRelatedTradename(item)}</strong>
-              </div>
-              <div className="group-products-mobile-field">
-                <span>Código de modelo</span>
-                <strong>{getGroupRelatedModelCode(item)}</strong>
-              </div>
-              <div className="group-products-mobile-actions">
-                <Button
-                  type="danger"
-                  shape="circle"
-                  icon={<DeleteOutlined />}
-                  title="eliminar producto de grupo"
-                  onClick={() => confirmRemoveFromGroup(item)}
-                />
-              </div>
+        {!getProductGroupId(product) && (
+          <GroupAssignSection>
+            <div className="group-products-section-title">
+              Agregar este producto a un grupo
             </div>
-          ))}
-        </div>
-        <div className="group-products-add-row">
-          <Input
-            placeholder="Buscar producto para agregar al grupo"
-            value={groupSearchText}
-            onChange={(e) => setGroupSearchText(e.target.value)}
-          />
-          <Button
-            type="primary"
-            onClick={addProductToCurrentGroup}
-            loading={isAddingToGroup}
-          >
-            Agregar
-          </Button>
-        </div>
+            <Grid gridTemplateColumns="2fr 1fr auto" gridGap="1rem">
+              <AutoComplete
+                label="Grupo"
+                color={autoCompleteColor(groupToAssign.id, groupToAssign.name)}
+                value={groupToAssign.name}
+                onSelect={(value) => {
+                  const selectedGroup = productGroups.find(
+                    (productGroup) => productGroup.id === value
+                  );
+                  setGroupToAssign(selectedGroup);
+                }}
+                onSearch={(value) => {
+                  setGroupToAssign((prevValue) => ({
+                    name: value,
+                    code: prevValue.id ? value : value,
+                  }));
+                }}
+                _options={productGroupOptions()}
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().includes(input.toLowerCase())
+                }
+              />
+              <Input
+                value={groupToAssign.code}
+                disabled={groupToAssign.id}
+                onChange={(event) => {
+                  const newValue = event.target.value;
+                  setGroupToAssign((prevValue) => ({
+                    name: prevValue.name,
+                    code: newValue,
+                  }));
+                }}
+                addonBefore="Código"
+              />
+              <Button
+                type="primary"
+                onClick={assignCurrentProductToGroup}
+                loading={isAssigningGroup}
+              >
+                Asignar grupo
+              </Button>
+            </Grid>
+            <GroupProductSearchBlock>
+              <div className="group-products-section-title">
+                Buscar grupo por producto
+              </div>
+              <Grid gridTemplateColumns="1fr 2fr auto" gridGap="1rem">
+                <Select
+                  label="Buscar por"
+                  value={groupProductSearchType}
+                  onChange={(value) => {
+                    setGroupProductSearchType(value);
+                    setGroupProductSearchText("");
+                    setGroupProductSearchResults([]);
+                  }}
+                  options={[
+                    { label: "Modelo", value: "modelName" },
+                    { label: "Nombre comercial", value: "tradename" },
+                  ]}
+                />
+                <AutoComplete
+                  label="Texto"
+                  color="#ffffff"
+                  colorFont="#404040"
+                  value={groupProductSearchText}
+                  onSearch={(value) => setGroupProductSearchText(value)}
+                  onSelect={(value) => setGroupProductSearchText(value)}
+                  onPressEnter={searchProductGroupsByProduct}
+                  _options={groupProductSearchOptions()}
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                />
+                <Button
+                  type="primary"
+                  onClick={searchProductGroupsByProduct}
+                >
+                  Buscar
+                </Button>
+              </Grid>
+              {groupProductSearchResults.length > 0 && (
+                <GroupProductSearchResults>
+                  {groupProductSearchResults.map((result) => {
+                    const resultGroup = getProductGroup(result);
+                    return (
+                      <ProductGroupResultRow key={get(result, "id")}>
+                        <span>{getGroupSearchProductLabel(result)}</span>
+                        <Tag>Grupo: {get(resultGroup, "code", "-")}</Tag>
+                        <Button
+                          type="primary"
+                          onClick={() =>
+                            assignCurrentProductToSearchedProductGroup(result)
+                          }
+                          loading={isAssigningGroup}
+                        >
+                          Usar grupo
+                        </Button>
+                      </ProductGroupResultRow>
+                    );
+                  })}
+                </GroupProductSearchResults>
+              )}
+            </GroupProductSearchBlock>
+          </GroupAssignSection>
+        )}
+        {getProductGroupId(product) && (
+          <>
+            <div className="group-products-section-title">
+              Productos del grupo
+            </div>
+            <Table
+              className="group-products-table"
+              columns={groupColumns}
+              dataSource={(groupProducts || []).map((item, index) => ({
+                ...item,
+                key: get(item, 'id', index),
+              }))}
+              pagination={false}
+              scroll={{ x: 520, y: 400 }}
+              rowKey={(record) => get(record, 'id', record.key)}
+            />
+            <div className="group-products-mobile-list">
+              {(groupProducts || []).map((item, index) => (
+                <div
+                  className="group-products-mobile-card"
+                  key={get(item, 'id', index)}
+                >
+                  <div className="group-products-mobile-field">
+                    <span>Código</span>
+                    <strong>{get(item, "code", "-")}</strong>
+                  </div>
+                  <div className="group-products-mobile-field">
+                    <span>Nombre comercial</span>
+                    <strong>{getGroupRelatedTradename(item)}</strong>
+                  </div>
+                  <div className="group-products-mobile-field">
+                    <span>Código de modelo</span>
+                    <strong>{getGroupRelatedModelCode(item)}</strong>
+                  </div>
+                  <div className="group-products-mobile-actions">
+                    <Tooltip title="Retirar producto del grupo">
+                      <Button
+                        type="danger"
+                        shape="circle"
+                        icon={<DeleteOutlined />}
+                        onClick={() => confirmRemoveFromGroup(item)}
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="group-products-add-row">
+              <AutoComplete
+                color="#ffffff"
+                colorFont="#404040"
+                placeholder="Modelo - nombre comercial - código Max"
+                value={groupSearchText}
+                onSearch={(value) => setGroupSearchText(value)}
+                onSelect={(value) => setGroupSearchText(value)}
+                onPressEnter={addProductToCurrentGroup}
+                _options={groupSearchOptions()}
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().includes(input.toLowerCase())
+                }
+              />
+              <Button
+                type="primary"
+                onClick={addProductToCurrentGroup}
+                loading={isAddingToGroup}
+              >
+                Agregar
+              </Button>
+            </div>
+          </>
+        )}
       </Modal>
       <Modal
         open={showImagePreview}
@@ -642,13 +1030,14 @@ export default () => {
               }}
               style={{ gridColumn: 'span 2' }}
             />
-            <CustomButton
-              type="primary"
-              style={{ whiteSpace: 'nowrap', height: '2rem' }}
-              onClick={loadGroupProducts}
-            >
-              Prod.Relacionados - Grupo
-            </CustomButton>
+            <GroupLinkContainer>
+              <span>Grupo:</span>
+              <button type="button" onClick={() => loadGroupProducts()}>
+                {getProductGroupId(product)
+                  ? getProductGroupCode(product)
+                  : "Agregar a grupo"}
+              </button>
+            </GroupLinkContainer>
           </Grid>
         </Grid>
         {user !== null && !isLogistic && (
@@ -705,7 +1094,6 @@ export default () => {
         <Button
           style={{ width: "30%" }}
           type="primary"
-          gridColumnStart="4"
           onClick={updateProductFields}
           disabled={disabled}
         >
@@ -714,7 +1102,6 @@ export default () => {
         <Button
           style={{ width: "10%" }}
           type="dashed"
-          gridColumnStart="4"
           onClick={() => fetchProduct()}
           // disabled={disabled}
         >
@@ -888,6 +1275,75 @@ const ImagePreviewContainer = styled(Container)`
   }
 `;
 
+const GroupAssignSection = styled.div`
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+`;
+
+const GroupProductSearchBlock = styled.div`
+  border-top: 1px solid #f0f0f0;
+  margin-top: 1rem;
+  padding-top: 1rem;
+`;
+
+const GroupProductSearchResults = styled.div`
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+`;
+
+const ProductGroupResultRow = styled.div`
+  align-items: center;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr auto auto;
+  padding: 0.5rem 0.75rem;
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+`;
+
+const GroupLinkContainer = styled.div`
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  display: flex;
+  height: 2rem;
+  min-width: 0;
+  overflow: hidden;
+
+  span {
+    background: #fafafa;
+    border-right: 1px solid #d9d9d9;
+    color: rgba(0, 0, 0, 0.65);
+    flex: 0 0 auto;
+    height: 100%;
+    line-height: 2rem;
+    padding: 0 0.7rem;
+  }
+
+  button {
+    background: transparent;
+    border: 0;
+    color: #1890ff;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0 0.7rem;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
 const ProductDetailResponsiveStyles = createGlobalStyle`
   .product-detail-info-section,
   .product-detail-stock-section,
@@ -913,6 +1369,13 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
 
   .group-products-table .ant-table {
     min-width: 520px;
+  }
+
+  .group-products-section-title {
+    color: #222;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
   }
 
   .group-products-table .ant-table-thead > tr > th,
@@ -1254,6 +1717,24 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
       gap: 0.75rem;
       grid-template-columns: 1fr;
       margin-top: 0.85rem;
+    }
+
+    ${GroupAssignSection} {
+      padding: 0.75rem;
+    }
+
+    ${GroupAssignSection} > div {
+      grid-template-columns: 1fr !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    ${GroupProductSearchBlock} > div {
+      grid-template-columns: 1fr !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    ${ProductGroupResultRow} {
+      grid-template-columns: 1fr !important;
     }
 
     .group-products-add-row .ant-input {
