@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Input, Modal, notification, Tag, Upload } from "antd";
+import { Collapse, Input, Modal, notification, Tag, Upload } from "antd";
 import { AutoComplete, Button, Container, Grid, Icon, Select } from "../index";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import {
   getElements,
   getFamilies,
   getModels,
+  getProducts,
+  getProductGroupSearchOptions,
+  getProductGroups,
   getProviders,
   getSubfamilies,
+  postProductGroup,
   postProduct,
 } from "../../providers";
 import { toBase64 } from "../../util";
@@ -21,6 +25,17 @@ export const AddProduct = (props) => {
   const [subfamilies, setSubfamilies] = useState([]);
   const [elements, setElements] = useState([]);
   const [models, setModels] = useState([]);
+  const [productGroups, setProductGroups] = useState([]);
+  const [productGroupSearchOptions, setProductGroupSearchOptions] = useState({
+    models: [],
+    tradenames: [],
+  });
+  const [productGroupSuggestions, setProductGroupSuggestions] = useState([]);
+  const [isLoadingProductGroupSuggestions, setIsLoadingProductGroupSuggestions] =
+    useState(false);
+  const [productGroupSearchType, setProductGroupSearchType] =
+    useState("modelName");
+  const [productGroupSearchText, setProductGroupSearchText] = useState("");
   const [providers, setProviders] = useState([]);
 
   // * Fields to create source
@@ -28,6 +43,7 @@ export const AddProduct = (props) => {
   const [subfamily, setSubfamily] = useState({});
   const [element, setElement] = useState({});
   const [model, setModel] = useState({});
+  const [productGroup, setProductGroup] = useState({});
   const [provider, setProvider] = useState({});
   const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [compatibility, setCompatibility] = useState(null);
@@ -46,6 +62,13 @@ export const AddProduct = (props) => {
       try {
         const _families = await getFamilies();
         setFamilies(_families);
+
+        const _productGroups = await getProductGroups({ isActive: true });
+        setProductGroups(_productGroups);
+
+        const _productGroupSearchOptions = await getProductGroupSearchOptions();
+        setProductGroupSearchOptions(_productGroupSearchOptions);
+
 
         const _providers = await getProviders({ active: true });
         setProviders(_providers);
@@ -155,10 +178,59 @@ export const AddProduct = (props) => {
       value: document.id,
     }));
 
+  const searchTextOptions = () => {
+    if (productGroupSearchType === "modelName") {
+      return productGroupSearchOptions.models.map((modelName) => ({
+        label: modelName,
+        value: modelName,
+      }));
+    }
+
+    return productGroupSearchOptions.tradenames.map((tradename) => ({
+      label: tradename,
+      value: tradename,
+    }));
+  };
+
   const autoCompleteColor = (id, name) => {
     if (id) return colors[1];
     if (name) return colors[2];
     return colors[0];
+  };
+
+  const getProductGroup = (product) =>
+    product.productGroup || product.ProductGroup;
+
+  const searchProductGroupSuggestions = async () => {
+    try {
+      const searchText = productGroupSearchText.trim();
+      setProductGroupSuggestions([]);
+
+      if (!searchText) {
+        return notification.error({
+          message: "Error al buscar productos",
+          description: "Ingrese un texto de búsqueda",
+        });
+      }
+
+      setIsLoadingProductGroupSuggestions(true);
+      const _products = await getProducts({
+        [productGroupSearchType]: searchText,
+        stock: "all",
+        pageSize: 20,
+      });
+
+      setProductGroupSuggestions(
+        (_products.rows || []).filter((product) => getProductGroup(product))
+      );
+    } catch (error) {
+      notification.error({
+        message: "Error en el servidor",
+        description: error.message,
+      });
+    } finally {
+      setIsLoadingProductGroupSuggestions(false);
+    }
   };
 
   const confirmAddProduct = () => {
@@ -224,6 +296,18 @@ export const AddProduct = (props) => {
         description: "Ingrese un modelo",
       });
     }
+    if (!productGroup.name) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese un grupo",
+      });
+    }
+    if (!productGroup.code) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: "Ingrese el código del grupo",
+      });
+    }
     Modal.confirm({
       width: "90%",
       title: "¿Está seguro de que desea crear este ítem en el inventario?",
@@ -246,6 +330,10 @@ export const AddProduct = (props) => {
             <CategoryContainer>
               <CategoryTitle>MODELO</CategoryTitle>
               <Tag>{`${model.name}`}</Tag>
+            </CategoryContainer>
+            <CategoryContainer>
+              <CategoryTitle>GRUPO</CategoryTitle>
+              <Tag>{`${productGroup.name} (${productGroup.code})`}</Tag>
             </CategoryContainer>
           </Container>
           <Container padding="1rem 0" flexDirection="column">
@@ -323,11 +411,19 @@ export const AddProduct = (props) => {
   const submitProduct = async () => {
     try {
       let imagesBodySection = await getImagesBody();
+      const selectedProductGroup = productGroup.id
+        ? productGroup
+        : await postProductGroup({
+            name: productGroup.name,
+            code: productGroup.code,
+          });
+
       const body = {
         familyId: family.id,
         subfamilyId: subfamily.id,
         elementId: element.id,
         modelId: model.id,
+        groupId: selectedProductGroup.id,
         familyName: family.name,
         subfamilyName: subfamily.name,
         elementName: element.name,
@@ -374,8 +470,8 @@ export const AddProduct = (props) => {
       width="95%"
       title="Nuevo ítem inventario"
     >
-      <Grid gridTemplateRows="repeat(2, 1fr)" gridGap="1rem">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+      <Grid gridGap="1rem">
+        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Input
             value={family.code}
             disabled={family.id}
@@ -492,6 +588,124 @@ export const AddProduct = (props) => {
             }
           />
         </Grid>
+        <ProductGroupSection>
+          <Collapse>
+            <Collapse.Panel
+              key="product-group"
+              header={
+                productGroup.name
+                  ? `Grupo Producto: ${productGroup.name} (${productGroup.code})`
+                  : "Grupo Producto"
+              }
+            >
+              <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+                <AutoComplete
+                  label="Grupo"
+                  color={autoCompleteColor(productGroup.id, productGroup.name)}
+                  value={productGroup.name}
+                  onSelect={(value) => {
+                    const _productGroup = productGroups.find(
+                      (productGroup) => productGroup.id === value
+                    );
+                    setProductGroup(_productGroup);
+                  }}
+                  onSearch={(value) => {
+                    setProductGroup((prevValue) => ({
+                      name: value,
+                      code: prevValue.id ? value : value,
+                    }));
+                  }}
+                  _options={selectOptions(productGroups)}
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                />
+                <Input
+                  value={productGroup.code}
+                  disabled={productGroup.id}
+                  onChange={(event) => {
+                    const newValue = event.target.value;
+                    setProductGroup((prevValue) => ({
+                      name: prevValue.name,
+                      code: newValue,
+                    }));
+                  }}
+                  addonBefore="Código Grupo"
+                />
+              </Grid>
+              <ProductSuggestions>
+                <SectionSubtitle>Buscar grupo por producto</SectionSubtitle>
+                <Grid gridTemplateColumns="1fr 2fr auto" gridGap="1rem">
+                  <Select
+                    label="Buscar por"
+                    value={productGroupSearchType}
+                    onChange={(value) => {
+                      setProductGroupSearchType(value);
+                      setProductGroupSearchText("");
+                      setProductGroupSuggestions([]);
+                    }}
+                    options={[
+                      { label: "Modelo", value: "modelName" },
+                      { label: "Nombre comercial", value: "tradename" },
+                    ]}
+                  />
+                  <AutoComplete
+                    label="Texto"
+                    color="#ffffff"
+                    colorFont="#404040"
+                    value={productGroupSearchText}
+                    onSelect={(value) => setProductGroupSearchText(value)}
+                    onSearch={(value) => setProductGroupSearchText(value)}
+                    onPressEnter={() => searchProductGroupSuggestions()}
+                    _options={searchTextOptions()}
+                    filterOption={(input, option) =>
+                      option.children
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                  />
+                  <Button
+                    type="primary"
+                    onClick={() => searchProductGroupSuggestions()}
+                  >
+                    Buscar
+                  </Button>
+                </Grid>
+                {isLoadingProductGroupSuggestions ? (
+                  <EmptyText>Cargando productos...</EmptyText>
+                ) : productGroupSuggestions.length ? (
+                  <ProductSuggestionList>
+                    {productGroupSuggestions.map((product) => {
+                      const _productGroup = getProductGroup(product);
+                      return (
+                        <ProductSuggestionRow key={product.id}>
+                          <ProductSuggestionInfo>
+                            <strong>{product.code}</strong>
+                            <span>{product.modelName}</span>
+                            <span>{product.tradename}</span>
+                            <Tag color={colors[1]}>
+                              {_productGroup.name} ({_productGroup.code})
+                            </Tag>
+                          </ProductSuggestionInfo>
+                          <Button
+                            type="primary"
+                            onClick={() => setProductGroup(_productGroup)}
+                          >
+                            Usar grupo
+                          </Button>
+                        </ProductSuggestionRow>
+                      );
+                    })}
+                  </ProductSuggestionList>
+                ) : (
+                  <EmptyText>
+                    No hay productos con grupo para esta búsqueda.
+                  </EmptyText>
+                )}
+              </ProductSuggestions>
+            </Collapse.Panel>
+          </Collapse>
+        </ProductGroupSection>
         <Grid gridTemplateColumns="3fr 2fr 3fr " gridGap="1rem">
           <Select
             value={provider.name}
@@ -625,6 +839,45 @@ const CategoryTitle = styled(Tag)`
   font-weight: bold;
   border-width: 2px !important;
   border-color: black !important;
+`;
+
+const ProductGroupSection = styled.div`
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 1rem;
+`;
+
+const SectionSubtitle = styled.h4`
+  margin: 0 0 0.75rem 0;
+`;
+
+const ProductSuggestions = styled.div`
+  margin-top: 1rem;
+`;
+
+const ProductSuggestionList = styled.div`
+  display: grid;
+  grid-gap: 0.5rem;
+`;
+
+const ProductSuggestionRow = styled.div`
+  align-items: center;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+`;
+
+const ProductSuggestionInfo = styled.div`
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+const EmptyText = styled.div`
+  color: #8c8c8c;
 `;
 
 const LegendsContainer = styled(Container)`
