@@ -10,7 +10,7 @@ import {
   Upload,
   Carousel,
 } from "antd";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getProduct, getProducts, me, updateProduct, addProductToGroup, removeProductFromGroup } from "../../../providers";
@@ -489,6 +489,7 @@ export default () => {
 
   return (
     <>
+      <ProductDetailResponsiveStyles />
       {isModalReadProductBoxCodeVisible && (
         <ReadProductCode
           visible={isModalReadProductBoxCodeVisible}
@@ -499,20 +500,48 @@ export default () => {
         title="Productos relacionados"
         open={isGroupRelationModalVisible}
         width="80%"
+        wrapClassName="group-products-modal"
         footer={null}
         onCancel={() => setIsGroupRelationModalVisible(false)}
       >
         <Table
+          className="group-products-table"
           columns={groupColumns}
           dataSource={(groupProducts || []).map((item, index) => ({
             ...item,
             key: get(item, 'id', index),
           }))}
           pagination={false}
-          scroll={{ y: 400 }}
+          scroll={{ x: 520, y: 400 }}
           rowKey={(record) => get(record, 'id', record.key)}
         />
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <div className="group-products-mobile-list">
+          {(groupProducts || []).map((item, index) => (
+            <div
+              className="group-products-mobile-card"
+              key={get(item, 'id', index)}
+            >
+              <div className="group-products-mobile-field">
+                <span>Nombre comercial</span>
+                <strong>{getGroupRelatedTradename(item)}</strong>
+              </div>
+              <div className="group-products-mobile-field">
+                <span>Código de modelo</span>
+                <strong>{getGroupRelatedModelCode(item)}</strong>
+              </div>
+              <div className="group-products-mobile-actions">
+                <Button
+                  type="danger"
+                  shape="circle"
+                  icon={<DeleteOutlined />}
+                  title="eliminar producto de grupo"
+                  onClick={() => confirmRemoveFromGroup(item)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="group-products-add-row">
           <Input
             placeholder="Buscar producto para agregar al grupo"
             value={groupSearchText}
@@ -546,9 +575,14 @@ export default () => {
       >
         <ModalBoxesDetail productId={productId} />
       </Modal>
-      <Container height="auto" flexDirection="column">
-        <Grid gridTemplateRows="1fr" gridGap="1rem">
+      <Container
+        className="product-detail-info-section"
+        height="auto"
+        flexDirection="column"
+      >
+        <Grid className="product-detail-info-wrapper" gridTemplateRows="1fr" gridGap="1rem">
           <Grid
+            className="product-detail-form-grid"
             gridTemplateColumns="repeat(4, 1fr)"
             gridTemplateRows="repeat(2, 2rem)"
             gridGap="1rem"
@@ -619,6 +653,7 @@ export default () => {
         </Grid>
         {user !== null && !isLogistic && (
           <Grid
+            className="product-detail-pricing-grid"
             style={{ margin: "1rem 0" }}
             gridTemplateColumns="repeat(3, 1fr)"
             gridTemplateRows="repeat(1, 2rem)"
@@ -659,6 +694,7 @@ export default () => {
         )}
       </Container>
       <div
+        className="product-detail-main-actions"
         style={{
           width: "100%",
           display: "flex",
@@ -687,31 +723,42 @@ export default () => {
       </div>
 
       <Container
+        className="product-detail-stock-section"
         height="auto"
         flexDirection="column"
         textAlign="center"
         padding="1rem 0"
       >
-        <Grid gridTemplateRows="repeat(2, auto)" gridGap="1rem">
-          <div>
+        <Grid className="product-detail-stock-wrapper" gridTemplateRows="repeat(2, auto)" gridGap="1rem">
+          <div className="product-detail-stock-units">
             <h3>
               Disponibilidad del producto en los almacenes (unidades totales)
             </h3>
             <br />
-            <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
+            <Grid
+              className="product-detail-stock-summary-grid"
+              gridTemplateColumns="repeat(2, 1fr)"
+              gridGap="1rem"
+            >
               <Table
+                className="product-detail-units-table"
                 columns={stockByWarehouseColumns}
                 bordered
                 scrollToFirstRowOnChange
                 pagination={false}
+                scroll={{ x: 360 }}
                 dataSource={get(product, "stockByWarehouse", [])}
               />
               <Container
+                className={`product-detail-image-section ${
+                  imagesPreview.length === 0 ? "product-detail-image-section-empty" : ""
+                }`}
                 justifyContent="center"
                 padding="0px"
                 flexDirection="row"
               >
                 <Container
+                  className="product-detail-image-carousel"
                   display="block"
                   width="350px"
                   height="250px"
@@ -740,7 +787,7 @@ export default () => {
                     ))}
                   </StyledCarousel>
                 </Container>
-                <Container width="200px">
+                <Container className="product-detail-image-upload" width="200px">
                   <Upload
                     className="ant-upload-wrapper"
                     fileList={imagesList}
@@ -760,20 +807,26 @@ export default () => {
               </Container>
             </Grid>
           </div>
-          <div>
+          <div className="product-detail-stock-boxes">
             <h3>Disponibilidad del producto en los almacenes(cajas)</h3>
             <br />
             <Table
+              className="product-detail-boxes-table"
               columns={stockByWarehouseAndBoxSizeColumns}
               bordered
               scrollToFirstRowOnChange
               pagination={false}
+              scroll={{ x: 680 }}
               dataSource={get(product, "stockByWarehouseAndBoxSize", [])}
             />
           </div>
         </Grid>
       </Container>
-      <Container height="15%" justifyContent="space-around">
+      <Container
+        className="product-detail-footer-actions"
+        height="15%"
+        justifyContent="space-around"
+      >
         <CustomButton
           onClick={() => setIsModalReadProductBoxCodeVisible(true)}
           size="large"
@@ -832,5 +885,383 @@ const CarouselImagePanel = styled.div`
 const ImagePreviewContainer = styled(Container)`
   img {
     width: 100%;
+  }
+`;
+
+const ProductDetailResponsiveStyles = createGlobalStyle`
+  .product-detail-info-section,
+  .product-detail-stock-section,
+  .product-detail-footer-actions {
+    width: 100%;
+  }
+
+  .product-detail-form-grid,
+  .product-detail-pricing-grid,
+  .product-detail-stock-wrapper,
+  .product-detail-stock-summary-grid {
+    width: 100%;
+  }
+
+  .group-products-modal .ant-modal {
+    max-width: calc(100vw - 2rem);
+  }
+
+  .group-products-modal .ant-modal-body {
+    max-height: calc(100vh - 9rem);
+    overflow-y: auto;
+  }
+
+  .group-products-table .ant-table {
+    min-width: 520px;
+  }
+
+  .group-products-table .ant-table-thead > tr > th,
+  .group-products-table .ant-table-tbody > tr > td {
+    padding: 0.6rem 0.5rem;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .group-products-add-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .group-products-add-row .ant-input {
+    min-width: 0;
+  }
+
+  .group-products-add-row .ant-btn {
+    flex: 0 0 auto;
+  }
+
+  .group-products-mobile-list {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    .group-products-modal .ant-modal {
+      max-width: 1100px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-detail-info-section {
+      padding: 0 0.75rem;
+    }
+
+    .product-detail-info-wrapper,
+    .product-detail-form-grid,
+    .product-detail-pricing-grid,
+    .product-detail-stock-wrapper,
+    .product-detail-stock-summary-grid {
+      grid-template-columns: 1fr !important;
+      grid-template-rows: none !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    .product-detail-form-grid > *,
+    .product-detail-pricing-grid > * {
+      grid-column: auto !important;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .product-detail-form-grid button,
+    .product-detail-pricing-grid button {
+      width: 100% !important;
+    }
+
+    .product-detail-form-grid .ant-input-wrapper.ant-input-group,
+    .product-detail-pricing-grid .ant-input-wrapper.ant-input-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .product-detail-form-grid .ant-input-group-addon,
+    .product-detail-pricing-grid .ant-input-group-addon {
+      border-bottom: 0;
+      border-radius: 4px 4px 0 0;
+      border-right: 1px solid #d9d9d9;
+      display: block;
+      line-height: 1.2rem;
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+      white-space: normal;
+      width: 100%;
+    }
+
+    .product-detail-form-grid .ant-input,
+    .product-detail-pricing-grid .ant-input {
+      border-radius: 0 0 4px 4px;
+      display: block;
+      min-height: 2.15rem;
+      width: 100%;
+    }
+
+    .product-detail-main-actions {
+      display: grid !important;
+      gap: 0.65rem !important;
+      grid-template-columns: 1fr !important;
+      padding: 0.75rem;
+    }
+
+    .product-detail-main-actions .ant-btn {
+      width: 100% !important;
+    }
+
+    .product-detail-stock-section {
+      padding: 0.25rem 0.75rem 1rem !important;
+    }
+
+    .product-detail-stock-wrapper {
+      gap: 1rem !important;
+    }
+
+    .product-detail-stock-section h3 {
+      font-size: 1rem;
+      line-height: 1.25rem;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .product-detail-stock-section br {
+      display: none;
+    }
+
+    .product-detail-stock-units,
+    .product-detail-stock-boxes {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .product-detail-stock-summary-grid {
+      margin-top: 0.75rem;
+    }
+
+    .product-detail-stock-boxes {
+      margin-top: 1rem;
+    }
+
+    .product-detail-image-section {
+      align-items: center !important;
+      display: grid !important;
+      gap: 0.75rem;
+      grid-template-columns: 1fr;
+      justify-items: center;
+      margin: 0;
+      min-height: 0 !important;
+      order: 1;
+      padding: 0 !important;
+      width: 100%;
+    }
+
+    .product-detail-image-section-empty {
+      display: none !important;
+    }
+
+    .product-detail-units-table {
+      order: 2;
+      width: 100%;
+    }
+
+    .product-detail-boxes-table {
+      width: 100%;
+    }
+
+    .product-detail-units-table .ant-table,
+    .product-detail-boxes-table .ant-table {
+      min-width: 360px;
+    }
+
+    .product-detail-boxes-table .ant-table {
+      min-width: 680px;
+    }
+
+    .product-detail-units-table .ant-table-thead > tr > th,
+    .product-detail-units-table .ant-table-tbody > tr > td,
+    .product-detail-boxes-table .ant-table-thead > tr > th,
+    .product-detail-boxes-table .ant-table-tbody > tr > td {
+      padding: 0.5rem 0.4rem;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .product-detail-image-carousel {
+      height: auto !important;
+      margin: 0 !important;
+      max-width: 100%;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+
+    .product-detail-image-carousel .ant-carousel,
+    .product-detail-image-carousel .slick-slider,
+    .product-detail-image-carousel .slick-list,
+    .product-detail-image-carousel .slick-track,
+    .product-detail-image-carousel .slick-slide,
+    .product-detail-image-carousel .slick-slide > div,
+    .product-detail-image-carousel ${CarouselImageContainer} {
+      height: auto !important;
+      max-width: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      width: 100% !important;
+    }
+
+    .product-detail-image-carousel .slick-track {
+      display: flex !important;
+      transform: none !important;
+    }
+
+    .product-detail-image-carousel .slick-slide {
+      flex: 0 0 100% !important;
+    }
+
+    .product-detail-image-upload {
+      margin: 0 !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+
+    .product-detail-image-upload .ant-upload,
+    .product-detail-image-upload .ant-btn {
+      width: 100%;
+    }
+
+    .product-detail-footer-actions {
+      display: grid !important;
+      gap: 0.75rem;
+      grid-template-columns: 1fr;
+      height: auto !important;
+      padding: 0 0.75rem 1rem;
+    }
+
+    .product-detail-footer-actions button {
+      width: 100% !important;
+    }
+
+    ${CarouselImage} {
+      max-height: 13rem;
+      width: 100%;
+      object-fit: contain;
+    }
+
+    ${CarouselImagePanel} {
+      left: 0;
+      width: 100%;
+    }
+
+    .group-products-modal {
+      padding: 0 !important;
+    }
+
+    .group-products-modal .ant-modal {
+      margin: 12px !important;
+      max-height: calc(100vh - 24px);
+      max-width: 100%;
+      top: 0;
+      width: calc(100vw - 24px) !important;
+    }
+
+    .group-products-modal .ant-modal-content {
+      border-radius: 6px;
+      max-height: calc(100vh - 24px);
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .group-products-modal .ant-modal-header {
+      padding: 0.85rem 2.75rem 0.85rem 1rem;
+    }
+
+    .group-products-modal .ant-modal-title {
+      font-size: 1rem;
+      line-height: 1.25rem;
+    }
+
+    .group-products-modal .ant-modal-close-x {
+      height: 3rem;
+      line-height: 3rem;
+      width: 3rem;
+    }
+
+    .group-products-modal .ant-modal-body {
+      max-height: none;
+      overflow-x: hidden;
+      overflow-y: visible;
+      padding: 0.75rem;
+    }
+
+    .group-products-table {
+      display: none;
+    }
+
+    .group-products-mobile-list {
+      display: grid;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .group-products-mobile-card {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      display: grid;
+      gap: 0.65rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      min-width: 0;
+      padding: 0.75rem;
+      width: 100%;
+    }
+
+    .group-products-mobile-field {
+      display: grid;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .group-products-mobile-field span {
+      color: #666;
+      font-size: 0.74rem;
+      font-weight: 700;
+      line-height: 1rem;
+    }
+
+    .group-products-mobile-field strong {
+      color: #222;
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.2rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .group-products-mobile-actions {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    .group-products-add-row {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: 1fr;
+      margin-top: 0.85rem;
+    }
+
+    .group-products-add-row .ant-input {
+      width: 100%;
+    }
+
+    .group-products-add-row .ant-btn {
+      width: 100%;
+    }
   }
 `;
