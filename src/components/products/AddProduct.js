@@ -7,6 +7,7 @@ import {
   getFamilies,
   getModels,
   getProducts,
+  getSuggestedProductGroupCode,
   getProductGroupSearchOptions,
   getProductGroups,
   getProviders,
@@ -19,6 +20,8 @@ import styled from "styled-components";
 
 export const AddProduct = (props) => {
   const colors = ["#dc3546", "#28a746", "#17a3b8"];
+  const allowedProductGroupPrefixes = ["ALT"];
+  const newProductGroupOptionPrefix = "__new_product_group__:";
 
   // * List of sources from database
   const [families, setFamilies] = useState([]);
@@ -44,6 +47,7 @@ export const AddProduct = (props) => {
   const [element, setElement] = useState({});
   const [model, setModel] = useState({});
   const [productGroup, setProductGroup] = useState({});
+  const [suggestedProductGroup, setSuggestedProductGroup] = useState(null);
   const [provider, setProvider] = useState({});
   const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [compatibility, setCompatibility] = useState(null);
@@ -178,6 +182,23 @@ export const AddProduct = (props) => {
       value: document.id,
     }));
 
+  const productGroupOptions = () =>
+    [
+      ...(suggestedProductGroup
+        ? [
+            {
+              label: `• ${suggestedProductGroup.label || `Nuevo: ${suggestedProductGroup.code}`}`,
+              value: `${newProductGroupOptionPrefix}${suggestedProductGroup.code}`,
+            },
+          ]
+        : []),
+      ...selectOptions(
+        productGroups.filter((productGroup) =>
+          isValidProductGroupPrefix(productGroup.code)
+        )
+      ),
+    ];
+
   const searchTextOptions = () => {
     if (productGroupSearchType === "modelName") {
       return productGroupSearchOptions.models.map((modelName) => ({
@@ -200,6 +221,38 @@ export const AddProduct = (props) => {
 
   const getProductGroup = (product) =>
     product.productGroup || product.ProductGroup;
+
+  const isValidProductGroupPrefix = (code) =>
+    allowedProductGroupPrefixes.some((prefix) =>
+      new RegExp(`^${prefix}-\\d+$`).test((code || "").trim().toUpperCase())
+    );
+
+  const applyProductGroupSearch = async (value) => {
+    const normalizedValue = value.trim().toUpperCase();
+    const matchedPrefix = allowedProductGroupPrefixes.find((prefix) =>
+      normalizedValue.startsWith(prefix)
+    );
+
+    setSuggestedProductGroup(null);
+    setProductGroup((prevValue) => ({
+      name: value,
+      code: prevValue.id ? value : value,
+    }));
+
+    if (matchedPrefix) {
+      try {
+        const suggestion = await getSuggestedProductGroupCode({
+          prefix: matchedPrefix,
+        });
+        setSuggestedProductGroup(suggestion);
+      } catch (error) {
+        notification.error({
+          message: "No se pudo sugerir el código del grupo",
+          description: error.message,
+        });
+      }
+    }
+  };
 
   const searchProductGroupSuggestions = async () => {
     try {
@@ -306,6 +359,12 @@ export const AddProduct = (props) => {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "Ingrese el código del grupo",
+      });
+    }
+    if (!productGroup.id && !isValidProductGroupPrefix(productGroup.code)) {
+      return notification.error({
+        message: "Error al intentar subir producto",
+        description: `El grupo debe tener formato: ${allowedProductGroupPrefixes.join(", ")}-XX`,
       });
     }
     Modal.confirm({
@@ -602,20 +661,25 @@ export const AddProduct = (props) => {
                 <AutoComplete
                   label="Grupo"
                   color={autoCompleteColor(productGroup.id, productGroup.name)}
-                  value={productGroup.name}
-                  onSelect={(value) => {
-                    const _productGroup = productGroups.find(
-                      (productGroup) => productGroup.id === value
-                    );
-                    setProductGroup(_productGroup);
-                  }}
-                  onSearch={(value) => {
-                    setProductGroup((prevValue) => ({
-                      name: value,
-                      code: prevValue.id ? value : value,
-                    }));
-                  }}
-                  _options={selectOptions(productGroups)}
+                value={productGroup.name}
+                onSelect={(value) => {
+                  if (
+                    typeof value === "string" &&
+                    value.startsWith(newProductGroupOptionPrefix)
+                  ) {
+                    const code = value.replace(newProductGroupOptionPrefix, "");
+                    setProductGroup({ name: code, code });
+                    setSuggestedProductGroup(null);
+                    return;
+                  }
+                  const _productGroup = productGroups.find(
+                    (productGroup) => productGroup.id === value
+                  );
+                  setProductGroup(_productGroup);
+                  setSuggestedProductGroup(null);
+                }}
+                  onSearch={applyProductGroupSearch}
+                  _options={productGroupOptions()}
                   filterOption={(input, option) =>
                     option.children.toLowerCase().includes(input.toLowerCase())
                   }

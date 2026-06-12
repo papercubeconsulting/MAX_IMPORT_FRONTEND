@@ -19,6 +19,7 @@ import {
   getProduct,
   getProductGroups,
   getProducts,
+  getSuggestedProductGroupCode,
   me,
   postProductGroup,
   updateProduct,
@@ -38,6 +39,9 @@ import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail"
 import { usePricingCalculation } from "../../../util/usePricingCalculation";
 
 export default () => {
+  const allowedProductGroupPrefixes = ["ALT"];
+  const newProductGroupOptionPrefix = "__new_product_group__:";
+
   const stockByWarehouseColumns = [
     {
       title: "Almacén",
@@ -96,6 +100,7 @@ export default () => {
   const [groupSearchProducts, setGroupSearchProducts] = useState([]);
   const [productGroups, setProductGroups] = useState([]);
   const [groupToAssign, setGroupToAssign] = useState({});
+  const [suggestedGroupToAssign, setSuggestedGroupToAssign] = useState(null);
   const [isGroupRelationModalVisible, setIsGroupRelationModalVisible] = useState(false);
   const [groupSearchText, setGroupSearchText] = useState("");
   const [groupProductSearchText, setGroupProductSearchText] = useState("");
@@ -245,15 +250,59 @@ export default () => {
   };
 
   const productGroupOptions = () =>
-    productGroups.map((productGroup) => ({
-      label: productGroup.name,
-      value: productGroup.id,
-    }));
+    [
+      ...(suggestedGroupToAssign
+        ? [
+            {
+              label: `• ${suggestedGroupToAssign.label || `Nuevo: ${suggestedGroupToAssign.code}`}`,
+              value: `${newProductGroupOptionPrefix}${suggestedGroupToAssign.code}`,
+            },
+          ]
+        : []),
+      ...productGroups
+        .filter((productGroup) => isValidProductGroupPrefix(productGroup.code))
+        .map((productGroup) => ({
+          label: productGroup.name,
+          value: productGroup.id,
+        })),
+    ];
 
   const autoCompleteColor = (id, name) => {
     if (id) return "#28a746";
     if (name) return "#17a3b8";
     return "#dc3546";
+  };
+
+  const isValidProductGroupPrefix = (code) =>
+    allowedProductGroupPrefixes.some((prefix) =>
+      new RegExp(`^${prefix}-\\d+$`).test((code || "").trim().toUpperCase())
+    );
+
+  const applyGroupToAssignSearch = async (value) => {
+    const normalizedValue = value.trim().toUpperCase();
+    const matchedPrefix = allowedProductGroupPrefixes.find((prefix) =>
+      normalizedValue.startsWith(prefix)
+    );
+
+    setSuggestedGroupToAssign(null);
+    setGroupToAssign((prevValue) => ({
+      name: value,
+      code: prevValue.id ? value : value,
+    }));
+
+    if (matchedPrefix) {
+      try {
+        const suggestion = await getSuggestedProductGroupCode({
+          prefix: matchedPrefix,
+        });
+        setSuggestedGroupToAssign(suggestion);
+      } catch (error) {
+        notification.error({
+          message: "No se pudo sugerir el código del grupo",
+          description: error.message,
+        });
+      }
+    }
   };
 
   const getGroupRelatedTradename = (groupProduct) =>
@@ -345,6 +394,14 @@ export default () => {
     if (!groupToAssign.code) {
       notification.warning({
         message: "Ingrese el código del grupo",
+      });
+      return;
+    }
+    if (!groupToAssign.id && !isValidProductGroupPrefix(groupToAssign.code)) {
+      notification.warning({
+        message: `El grupo debe tener formato: ${allowedProductGroupPrefixes.join(
+          ", "
+        )}-XX`,
       });
       return;
     }
@@ -773,17 +830,22 @@ export default () => {
                 color={autoCompleteColor(groupToAssign.id, groupToAssign.name)}
                 value={groupToAssign.name}
                 onSelect={(value) => {
+                  if (
+                    typeof value === "string" &&
+                    value.startsWith(newProductGroupOptionPrefix)
+                  ) {
+                    const code = value.replace(newProductGroupOptionPrefix, "");
+                    setGroupToAssign({ name: code, code });
+                    setSuggestedGroupToAssign(null);
+                    return;
+                  }
                   const selectedGroup = productGroups.find(
                     (productGroup) => productGroup.id === value
                   );
                   setGroupToAssign(selectedGroup);
+                  setSuggestedGroupToAssign(null);
                 }}
-                onSearch={(value) => {
-                  setGroupToAssign((prevValue) => ({
-                    name: value,
-                    code: prevValue.id ? value : value,
-                  }));
-                }}
+                onSearch={applyGroupToAssignSearch}
                 _options={productGroupOptions()}
                 filterOption={(input, option) =>
                   option.children.toLowerCase().includes(input.toLowerCase())
