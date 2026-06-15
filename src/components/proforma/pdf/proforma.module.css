@@ -1,11 +1,18 @@
 .invoiceContainer {
-  max-width: 600px;
+  box-sizing: border-box;
+  width: min(1080px, calc(100vw - 48px));
   margin: 0 auto;
   padding: 20px;
   font-family: "Arial", sans-serif;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .invoiceContainer {
+    width: calc(100vw - 16px);
+  }
 }
 
 .invoiceContainer :global(.ant-table-thead) :global(.ant-table-cell) {

@@ -267,7 +267,7 @@ export default ({ setPageTitle }) => {
         centered
         destroyOnClose
         footer={null}
-        width="min(1180px, 96vw)"
+        width="min(1440px, 98vw)"
         wrapClassName="proforma-preview-modal"
       >
         <ProformaPreviewFrame>
