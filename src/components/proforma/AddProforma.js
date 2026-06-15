@@ -164,7 +164,7 @@ export const AddProforma = (props) => {
               onChange={(event) => setBillingType(event.target.value)}
               value={billingType}
             >
-              <Radio value="SALE">Venta</Radio>
+              <Radio value="SALE">Boleta</Radio>
               <Radio value="INVOICE">Factura</Radio>
               <Radio value="PROFORMA">Proforma</Radio>
             </RadioGroup>
@@ -176,7 +176,7 @@ export const AddProforma = (props) => {
               onChange={(event) => setSaleWay(event.target.value)}
               value={saleWay}
             >
-              <Radio value={1}>Tienda</Radio>
+              <Radio value={1}>Contado</Radio>
               <Radio value={2}>Abono en cuenta</Radio>
             </RadioGroup>
             <h3>Tipo de venta:</h3>

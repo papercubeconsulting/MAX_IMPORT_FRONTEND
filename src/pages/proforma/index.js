@@ -838,10 +838,10 @@ const ProformaPageContent = ({ setPageTitle }) => {
     if (!proforma.id) return;
 
     Modal.confirm({
-      title: `Eliminar proforma N°${proforma.id}`,
+      title: `Rechazar proforma N°${proforma.id}`,
       content:
-        "Esta acción eliminará la proforma y sus productos. No se puede deshacer.",
-      okText: "Eliminar",
+        "Esta acción marcará la proforma como rechazada. No se podrá confirmar como venta.",
+      okText: "Rechazar",
       okType: "danger",
       cancelText: "Cancelar",
       onOk: async () => {
@@ -849,12 +849,12 @@ const ProformaPageContent = ({ setPageTitle }) => {
           setLoadingDeleteProforma(true);
           await deleteProforma(proforma.id);
           notification.success({
-            message: "Proforma eliminada correctamente",
+            message: "Proforma rechazada correctamente",
           });
           router.push("/proformas");
         } catch (error) {
           notification.error({
-            message: "Error al eliminar la proforma",
+            message: "Error al rechazar la proforma",
             description: error.message,
           });
         } finally {
@@ -2272,7 +2272,7 @@ const ProformaPageContent = ({ setPageTitle }) => {
                 disabled={!canDeleteProforma}
                 onClick={onDeleteProforma}
               >
-                Eliminar Proforma
+                Rechazar Proforma
               </Button>
             </ActionsGrid>
           </Grid>
