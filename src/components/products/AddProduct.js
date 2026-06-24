@@ -222,6 +222,9 @@ export const AddProduct = (props) => {
   const getProductGroup = (product) =>
     product.productGroup || product.ProductGroup;
 
+  const getProductGroupId = (product) =>
+    product.groupId || getProductGroup(product)?.id;
+
   const isValidProductGroupPrefix = (code) =>
     allowedProductGroupPrefixes.some((prefix) =>
       new RegExp(`^${prefix}-\\d+$`).test((code || "").trim().toUpperCase())
@@ -273,9 +276,7 @@ export const AddProduct = (props) => {
         pageSize: 20,
       });
 
-      setProductGroupSuggestions(
-        (_products.rows || []).filter((product) => getProductGroup(product))
-      );
+      setProductGroupSuggestions(_products.rows || []);
     } catch (error) {
       notification.error({
         message: "Error en el servidor",
@@ -653,7 +654,7 @@ export const AddProduct = (props) => {
               key="product-group"
               header={
                 productGroup.name
-                  ? `Grupo Producto: ${productGroup.name} (${productGroup.code})`
+                  ? `Grupo Producto: ${productGroup.code}`
                   : "Grupo Producto"
               }
             >
@@ -741,22 +742,29 @@ export const AddProduct = (props) => {
                   <ProductSuggestionList>
                     {productGroupSuggestions.map((product) => {
                       const _productGroup = getProductGroup(product);
+                      const hasGroup = Boolean(getProductGroupId(product));
                       return (
                         <ProductSuggestionRow key={product.id}>
                           <ProductSuggestionInfo>
                             <strong>{product.code}</strong>
                             <span>{product.modelName}</span>
                             <span>{product.tradename}</span>
-                            <Tag color={colors[1]}>
-                              {_productGroup.name} ({_productGroup.code})
-                            </Tag>
+                            {hasGroup ? (
+                              <Tag color={colors[1]}>
+                                {_productGroup.code}
+                              </Tag>
+                            ) : (
+                              <Tag color="warning">Sin grupo asignado</Tag>
+                            )}
                           </ProductSuggestionInfo>
-                          <Button
-                            type="primary"
-                            onClick={() => setProductGroup(_productGroup)}
-                          >
-                            Usar grupo
-                          </Button>
+                          {hasGroup && (
+                            <Button
+                              type="primary"
+                              onClick={() => setProductGroup(_productGroup)}
+                            >
+                              Usar grupo
+                            </Button>
+                          )}
                         </ProductSuggestionRow>
                       );
                     })}

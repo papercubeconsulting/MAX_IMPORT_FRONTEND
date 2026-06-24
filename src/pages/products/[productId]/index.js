@@ -458,7 +458,6 @@ export default () => {
       groupProductSearchType === "modelName" ? "modelName" : "tradename";
     const results = groupSearchProducts.filter(
       (productItem) =>
-        getProductGroup(productItem) &&
         get(productItem, key, "").toLowerCase().includes(searchText)
     );
 
@@ -474,7 +473,7 @@ export default () => {
   const assignCurrentProductToSearchedProductGroup = async (selectedProduct) => {
     const selectedGroup = getProductGroup(selectedProduct);
 
-    if (!selectedGroup) return;
+    if (!getProductGroupId(selectedProduct)) return;
     setIsAssigningGroup(true);
     try {
       const updatedProduct = await updateProduct(productId, {
@@ -913,19 +912,26 @@ export default () => {
                 <GroupProductSearchResults>
                   {groupProductSearchResults.map((result) => {
                     const resultGroup = getProductGroup(result);
+                    const hasGroup = Boolean(getProductGroupId(result));
                     return (
                       <ProductGroupResultRow key={get(result, "id")}>
                         <span>{getGroupSearchProductLabel(result)}</span>
-                        <Tag>Grupo: {get(resultGroup, "code", "-")}</Tag>
-                        <Button
-                          type="primary"
-                          onClick={() =>
-                            assignCurrentProductToSearchedProductGroup(result)
-                          }
-                          loading={isAssigningGroup}
-                        >
-                          Usar grupo
-                        </Button>
+                        {hasGroup ? (
+                          <>
+                            <Tag>Grupo: {get(resultGroup, "code", "-")}</Tag>
+                            <Button
+                              type="primary"
+                              onClick={() =>
+                                assignCurrentProductToSearchedProductGroup(result)
+                              }
+                              loading={isAssigningGroup}
+                            >
+                              Usar grupo
+                            </Button>
+                          </>
+                        ) : (
+                          <Tag color="warning">Sin grupo asignado</Tag>
+                        )}
                       </ProductGroupResultRow>
                     );
                   })}
