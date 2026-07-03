@@ -63,6 +63,7 @@ export const Attend = (props) => {
         elementName,
         modelName,
         tradename,
+        code: productCode,
       } = suppliedProduct.product;
 
       const query = {
@@ -71,6 +72,7 @@ export const Attend = (props) => {
         elementName,
         modelName,
         tradename,
+        productCode,
         providerName,
         /* boxes, */
         boxSize: suppliedProduct.boxSize,
