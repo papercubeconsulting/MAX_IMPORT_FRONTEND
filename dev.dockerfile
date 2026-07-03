@@ -1,7 +1,7 @@
   
 
 # build phase
-FROM node:alpine as builder
+FROM node:22-alpine as builder
 
 WORKDIR '/app'
 
@@ -40,4 +40,4 @@ COPY --from=builder /app/out /var/www/
 # ENTRYPOINT ["/entrypoint.sh"]
 
 # Daemon Off otherwise, Docker will drop when the main process is done making child ones
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]

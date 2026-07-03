@@ -13,15 +13,37 @@ import { Input, Table, Modal, Checkbox, notification } from "antd";
 import moment from "moment";
 import Quagga from "quagga";
 import { clientDateFormat } from "../../../util";
-import styled from "styled-components";
-
-const QRScanner = styled(Container)`
-  .drawingBuffer {
-    position: absolute;
-    /* top: 0; */
-    left: 0;
-  }
-`;
+import {
+  DesktopDispatchTable,
+  DispatchCard,
+  DispatchCardActions,
+  DispatchCardBadge,
+  DispatchCardHeader,
+  DispatchCardMeta,
+  DispatchCardMetaText,
+  DispatchCardTitle,
+  DispatchCodeGrid,
+  DispatchConfirmButton,
+  DispatchConfirmContent,
+  DispatchConfirmGrid,
+  DispatchConfirmMobileList,
+  DispatchConfirmQuantity,
+  DispatchConfirmRow,
+  DispatchDetailFooter,
+  DispatchDetailFooterGrid,
+  DispatchDetailHeader,
+  DispatchDetailHeaderGrid,
+  DispatchDetailProducts,
+  DispatchDetailSummary,
+  DispatchDetailTitle,
+  DispatchFinishActions,
+  DispatchFinishContent,
+  DispatchMetaRow,
+  DispatchModalResponsiveStyles,
+  DispatchPage,
+  DispatchScanner,
+  MobileDispatchList,
+} from "../../../components/dispatch/DispatchStyles";
 
 /* const QRScanner = styled.div`
   .viewport {
@@ -294,14 +316,16 @@ export default ({ setPageTitle }) => {
   };
 
   return (
-    <>
+    <DispatchPage>
+      <DispatchModalResponsiveStyles />
       <Modal
         visible={isVisibleFinishDispatch}
         width="40%"
         onCancel={() => setIsVisibleFinishDispatch(false)}
         footer={null}
+        wrapClassName="dispatch-finish-modal"
       >
-        <Container
+        <DispatchFinishContent
           height="fit-content"
           flexDirection="column"
           alignItems="center"
@@ -309,7 +333,7 @@ export default ({ setPageTitle }) => {
           <p style={{ fontWeight: "bold" }}>
             ¿Está seguro que desea finalizar el despacho total?
           </p>
-          <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+          <DispatchFinishActions gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
             <Button onClick={finishDispatch} margin="auto" type="primary">
               Si, confirmar
             </Button>
@@ -320,8 +344,8 @@ export default ({ setPageTitle }) => {
             >
               No, regresar
             </Button>
-          </Grid>
-        </Container>
+          </DispatchFinishActions>
+        </DispatchFinishContent>
       </Modal>
       <Modal
         visible={isVisibleReadProductCode}
@@ -329,8 +353,9 @@ export default ({ setPageTitle }) => {
         onOk={() => fetchProductBox()}
         title="Escanear o ingresar código de caja"
         width="90%"
+        wrapClassName="dispatch-code-modal"
       >
-        <Grid gridTemplateColumns="1fr 1fr" gridGap="1rem" marginBottom="1rem">
+        <DispatchCodeGrid gridTemplateColumns="1fr 1fr" gridGap="1rem" marginBottom="1rem">
           <Input
             value={productBoxCode}
             justify="center"
@@ -338,15 +363,15 @@ export default ({ setPageTitle }) => {
             addonBefore="Código de caja"
           />
           <Button onClick={scanBarcode}>Escanear Código de barras</Button>
-        </Grid>
-        <QRScanner>
+        </DispatchCodeGrid>
+        <DispatchScanner>
           <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
             <div id="interactive" className="viewport">
               <video autoPlay="true" preload="auto" />
             </div>
             <canvas className="drawingBuffer"></canvas>
           </Grid>
-        </QRScanner>
+        </DispatchScanner>
         {/* <Grid gridTemplateRows="1fr" gridGap="1rem" justifyItems="center">
           <Button onClick={scanBarcode}>Escanear Código de barras</Button>
           <QRScanner>
@@ -363,9 +388,10 @@ export default ({ setPageTitle }) => {
           setQuantity();
         }}
         footer={null}
+        wrapClassName="dispatch-confirm-modal"
       >
-        <Container height="fit-content">
-          <Grid gridTemplateColumns="2fr 3fr" gridGap="1rem">
+        <DispatchConfirmContent>
+          <DispatchConfirmGrid gridTemplateColumns="2fr 3fr" gridGap="1rem">
             <Input
               value={dataProduct?.product.familyName}
               disabled
@@ -429,16 +455,67 @@ export default ({ setPageTitle }) => {
                 Toda la caja
               </Checkbox>
             </Grid>
-          </Grid>
-        </Container>
-        <Button
+          </DispatchConfirmGrid>
+          <DispatchConfirmMobileList>
+            <DispatchConfirmRow>
+              <span>Modelo</span>
+              <strong>{dataProduct?.product.modelName || "-"}</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Familia</span>
+              <strong>{dataProduct?.product.familyName || "-"}</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Sub-Familia</span>
+              <strong>{dataProduct?.product.subfamilyName || "-"}</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Elemento</span>
+              <strong>{dataProduct?.product.elementName || "-"}</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Ubicación</span>
+              <strong>{dataProduct?.warehouse.name || "-"}</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Tipo de caja</span>
+              <strong>{dataProduct?.boxSize || "-"} Unid./Caja</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmRow>
+              <span>Disponibles</span>
+              <strong>{dataProduct?.stock || 0} Unidades</strong>
+            </DispatchConfirmRow>
+            <DispatchConfirmQuantity>
+              <Input
+                value={quantity}
+                onChange={(e) => {
+                  setQuantity(Number(e.target.value));
+                  dataProduct?.stock === Number(e.target.value)
+                    ? setCheck(true)
+                    : setCheck(false);
+                }}
+                addonBefore="A Despachar"
+              />
+              <Checkbox
+                checked={check}
+                onChange={(e) => {
+                  setCheck(e.target.checked);
+                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                }}
+              >
+                Toda la caja
+              </Checkbox>
+            </DispatchConfirmQuantity>
+          </DispatchConfirmMobileList>
+        </DispatchConfirmContent>
+        <DispatchConfirmButton
           onClick={confirmDispatch}
           width="30%"
           margin="2% 5% 2% 40%"
           type="primary"
         >
           Confirmar Despacho
-        </Button>
+        </DispatchConfirmButton>
       </Modal>
       <Modal
         visible={isVisible}
@@ -446,11 +523,37 @@ export default ({ setPageTitle }) => {
         title="Información del producto"
         onCancel={() => setIsVisible(false)}
         footer={null}
+        wrapClassName="product-info-modal"
       >
         <ModalProduct id={idModal}></ModalProduct>
       </Modal>
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+      <DispatchDetailHeader height="fit-content">
+        <DispatchDetailSummary>
+          <DispatchDetailTitle>
+            Proforma N° {dispatch.proformaId || "-"}
+          </DispatchDetailTitle>
+          <DispatchMetaRow>
+            <span>Estatus</span>
+            <strong>{dispatch.status === "OPEN" ? "Pendiente" : "Completado"}</strong>
+          </DispatchMetaRow>
+          <DispatchMetaRow>
+            <span>Cliente</span>
+            <strong>
+              {`${dispatch.proforma?.client.name || ""} ${
+                dispatch.proforma?.client.lastname || ""
+              }`.trim() || "-"}
+            </strong>
+          </DispatchMetaRow>
+          <DispatchMetaRow>
+            <span>Dirección</span>
+            <strong>{dispatch.proforma?.client.address || "-"}</strong>
+          </DispatchMetaRow>
+          <DispatchMetaRow>
+            <span>Agencia</span>
+            <strong>{dispatch.deliveryAgency?.name || "-"}</strong>
+          </DispatchMetaRow>
+        </DispatchDetailSummary>
+        <DispatchDetailHeaderGrid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
           <Input value={me.name} disabled addonBefore="Usuario" />
           <Input
             value={moment().format(clientDateFormat)}
@@ -499,22 +602,91 @@ export default ({ setPageTitle }) => {
             disabled
             addonBefore="Agencia"
           />
-        </Grid>
-      </Container>
-      <Container height="fit-content">
-        <Table
-          columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
-          bordered
-          pagination={false}
-          dataSource={
-            dispatch.dispatchedProducts ? dispatch.dispatchedProducts : []
-          }
-        />
-      </Container>
-      <Container height="fit-content" padding="2rem 1rem 1rem"></Container>
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
+        </DispatchDetailHeaderGrid>
+      </DispatchDetailHeader>
+      <DispatchDetailProducts>
+        <DesktopDispatchTable>
+          <Table
+            columns={columns}
+            scroll={{ y: windowHeight * 0.3 - 48 }}
+            bordered
+            pagination={false}
+            dataSource={
+              dispatch.dispatchedProducts ? dispatch.dispatchedProducts : []
+            }
+          />
+        </DesktopDispatchTable>
+        <MobileDispatchList>
+          {(dispatch.dispatchedProducts || []).map((item, index) => {
+            const pending = item.quantity - item.dispatched;
+            return (
+              <DispatchCard key={item.id}>
+                <DispatchCardHeader>
+                  <div>
+                    <DispatchCardTitle>
+                      {get(item, "product.modelName", "-")}
+                    </DispatchCardTitle>
+                    <DispatchCardMetaText>
+                      Ítem {index + 1} · {get(item, "product.familyName", "-")}
+                    </DispatchCardMetaText>
+                  </div>
+                  <DispatchCardBadge>{pending} pend.</DispatchCardBadge>
+                </DispatchCardHeader>
+                <DispatchCardMeta>
+                  <DispatchMetaRow>
+                    <span>Sub-Familia</span>
+                    <strong>{get(item, "product.subfamilyName", "-")}</strong>
+                  </DispatchMetaRow>
+                  <DispatchMetaRow>
+                    <span>Elemento</span>
+                    <strong>{get(item, "product.elementName", "-")}</strong>
+                  </DispatchMetaRow>
+                  <DispatchMetaRow>
+                    <span>Despachado</span>
+                    <strong>{item.dispatched || 0}</strong>
+                  </DispatchMetaRow>
+                  <DispatchMetaRow>
+                    <span>Disponibilidad</span>
+                    <strong>{get(item, "product.availableStock", 0)}</strong>
+                  </DispatchMetaRow>
+                  <DispatchMetaRow>
+                    <span>Fecha atención</span>
+                    <strong>
+                      {item.updatedAt
+                        ? `${moment(item.updatedAt).format("DD/MM")} ${moment(
+                            item.updatedAt,
+                          ).format("hh:mm")}`
+                        : "-"}
+                    </strong>
+                  </DispatchMetaRow>
+                </DispatchCardMeta>
+                <DispatchCardActions>
+                  <Button
+                    onClick={() => {
+                      setIsVisible(true);
+                      setIdModal(item.product.id);
+                    }}
+                  >
+                    Ver producto
+                  </Button>
+                  <Button
+                    disabled={item.quantity === item.dispatched}
+                    type="primary"
+                    onClick={() => {
+                      setIsVisibleReadProductCode(true);
+                      setDispatchedProductId(item.id);
+                    }}
+                  >
+                    {item.quantity === item.dispatched ? "Entregado" : "Despachar"}
+                  </Button>
+                </DispatchCardActions>
+              </DispatchCard>
+            );
+          })}
+        </MobileDispatchList>
+      </DispatchDetailProducts>
+      <DispatchDetailFooter height="fit-content">
+        <DispatchDetailFooterGrid gridTemplateColumns="repeat(2, 1fr)" gridGap="0rem">
           <Button
             onClick={() => setIsVisibleFinishDispatch(true)}
             width="30%"
@@ -532,8 +704,8 @@ export default ({ setPageTitle }) => {
           >
             Regresar
           </Button>
-        </Grid>
-      </Container>
-    </>
+        </DispatchDetailFooterGrid>
+      </DispatchDetailFooter>
+    </DispatchPage>
   );
 };

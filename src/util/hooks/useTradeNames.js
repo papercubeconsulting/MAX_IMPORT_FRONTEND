@@ -1,16 +1,19 @@
 import React from "react";
-import {
-  getTradenamesAll,
-  getTradenamesWithQueryParams,
-} from "../../providers";
-import { map } from "lodash";
+import { getTradenamesAll } from "../../providers";
 
 export const useTradeNames = () => {
   const [tradeNames, setTradeNames] = React.useState([]);
+  const [tradeNameProducts, setTradeNameProducts] = React.useState([]);
 
   const fetchAllTradeNames = async () => {
-    const tradeNames = await getTradenamesAll();
-    setTradeNames(tradeNames.listTradename.map((obj) => obj.tradename));
+    const response = await getTradenamesAll();
+    const products = response.listTradename || [];
+    const uniqueTradeNames = [
+      ...new Set(products.map((product) => product.tradename).filter(Boolean)),
+    ];
+
+    setTradeNameProducts(products);
+    setTradeNames(uniqueTradeNames);
   };
 
   React.useEffect(() => {
@@ -20,6 +23,7 @@ export const useTradeNames = () => {
   return {
     fetchAllTradeNames,
     tradeNames,
+    tradeNameProducts,
     setTradeNames,
   };
 };

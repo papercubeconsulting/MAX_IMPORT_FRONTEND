@@ -2,21 +2,42 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import {
   Button,
-  Container,
   DatePicker,
-  Grid,
   Icon,
   ModalProforma,
 } from "../../components";
 import { getUsers, userProvider, getDispatches } from "../../providers";
-import { Input, notification, Table, Modal } from "antd";
+import { Input, notification, Table, Modal, Pagination } from "antd";
 
 import moment from "moment";
 import { urlQueryParams, clientDateFormat, serverDateFormat } from "../../util";
 import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  DesktopDispatchTable,
+  DispatchCard,
+  DispatchCardActions,
+  DispatchCardBadge,
+  DispatchCardHeader,
+  DispatchCardMeta,
+  DispatchCardMetaText,
+  DispatchCardTitle,
+  DispatchContent,
+  DispatchFilters,
+  DispatchFiltersGrid,
+  DispatchFooter,
+  DispatchFooterGrid,
+  DispatchMetaRow,
+  DispatchModalResponsiveStyles,
+  DispatchPage,
+  MobileDispatchList,
+  MobilePagination,
+} from "../../components/dispatch/DispatchStyles";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Despachos");
+  const formatDateTime = (value) =>
+    `${moment(value).format("DD/MM")} ${moment(value).format("hh:mm")}`;
+
   const columns = [
     {
       dataIndex: "id",
@@ -218,20 +239,28 @@ export default ({ setPageTitle }) => {
   };
 
   return (
-    <>
+    <DispatchPage>
+      <DispatchModalResponsiveStyles />
       <Modal
         visible={isVisibleModalProforma}
         width="90%"
         title="Información de la proforma"
         onCancel={() => setIsVisibleModalProforma(false)}
         footer={null}
+        wrapClassName="dispatch-proforma-modal"
       >
         <ModalProforma id={idModal}></ModalProforma>
       </Modal>
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value={me.name} disabled addonBefore="Usuario" />
-          <Grid
+      <DispatchFilters height="fit-content">
+        <DispatchFiltersGrid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
+          <Input
+            className="dispatch-user-filter"
+            value={me.name}
+            disabled
+            addonBefore="Usuario"
+          />
+          <DispatchFiltersGrid
+            className="dispatch-date-range"
             gridTemplateColumns="repeat(2, 1fr)"
             gridGap="1rem"
             gridColumnStart="2"
@@ -261,7 +290,7 @@ export default ({ setPageTitle }) => {
                 </>
               }
             />
-          </Grid>
+          </DispatchFiltersGrid>
           <Input
             value={documentNumber}
             onChange={(event) => setDocumentNumber(event.target.value)}
@@ -280,28 +309,103 @@ export default ({ setPageTitle }) => {
             onChange={(e) => setLastName(e.target.value)}
           />
           <Button
+            className="dispatch-search-button"
             type="primary"
             gridColumnStart="4"
             onClick={async () => searchWithState()}
           >
             Buscar
           </Button>
-        </Grid>
-      </Container>
-      <Container height="fit-content">
-        <Table
-          columns={columns}
-          scroll={{ y: windowHeight * 0.4 - 48 }}
-          bordered
-          pagination={pagination}
-          dataSource={dispatches}
-          onChange={(pagination) =>
-            updateState(setPage, pagination.current, true)
-          }
-        />
-      </Container>
-      <Container height="15%">
-        <Grid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
+        </DispatchFiltersGrid>
+      </DispatchFilters>
+      <DispatchContent>
+        <DesktopDispatchTable>
+          <Table
+            columns={columns}
+            scroll={{ y: windowHeight * 0.4 - 48 }}
+            bordered
+            pagination={pagination}
+            dataSource={dispatches}
+            onChange={(pagination) =>
+              updateState(setPage, pagination.current, true)
+            }
+          />
+        </DesktopDispatchTable>
+        <MobileDispatchList>
+          {dispatches.map((dispatchItem, index) => (
+            <DispatchCard key={dispatchItem.id}>
+              <DispatchCardHeader>
+                <div>
+                  <DispatchCardTitle>
+                    Proforma N° {dispatchItem.proformaId}
+                  </DispatchCardTitle>
+                  <DispatchCardMetaText>
+                    Turno {index + 1} · {formatDateTime(dispatchItem.createdAt)}
+                  </DispatchCardMetaText>
+                </div>
+                <DispatchCardBadge>
+                  {dispatchItem.proforma?.totalUnits || 0} und.
+                </DispatchCardBadge>
+              </DispatchCardHeader>
+              <DispatchCardMeta>
+                <DispatchMetaRow>
+                  <span>Cliente</span>
+                  <strong>
+                    {`${dispatchItem.proforma?.client?.name || ""} ${
+                      dispatchItem.proforma?.client?.lastname || ""
+                    }`.trim() || "-"}
+                  </strong>
+                </DispatchMetaRow>
+                <DispatchMetaRow>
+                  <span>Tipo despacho</span>
+                  <strong>
+                    {dispatchItem.sale?.dispatchmentType === "PICK_UP"
+                      ? "EN TIENDA"
+                      : "DELIVERY"}
+                  </strong>
+                </DispatchMetaRow>
+                <DispatchMetaRow>
+                  <span>Agencia</span>
+                  <strong>
+                    {dispatchItem.dispatchmentType === "DELIVERY"
+                      ? dispatchItem.deliveryAgency?.name || "-"
+                      : "-"}
+                  </strong>
+                </DispatchMetaRow>
+              </DispatchCardMeta>
+              <DispatchCardActions>
+                <Button
+                  onClick={() => {
+                    setIsVisibleModalProforma(true);
+                    setIdModal(dispatchItem.proformaId);
+                  }}
+                >
+                  Ver proforma
+                </Button>
+                <Button
+                  onClick={async () => router.push(`/dispatch/${dispatchItem.id}`)}
+                  type="primary"
+                >
+                  Atender
+                </Button>
+              </DispatchCardActions>
+            </DispatchCard>
+          ))}
+        </MobileDispatchList>
+        {pagination && (
+          <MobilePagination>
+            <Pagination
+              current={pagination.current}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              showSizeChanger={false}
+              onChange={(current) => updateState(setPage, current, true)}
+            />
+          </MobilePagination>
+        )}
+      </DispatchContent>
+      <DispatchFooter height="15%">
+        <DispatchFooterGrid gridTemplateColumns="repeat(3, 1fr)" gridGap="1rem">
           <Button
             type="primary"
             gridColumnStart="2"
@@ -309,8 +413,8 @@ export default ({ setPageTitle }) => {
           >
             Historial de Despachos
           </Button>
-        </Grid>
-      </Container>
-    </>
+        </DispatchFooterGrid>
+      </DispatchFooter>
+    </DispatchPage>
   );
 };

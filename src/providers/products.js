@@ -5,6 +5,12 @@ const getProducts = async (params) => baseProvider.httpGet(`products`, params);
 const getProduct = async (productId, params) =>
   baseProvider.httpGet(`products/${productId}`, params);
 
+const getProductChangeOptions = async (params) =>
+  baseProvider.httpGet(`products/change-options`, params);
+
+const getProductGroupSearchOptions = async () =>
+  baseProvider.httpGet(`products/group-search-options`);
+
 const postProduct = async (body) => baseProvider.httpPost("products", body);
 
 const updateProduct = async (productId, body) =>
@@ -33,6 +39,8 @@ export {
   getProducts,
   getFileXlsxInventarioTotal,
   getProduct,
+  getProductChangeOptions,
+  getProductGroupSearchOptions,
   postProduct,
   updateProduct,
   getTradenames,

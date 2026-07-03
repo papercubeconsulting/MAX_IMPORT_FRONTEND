@@ -6,7 +6,6 @@ import { Button } from "../../Button";
 import { useRouter } from "next/router";
 import { postSupplyAttend } from "../../../providers";
 import Barcode from "react-barcode";
-import Link from "next/link";
 
 export const Attend = (props) => {
   const [boxesText, setBoxesText] = useState("");
@@ -151,7 +150,7 @@ export const Attend = (props) => {
   return (
     <>
       <Modal
-        visible={props.visible}
+        open={props.visible}
         onCancel={() => props.trigger && props.trigger(false)}
         footer={null}
         width="90%"
@@ -205,11 +204,12 @@ export const Attend = (props) => {
         </Button>
         <Button
           disabled={!pruebaUrl}
+          href={pruebaUrl || undefined}
+          target="_blank"
+          rel="noreferrer"
           onClick={() => props.trigger && props.trigger(false)}
         >
-          <Link href={pruebaUrl}>
-            <a target="_blank">Descargar Tickets</a>
-          </Link>
+          Descargar Tickets
         </Button>
       </Modal>
     </>

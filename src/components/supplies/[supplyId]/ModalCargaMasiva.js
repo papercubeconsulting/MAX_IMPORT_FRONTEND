@@ -15,7 +15,7 @@ export const ModalCargaMasiva = (props) => {
   return (
     <Modal
       title="Carga Masiva"
-      visible={isVisible}
+      open={isVisible}
       // onOk={closeModal}
       onCancel={closeModal}
       footer={null}

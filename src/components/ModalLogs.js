@@ -26,7 +26,7 @@ export const ModalLogs = (props) => {
   return (
     <Modal
       centered
-      visible={visible}
+      open={visible}
       bodyStyle={{
         // width: "100%",
         // minHeight: "600px",

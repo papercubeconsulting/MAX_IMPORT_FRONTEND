@@ -15,8 +15,10 @@ import {
   getFamilies,
   getModels,
   getProduct,
+  getProductChangeOptions,
   getProducts,
   getSubfamilies,
+  getClients,
   getClientPerCode,
   postClient,
   getRegions,
@@ -25,6 +27,7 @@ import {
   getProforma,
   postProforma,
   putProforma,
+  deleteProforma,
   getTradenames,
 } from "../../providers";
 import { get, orderBy } from "lodash";
@@ -36,16 +39,50 @@ import {
   notification,
   Modal,
   Divider,
+  Tooltip,
   AutoComplete as AutoCompleteAntd,
+  Empty,
+  Radio,
 } from "antd";
 import { AddProforma } from "../../components/proforma";
-import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEye,
+  faTrash,
+  faExchangeAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { useProducts } from "../../util/hooks/useProducts";
 import { ModalValidateDiscount } from "../../components/proforma/ModalValidateDiscount";
 import { getInfoValidationProforma } from "../../providers/discountValidationProforma";
 import { useTradeNames } from "../../util/hooks/useTradeNames";
+import {
+  ProformaWorkspace,
+  ProductSearchOption,
+  ProformaResponsiveStyles,
+  TopFormGrid,
+  ProductSearchRow,
+  AdvancedProductLink,
+  ProductSearchBlock,
+  ProductsSection,
+  DesktopProductsTable,
+  DesktopTableFade,
+  MobileProductsList,
+  MobileProductCard,
+  MobileProductHeader,
+  MobileProductCode,
+  MobileProductModel,
+  MobileSubtotal,
+  MobileTradeName,
+  MobileProductMeta,
+  MobileInputsGrid,
+  MobileActions,
+  FooterSummary,
+  FooterSummaryGrid,
+  PaymentGrid,
+  ActionsGrid,
+  TotalsGrid,
+} from "../../components/proforma/ProformaPageStyles";
 
-export default ({ setPageTitle }) => {
+const ProformaPageContent = ({ setPageTitle }) => {
   const router = useRouter();
   const queryParams = router.query;
   setPageTitle(
@@ -65,178 +102,212 @@ export default ({ setPageTitle }) => {
     type: "success",
   });
 
-  const { tradeNames, setTradeNames } = useTradeNames();
+  const { tradeNames, tradeNameProducts } = useTradeNames();
   const [code, setCode] = useState(null);
+
+  const updateProformaProduct = (productId, updater) => {
+    setproformaProducts((prevState) =>
+      prevState.map((proformaProduct) =>
+        proformaProduct.id === productId ? updater(proformaProduct) : proformaProduct,
+      ),
+    );
+  };
+
+  const updateProductQuantity = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      quantity: parseFloat(value || "0"),
+    }));
+  };
+
+  const updateProductPrice = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      product: {
+        ...currentProduct.product,
+        suggestedPrice: value,
+      },
+    }));
+  };
+
+  const normalizeProductPrice = (proformaProduct, value) => {
+    updateProformaProduct(proformaProduct.id, (currentProduct) => ({
+      ...currentProduct,
+      product: {
+        ...currentProduct.product,
+        suggestedPrice: parseFloat(value || "0").toFixed(2),
+      },
+    }));
+  };
+
+  const removeProformaProduct = (id) => {
+    setproformaProducts((prevState) =>
+      prevState
+        .filter((proformaProduct) => proformaProduct.id !== id)
+        .map((proformaProduct, index) => ({
+          ...proformaProduct,
+          id: index + 1,
+        })),
+    );
+  };
+
+  const getProductSubtotal = (row) =>
+    (
+      get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
+    ).toFixed(2);
+
   // console.log({ products });
   const columns = [
     {
-      dataIndex: "id",
-      title: "",
-      width: "40px",
-      align: "center",
-      render: (id, record, index) => index + 1,
-    },
-    {
       title: "Cód. Inventario",
       dataIndex: "product",
-      /* width: "fit-content", */
       align: "center",
-      render: (product) => get(product, "code", null),
+      render: (product) => get(product, "code", "-"),
+      width: "120px",
     },
     {
       title: "Modelo",
       dataIndex: "product",
       align: "center",
-      render: (product) => get(product, "modelName", null),
+      render: (product) => get(product, "modelName", "-"),
+      width: "160px",
     },
     {
       title: "Nombre Comercial",
       dataIndex: "product",
       align: "center",
-      render: (product) => get(product, "tradename", null),
+      width: "180px",
+      render: (product) => (
+        <div
+          style={{
+            display: "-webkit-box",
+            fontSize: "0.82rem",
+            lineHeight: "1.15rem",
+            maxHeight: "2.3rem",
+            overflow: "hidden",
+            textAlign: "center",
+            whiteSpace: "normal",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            wordBreak: "break-word",
+          }}
+        >
+          {get(product, "tradename", null)}
+        </div>
+      ),
     },
+	    {
+	      title: "Stock",
+	      dataIndex: "product",
+	      align: "center",
+	      width: "120px",
+	      render: (product) => get(product, "availableStock", 0),
+	    },
     {
       title: "Cantidad",
       dataIndex: "quantity",
-      width: "100px",
+      width: "120px",
       align: "center",
       render: (quantity, proformaProduct) => (
         <Input
           style={{ textAlign: "center" }}
-          key={proformaProducts.length}
-          value={quantity}
+          value={quantity === 0 ? undefined : quantity}
+          placeholder="Ingrese cantidad"
           onChange={(event) => {
-            setproformaProducts((prevState) => {
-              const remainingproformaProducts = prevState.filter(
-                (_proformaProduct) =>
-                  _proformaProduct.id !== proformaProduct.id,
-              );
-
-              return [
-                ...remainingproformaProducts,
-                {
-                  ...proformaProduct,
-                  quantity: parseFloat(event.nativeEvent.target.value || "0"),
-                },
-              ];
-            });
+            updateProductQuantity(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
             event.persist();
           }}
         />
       ),
     },
-    {
-      title: "Precio S/",
-      dataIndex: "product",
-      align: "center",
-      render: (product, proformaProduct) => {
-        return (
-          <Input
-            style={{ textAlign: "center" }}
-            value={get(product, "suggestedPrice", 0)}
-            min={0}
-            onChange={(event) => {
-              setproformaProducts((prevState) => {
-                const remainingproformaProducts = prevState.filter(
-                  (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id,
-                );
-                return [
-                  ...remainingproformaProducts,
-                  {
-                    ...proformaProduct,
-                    product: {
-                      ...product,
-                      suggestedPrice: event.nativeEvent.target.value,
-                    },
-                  },
-                ];
-              });
-              event.persist();
-            }}
-            onBlur={(event) => {
-              setproformaProducts((prevState) => {
-                const remainingproformaProducts = prevState.filter(
-                  (_proformaProduct) =>
-                    _proformaProduct.id !== proformaProduct.id,
-                );
-                return [
-                  ...remainingproformaProducts,
-                  {
-                    ...proformaProduct,
-                    product: {
-                      ...product,
-                      suggestedPrice: parseFloat(
-                        event.nativeEvent.target.value || "0",
-                      ).toFixed(2),
-                    },
-                  },
-                ];
-              });
-              event.persist();
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: "Subtotal",
-      dataIndex: "id",
-      align: "center",
-      render: (id, row) =>
-        `S/ ${(
-          get(row, "product.suggestedPrice", 0) * get(row, "quantity", 0)
-        ).toFixed(2)}`,
-    },
-    {
-      title: "Disponibilidad",
-      dataIndex: "product",
-      align: "center",
-      render: (product) => get(product, "availableStock", 0),
-    },
-    {
-      dataIndex: "id",
-      align: "center",
-      width: "110px",
-      render: (id, product) => (
-        <>
-          <Button
-            disabled={product.product ? false : true}
-            padding="0 0.25rem"
-            margin="0 0.25rem"
-            type="primary"
-            onClick={() => {
-              setIsVisible(true);
-              setIdModal(product.product.id);
-            }}
-          >
-            VER
-          </Button>
-          <Button
-            padding="0 0.25rem"
-            margin="0 0.25rem"
-            type="danger"
-            onClick={() =>
-              setproformaProducts((prevState) =>
-                prevState
-                  .filter((proformaProduct) => {
-                    return proformaProduct.id !== id;
-                  })
-                  .map((proformaProduct, index) => ({
-                    ...proformaProduct,
-                    id: index + 1,
-                  })),
-              )
-            }
-          >
-            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-          </Button>
-        </>
+	    {
+	      title: "Precio S/",
+	      dataIndex: "product",
+	      align: "center",
+	      width: "120px",
+	      render: (product, proformaProduct) => (
+        <Input
+          style={{ textAlign: "center" }}
+          value={get(product, "suggestedPrice", 0)}
+          min={0}
+          onChange={(event) => {
+            updateProductPrice(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
+            event.persist();
+          }}
+          onBlur={(event) => {
+            normalizeProductPrice(
+              proformaProduct,
+              event.nativeEvent.target.value,
+            );
+            event.persist();
+          }}
+        />
       ),
     },
+	    {
+	      title: "Subtotal",
+	      dataIndex: "id",
+	      align: "center",
+	      width: "120px",
+	      render: (id, row) => `S/ ${getProductSubtotal(row)}`,
+	    },
+	    {
+	      dataIndex: "id",
+	      align: "center",
+	      width: "132px",
+	      render: (id, product) => (
+	        <span style={{ display: "inline-flex", gap: "4px", whiteSpace: "nowrap" }}>
+	          <Button
+	            disabled={product.product ? false : true}
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="default"
+	            title="Cambiar producto"
+	            onClick={() => openChangeModal(product)}
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
+	          </Button>
+	          <Button
+	            disabled={product.product ? false : true}
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="primary"
+	            title="Ver producto"
+	            onClick={() => {
+	              setIsVisible(true);
+	              setIdModal(product.product.id);
+	            }}
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+	          </Button>
+	          <Button
+	            width="32px"
+	            padding="0"
+	            margin="0"
+	            type="danger"
+	            title="Eliminar producto"
+	            onClick={() => removeProformaProduct(id)}
+	          >
+	            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+	          </Button>
+	        </span>
+	      ),
+	    },
   ];
 
   const [clientId, setClientId] = useState(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientSearchOptions, setClientSearchOptions] = useState([]);
+  const [loadingSearchClientsByName, setLoadingSearchClientsByName] =
+    useState(false);
   const [name, setName] = useState(null);
   const [lastName, setLastName] = useState("");
   const [documentNumber, setDocumentNumber] = useState(null);
@@ -260,11 +331,17 @@ export default ({ setPageTitle }) => {
   const [districts, setDistricts] = useState([]);
   // const [tradeNames, setTradenames] = useState([]);
   const [tradeName, setTradeName] = useState(null);
+  
+  // Estados para búsqueda de producto en el formulario principal
+  const [productSearchName, setProductSearchName] = useState("");
+  const [selectedProductMain, setSelectedProductMain] = useState(null);
 
   const [windowHeight, setWindowHeight] = useState(0);
 
   const [loadingSearchClient, setLoadingSearchClient] = useState(false);
   const [loadingSaveProforma, setLoadingSaveProforma] = useState(false);
+  const [loadingDeleteProforma, setLoadingDeleteProforma] = useState(false);
+  const [isClientModalVisible, setIsClientModalVisible] = useState(false);
 
   //Modal para agregar nuevo producto
   const [addNewProduct, setAddNewProduct] = useState(false);
@@ -295,104 +372,210 @@ export default ({ setPageTitle }) => {
   const [isModalAddProformaVisible, setIsModalAddProformaVisible] =
     useState(false);
 
-  // Estados para pasar al pago
-  const [salesActivated, setSalesActivated] = useState(false);
   const [proforma, setProforma] = useState([]);
-  const [saleWay, setSaleWay] = useState(1); //forma de pago 1: Venta en tienda , forma de pago 2: Venta no presencial
+  const [savedProformaSnapshot, setSavedProformaSnapshot] = useState(null);
   //
 
   // States for handling modal validate discount approval
   const [isModalDiscountOpen, setIsModalDiscountOpen] = useState(false);
+
+  const [isChangeModalVisible, setIsChangeModalVisible] = useState(false);
+  const [changeModalProducts, setChangeModalProducts] = useState([]);
+  const [changeModalLoading, setChangeModalLoading] = useState(false);
+  const [changeModalCurrentProduct, setChangeModalCurrentProduct] =
+    useState(null);
+  const [changeModalSelectedProductId, setChangeModalSelectedProductId] =
+    useState(null);
+  const [changeModalTargetProductId, setChangeModalTargetProductId] = useState(
+    null,
+  );
+  const [changeRequestedQuantity, setChangeRequestedQuantity] = useState(0);
+
+  const handleChangeModalSubmit = () => {
+    const selectedProduct = changeModalProducts.find(
+      (product) => product.id === changeModalSelectedProductId,
+    );
+
+    if (!selectedProduct) {
+      notification.warning({
+        message: "Seleccione un producto para cambiar",
+      });
+      return;
+    }
+
+    setproformaProducts((prevState) =>
+      prevState.map((proformaProduct) => {
+        if (proformaProduct.id !== changeModalTargetProductId) {
+          return proformaProduct;
+        }
+
+        return {
+          ...proformaProduct,
+          product: {
+            ...selectedProduct,
+            suggestedPrice: (selectedProduct.suggestedPrice / 100).toFixed(2),
+          },
+        };
+      }),
+    );
+
+    setIsChangeModalVisible(false);
+  };
+
+  const openChangeModal = async (proformaProduct) => {
+    const requestedQuantity = get(proformaProduct, "quantity", 0);
+    const productCode = get(proformaProduct, "product.code", "-");
+
+    if (requestedQuantity < 1) {
+      notification.warning({
+        message: "La cantidad debe ser mayor a cero para buscar cambios",
+      });
+      return;
+    }
+
+    setChangeModalProducts([]);
+    setChangeModalCurrentProduct(proformaProduct.product);
+    setChangeModalSelectedProductId(null);
+    setChangeRequestedQuantity(requestedQuantity);
+    setChangeModalTargetProductId(proformaProduct.id);
+    setIsChangeModalVisible(true);
+
+    try {
+      setChangeModalLoading(true);
+      const response = await getProductChangeOptions({
+        code: productCode,
+        stock: requestedQuantity,
+      });
+      setChangeModalProducts(response.rows || []);
+    } catch (error) {
+      notification.error({
+        message: "No se pudieron obtener productos de cambio",
+        description: error?.message || error?.userMessage,
+      });
+      setIsChangeModalVisible(false);
+    } finally {
+      setChangeModalLoading(false);
+    }
+  };
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
   }, []);
   const [discountUrlValidation, setDiscountUrlValidation] = useState(null);
 
-  useMemo(() => {
-    if (queryParams.id) {
-      setLoadingSearchClient(true);
-      const fetchProforma = async () => {
-        try {
-          const _proforma = await getProforma(queryParams.id);
-          // const proformaDiscount = await getInfoValidationProforma()
-          if (
-            _proforma.status === "OPEN" ||
-            _proforma.status === "PENDING_DISCOUNT_APPROVAL"
-          ) {
-            setProforma(_proforma);
-            setDocumentNumber(_proforma.client.idNumber);
-            setName(_proforma.client.name);
-            setLastName(_proforma.client.lastname);
-            setEmail(_proforma.client.email);
-            setPhoneNumber(_proforma.client.phoneNumber);
-            setAddress(_proforma.client.address);
-            setRegionId(_proforma.client.regionId);
-            setProvinceId(_proforma.client.provinceId);
-            setDistrictId(_proforma.client.districtId);
-            setClientId(_proforma.client.id);
-            setPaid((_proforma.efectivo / 100).toFixed(2));
-            setDue((_proforma.credit / 100).toFixed(2));
-            setproformaProducts(
-              _proforma.proformaProducts.map((proformaProduct) => {
-                return {
-                  ...proformaProduct,
-                  product: {
-                    ...proformaProduct.product,
-                    suggestedPrice: proformaProduct.unitPrice / 100,
-                  },
-                  familyId: proformaProduct.product.familyId,
-                  subfamilyId: proformaProduct.product.subfamilyId,
-                  modelId: proformaProduct.product.modelId,
-                  elementId: proformaProduct.product.elementId,
-                };
-              }),
-            );
-
-            setDiscount((_proforma.discount / 100).toFixed(2));
-            setDiscountPercentage(
-              ((_proforma.discountPercentage ?? 0) * 100).toFixed(2),
-            );
-            // setDiscountPercentage(
-            //   (
-            //     (parseFloat(_proforma.discount ?? 0) * 100) /
-            //     _proforma.subtotal
-            //   ).toFixed(2)
-            // );
-            // this part will cause thtat the credit equals total
-            // setDue(_proforma.total / 100);
-          } else {
-            //Lo expulsa por que esa proforma esta cerrada
-            router.push(`/proformas`);
-          }
-        } catch (error) {
-          //si hay error en query params lo expulsa a proformas
-          router.push(`/proformas`);
-        }
-      };
-      fetchProforma();
-      setLoadingSearchClient(false);
-    }
-  }, [queryParams]);
+  const toNumber = (value) => Number.parseFloat(value || "0") || 0;
+  const toCents = (value) => Math.round(toNumber(value) * 100);
+  const getProductsSnapshot = (_proformaProducts) =>
+    orderBy(
+      _proformaProducts.map((proformaProduct) => ({
+        rowId: get(proformaProduct, "id", null),
+        productId: get(proformaProduct, "product.id", null),
+        quantity: toNumber(get(proformaProduct, "quantity", 0)),
+        unitPrice: toCents(get(proformaProduct, "product.suggestedPrice", 0)),
+      })),
+      ["rowId", "productId"],
+      ["asc", "asc"],
+    );
+  const getSnapshotTotalPrice = (_proformaProducts) =>
+    _proformaProducts.reduce(
+      (accumulator, proformaProduct) =>
+        accumulator +
+        toNumber(get(proformaProduct, "quantity", 0)) *
+          toNumber(get(proformaProduct, "product.suggestedPrice", 0)),
+      0,
+    );
+  const getProformaSnapshot = ({
+    clientId,
+    paid,
+    discountPercentage,
+    proformaProducts,
+  }) =>
+    JSON.stringify({
+      clientId: clientId || null,
+      efectivo: toCents(paid),
+      discount: Math.round(
+        getSnapshotTotalPrice(proformaProducts) * toNumber(discountPercentage),
+      ),
+      proformaProducts: getProductsSnapshot(proformaProducts),
+    });
 
   useEffect(() => {
-    setSalesActivated(false);
-  }, [
-    documentNumber,
-    name,
-    lastName,
-    email,
-    phoneNumber,
-    regionId,
-    provinceId,
-    districtId,
-    address,
-    proformaProducts,
-    paid,
-    due,
-    discountPercentage,
-    discount,
-  ]);
+    if (!queryParams.id) return;
+
+    const fetchProforma = async () => {
+      try {
+        setLoadingSearchClient(true);
+        const _proforma = await getProforma(queryParams.id);
+        // const proformaDiscount = await getInfoValidationProforma()
+        if (
+          _proforma.status === "OPEN" ||
+          _proforma.status === "PENDING_DISCOUNT_APPROVAL"
+        ) {
+          setProforma(_proforma);
+          setDocumentNumber(_proforma.client.idNumber);
+          setName(_proforma.client.name);
+          setLastName(_proforma.client.lastname);
+          setEmail(_proforma.client.email);
+          setPhoneNumber(_proforma.client.phoneNumber);
+          setAddress(_proforma.client.address);
+          setRegionId(_proforma.client.regionId);
+          setProvinceId(_proforma.client.provinceId);
+          setDistrictId(_proforma.client.districtId);
+          setClientId(_proforma.client.id);
+          setClient(_proforma.client);
+          setClientSearch(getClientOptionLabel(_proforma.client));
+          setPaid((_proforma.efectivo / 100).toFixed(2));
+          setDue((_proforma.credit / 100).toFixed(2));
+          const loadedProformaProducts =
+            _proforma.proformaProducts.map((proformaProduct) => {
+              return {
+                ...proformaProduct,
+                product: {
+                  ...proformaProduct.product,
+                  suggestedPrice: proformaProduct.unitPrice / 100,
+                },
+                familyId: proformaProduct.product.familyId,
+                subfamilyId: proformaProduct.product.subfamilyId,
+                modelId: proformaProduct.product.modelId,
+                elementId: proformaProduct.product.elementId,
+              };
+            });
+          setproformaProducts(loadedProformaProducts);
+
+          setDiscount((_proforma.discount / 100).toFixed(2));
+          const loadedDiscountPercentage = (
+            (_proforma.discountPercentage ?? 0) * 100
+          ).toFixed(2);
+          setDiscountPercentage(loadedDiscountPercentage);
+          setSavedProformaSnapshot(
+            getProformaSnapshot({
+              clientId: _proforma.client.id,
+              paid: (_proforma.efectivo / 100).toFixed(2),
+              discountPercentage: loadedDiscountPercentage,
+              proformaProducts: loadedProformaProducts,
+            }),
+          );
+          // setDiscountPercentage(
+          //   (
+          //     (parseFloat(_proforma.discount ?? 0) * 100) /
+          //     _proforma.subtotal
+          //   ).toFixed(2)
+          // );
+          // this part will cause thtat the credit equals total
+          // setDue(_proforma.total / 100);
+        } else {
+          //Lo expulsa por que esa proforma esta cerrada
+          router.push(`/proformas`);
+        }
+      } catch (error) {
+        //si hay error en query params lo expulsa a proformas
+        router.push(`/proformas`);
+      } finally {
+        setLoadingSearchClient(false);
+      }
+    };
+    fetchProforma();
+  }, [queryParams.id]);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -474,6 +657,28 @@ export default ({ setPageTitle }) => {
     return _totalPrice;
   }, [proformaProducts]);
 
+  const currentProformaSnapshot = getProformaSnapshot({
+    clientId,
+    paid,
+    discountPercentage,
+    proformaProducts,
+  });
+
+  const hasSavedProforma = !!proforma?.id;
+  const hasUnsavedChanges =
+    !hasSavedProforma ||
+    !savedProformaSnapshot ||
+    currentProformaSnapshot !== savedProformaSnapshot;
+  const canActivateSale =
+    hasSavedProforma && !hasUnsavedChanges && proforma?.status === "OPEN";
+  const canDeleteProforma =
+    hasSavedProforma &&
+    ["OPEN", "PENDING_DISCOUNT_APPROVAL"].includes(proforma?.status);
+  const sortedProformaProducts = useMemo(
+    () => orderBy(proformaProducts, "id", "asc"),
+    [proformaProducts],
+  );
+
   useEffect(() => {
     const newFinalPrice = (totalPrice * (1 - discountPercentage / 100)).toFixed(
       2,
@@ -499,12 +704,79 @@ export default ({ setPageTitle }) => {
     // }
   }, [totalPrice]);
 
+  useEffect(() => {
+    const searchText = clientSearch?.trim();
+    if (!searchText || searchText.length < 2 || clientId) {
+      setClientSearchOptions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        setLoadingSearchClientsByName(true);
+        const params = { active: "true", query: searchText };
+
+        const clientsResult = await getClients(params);
+        setClientSearchOptions(
+          (clientsResult.rows || []).map((_client) => ({
+            value: getClientOptionLabel(_client),
+            label: getClientOptionLabel(_client),
+            client: _client,
+          })),
+        );
+      } catch (error) {
+        notification.error({
+          message: "Error al buscar clientes",
+          description: error.message,
+        });
+      } finally {
+        setLoadingSearchClientsByName(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [clientSearch, clientId]);
+
   const selectOptions = (collection) =>
     // console.log("collection", collection)
     [{ id: null, name: "Todos" }, ...collection].map((document) => ({
       value: document.id,
       label: document.name,
     }));
+
+  const getClientOptionLabel = (_client) =>
+    `${_client.name || ""} ${_client.lastname || ""} - ${
+      _client.idNumber || ""
+    }`.trim();
+
+  const confirmClient = (_client) => {
+    const {
+      id,
+      name,
+      lastname,
+      email,
+      phoneNumber,
+      address,
+      regionId,
+      provinceId,
+      districtId,
+      idNumber,
+    } = _client;
+
+    setDisabled(true);
+    setClient(_client);
+    setName(name);
+    setLastName(lastname);
+    setEmail(email);
+    setPhoneNumber(phoneNumber);
+    setAddress(address);
+    setRegionId(regionId);
+    setProvinceId(provinceId);
+    setDistrictId(districtId);
+    setDocumentNumber(idNumber);
+    setClientId(id);
+    setClientSearch(getClientOptionLabel(_client));
+  };
 
   const mapproformaProducts = async (
     products,
@@ -538,37 +810,14 @@ export default ({ setPageTitle }) => {
     try {
       setLoadingSearchClient(true);
       const client = await getClientPerCode(documentNumber);
-      /* console.log(client); */
-      const {
-        id,
-        active,
-        name,
-        lastname,
-        email,
-        phoneNumber,
-        address,
-        regionId,
-        provinceId,
-        districtId,
-      } = client;
+      const { active } = client;
 
       if (!active) throw Error("Usuario inactivo");
 
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} encontrado.`,
       });
-      setDisabled(true);
-      setClient(client);
-
-      setName(name);
-      setLastName(lastname);
-      setEmail(email);
-      setPhoneNumber(phoneNumber);
-      setAddress(address);
-      setRegionId(regionId);
-      setProvinceId(provinceId);
-      setDistrictId(districtId);
-      setClientId(id);
+      confirmClient(client);
 
       setLoadingSearchClient(false);
       return true;
@@ -581,12 +830,54 @@ export default ({ setPageTitle }) => {
     }
   };
 
-  const handlePayButton = (_saleWay) => {
-    setSaleWay(_saleWay);
+  const handlePayButton = () => {
     setIsModalAddProformaVisible(true);
   };
 
+  const onDeleteProforma = () => {
+    if (!proforma.id) return;
+
+    Modal.confirm({
+      title: `Rechazar proforma N°${proforma.id}`,
+      content:
+        "Esta acción marcará la proforma como rechazada. No se podrá confirmar como venta.",
+      okText: "Rechazar",
+      okType: "danger",
+      cancelText: "Cancelar",
+      onOk: async () => {
+        try {
+          setLoadingDeleteProforma(true);
+          await deleteProforma(proforma.id);
+          notification.success({
+            message: "Proforma rechazada correctamente",
+          });
+          router.push("/proformas");
+        } catch (error) {
+          notification.error({
+            message: "Error al rechazar la proforma",
+            description: error.message,
+          });
+        } finally {
+          setLoadingDeleteProforma(false);
+        }
+      },
+    });
+  };
+
+  const hasInvalidProductQuantities = proformaProducts.some(
+    (proformaProduct) => toNumber(get(proformaProduct, "quantity", 0)) < 1,
+  );
+
   const onSaveProforma = async () => {
+    if (hasInvalidProductQuantities) {
+      notification.warning({
+        message: "Complete la cantidad de los productos",
+        description:
+          "Todos los productos de la proforma deben tener una cantidad mayor o igual a 1 antes de guardar.",
+      });
+      return;
+    }
+
     try {
       setLoadingSaveProforma(true);
       if (proforma.id) {
@@ -615,15 +906,11 @@ export default ({ setPageTitle }) => {
         // if (validateProformaTransactionId) {
         //   router.push(`/proformas/validate/${validateProformaTransactionId}`);
         // }
-        // if(_response.)
-        // router.replace(router.asPath);
-        // console.log('refresh')
         setProforma(_response);
+        setSavedProformaSnapshot(currentProformaSnapshot);
         if (validateProformaTransactionId) {
           setIsModalDiscountOpen(true);
         }
-        router.replace(router.asPath);
-        // window.location.reload();
       } else {
         //Guarda la proforma
         const _response = await postProforma({
@@ -640,6 +927,7 @@ export default ({ setPageTitle }) => {
           })),
         });
         setProforma(_response);
+        setSavedProformaSnapshot(currentProformaSnapshot);
         success(_response.id);
         const validateProformaTransactionId = _response.discountValidationId;
         if (validateProformaTransactionId) {
@@ -648,7 +936,6 @@ export default ({ setPageTitle }) => {
         // setIsModalDiscountOpen(true);
       }
       setLoadingSaveProforma(false);
-      setSalesActivated(true);
     } catch (error) {
       notification.error({
         message: error.message,
@@ -702,9 +989,9 @@ export default ({ setPageTitle }) => {
       notification.success({
         message: `Cliente con el DNI/RUC ${documentNumber} creado exitosamente.`,
       });
-      setDisabled(true);
-      setClient(response);
-      setClientId(response.id);
+      confirmClient(response);
+      setIsClientModalVisible(false);
+      return true;
     } catch (error) {
       console.log(error);
       if (error.message.includes("idNumber")) {
@@ -754,6 +1041,7 @@ export default ({ setPageTitle }) => {
       notification.error({
         message: error.message,
       });
+      return false;
     }
   };
 
@@ -867,19 +1155,83 @@ export default ({ setPageTitle }) => {
   const prevFamiliyIdSelect = React.useRef(null);
   prevFamiliyIdSelect.current = familyId;
 
-  // if the producst has only one element, select that by default
-  const _code = code || (products.length === 1 ? products?.[0]?.code : code);
+  const _code = code;
 
   const prevCode = React.useRef(null);
 
   // track the input if changes
   prevCode.current = _code;
 
+  const getProductTradeNameLabel = (product) =>
+    product?.tradename?.trim() || "N/A";
+
+  const getProductModelNameLabel = (product) =>
+    product?.modelName?.trim() || "N/A";
+
+  const getProductSearchLabel = (product) =>
+    `NC: ${getProductTradeNameLabel(product)} | Modelo: ${getProductModelNameLabel(
+      product,
+    )}`;
+
+  const renderProductSearchOption = (product) => (
+    <ProductSearchOption>
+      <strong>{getProductTradeNameLabel(product)}</strong>
+      <span>Modelo: {getProductModelNameLabel(product)}</span>
+    </ProductSearchOption>
+  );
+
+  const mainProductSearchOptions = useMemo(
+    () =>
+      tradeNameProducts.map((product) => ({
+        value: getProductSearchLabel(product),
+        label: renderProductSearchOption(product),
+        product,
+      })),
+    [tradeNameProducts],
+  );
+
+  const selectMainProductBySearch = (value) => {
+    const searchValue = value?.trim();
+
+    if (!searchValue) {
+      setSelectedProductMain(null);
+      return;
+    }
+
+    const normalizedSearch = searchValue.toLowerCase();
+    const exactMatches = tradeNameProducts.filter(
+      (product) =>
+        getProductSearchLabel(product).toLowerCase() === normalizedSearch ||
+        product.tradename?.toLowerCase() === normalizedSearch ||
+        product.modelName?.toLowerCase() === normalizedSearch,
+    );
+    const partialMatches = tradeNameProducts.filter(
+      (product) =>
+        getProductSearchLabel(product).toLowerCase().includes(normalizedSearch) ||
+        product.tradename?.toLowerCase().includes(normalizedSearch) ||
+        product.modelName?.toLowerCase().includes(normalizedSearch),
+    );
+    const selectedProduct =
+      exactMatches.length === 1
+        ? exactMatches[0]
+        : partialMatches.length === 1
+          ? partialMatches[0]
+          : null;
+
+    setSelectedProductMain(selectedProduct);
+
+    if (selectedProduct) {
+      setProductSearchName(getProductSearchLabel(selectedProduct));
+    }
+  };
+
   return (
     <>
+      <ProformaResponsiveStyles />
       <Modal
         visible={addNewProduct}
-        width="60%"
+        className="advanced-product-modal"
+        width="72%"
         title="Seleccione los datos del producto que desea agregar"
         afterClose={() => resetDataModal()}
         onCancel={() => {
@@ -906,13 +1258,13 @@ export default ({ setPageTitle }) => {
             onClick={() => {
               setproformaProducts((prevState) => {
                 return [
-                  ...prevState,
-                  {
-                    id: proformaProducts.length + 1,
-                    quantity: 1,
-                    familyId,
-                    subFamilyId,
-                    elementId,
+                      ...prevState,
+                      {
+                        id: proformaProducts.length + 1,
+                        quantity: 0,
+                        familyId,
+                        subFamilyId,
+                        elementId,
                     modelId,
                     product: {
                       ...product,
@@ -930,10 +1282,12 @@ export default ({ setPageTitle }) => {
         ]}
       >
         <div
+          className="advanced-field-row"
           style={{
             display: "flex",
             alignItems: "center",
             marginBottom: "12px",
+            minWidth: 0,
           }}
         >
           <span
@@ -960,23 +1314,25 @@ export default ({ setPageTitle }) => {
                 // subfamilyId: subFamilyId,
                 // elementId,
                 // modelId: Number(value),
-              });
-
-              // only one match
-              if (products.length === 1) {
-                const product = products[0];
-                setProduct(product);
-                setFamilyId(product.familyId);
-                setElementId(product.elementId);
-                setSubFamilyId(product.subfamilyId);
-                setModelId(product.modelId);
-                setModel(product.modelName || "");
-              } else {
-                setFamilyId("Varios");
-                setElementId("Varios");
-                setSubFamilyId("Varios");
-                setModel("Varios");
-              }
+	              });
+	
+	              // only one match
+	              if (products.length === 1) {
+	                const product = products[0];
+	                setProduct(product);
+	                setFamilyId(product.familyId);
+	                setElementId(product.elementId);
+	                setSubFamilyId(product.subfamilyId);
+	                setModelId(product.modelId);
+	                setModel(product.modelName || "");
+	                setCode(product.code);
+	              } else {
+	                setFamilyId("Varios");
+	                setElementId("Varios");
+	                setSubFamilyId("Varios");
+	                setModel("Varios");
+	                setCode("");
+	              }
 
               // setCode(value);
               // setProduct(option.product);
@@ -1004,47 +1360,60 @@ export default ({ setPageTitle }) => {
             }}
           />
         </div>
-        <Grid gridTemplateColumns="repeat(2, 1fr)" gridGap="1rem">
-          <Select
-            value={familyId}
-            label="Familia"
-            onChange={(value) => {
-              if (prevFamiliyIdSelect.current !== value) {
-                setSubFamilyId("");
-              }
-              setFamilyId(value);
-              resetInputsInModalAddProduct();
-            }}
-            options={selectOptions(families)}
-          />
-          <Select
-            value={subFamilyId}
-            label="Sub-Familia"
-            onChange={(value) => {
-              setSubFamilyId(value);
-              resetInputsInModalAddProduct();
-            }}
-            options={selectOptions(
-              subfamilies.filter(
-                (subFamily) => subFamily.familyId === familyId,
-              ),
-            )}
-          />
-          <Select
-            value={elementId}
-            label="Elemento"
-            onChange={(value) => {
-              setProduct({});
-              setElementId(value);
-              setModel("");
-              setCode("");
-              setProducts([]);
-            }}
-            options={selectOptions(
-              elements.filter((element) => element.subfamilyId === subFamilyId),
-            )}
-          />
-          <div style={{ display: "flex", alignItems: "center" }}>
+        <Grid
+          className="advanced-product-grid"
+          gridTemplateColumns="repeat(2, minmax(0, 1fr))"
+          gridGap="1rem"
+        >
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
+            <Select
+              value={familyId}
+              label="Familia"
+              onChange={(value) => {
+                if (prevFamiliyIdSelect.current !== value) {
+                  setSubFamilyId("");
+                }
+                setFamilyId(value);
+                resetInputsInModalAddProduct();
+              }}
+              options={selectOptions(families)}
+            />
+          </div>
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
+            <Select
+              value={subFamilyId}
+              label="Sub-Familia"
+              onChange={(value) => {
+                setSubFamilyId(value);
+                resetInputsInModalAddProduct();
+              }}
+              options={selectOptions(
+                subfamilies.filter(
+                  (subFamily) => subFamily.familyId === familyId,
+                ),
+              )}
+            />
+          </div>
+          <div className="advanced-select-field" style={{ minWidth: 0 }}>
+            <Select
+              value={elementId}
+              label="Elemento"
+              onChange={(value) => {
+                setProduct({});
+                setElementId(value);
+                setModel("");
+                setCode("");
+                setProducts([]);
+              }}
+              options={selectOptions(
+                elements.filter((element) => element.subfamilyId === subFamilyId),
+              )}
+            />
+          </div>
+          <div
+            className="advanced-field-row"
+            style={{ display: "flex", alignItems: "center", minWidth: 0 }}
+          >
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1070,16 +1439,17 @@ export default ({ setPageTitle }) => {
                   subfamilyId: subFamilyId,
                   elementId,
                   modelId: Number(value),
-                });
-                // Update the tradename
-                if (_products.length === 1) {
-                  const product = _products[0];
-                  setProduct(product);
-                  setAlertState({ active: false });
-                  setTradeName(product.tradename);
-                }
-                setIsCodInventarioLoading(false);
-              }}
+	                });
+	                // Update the tradename
+	                if (_products.length === 1) {
+	                  const product = _products[0];
+	                  setProduct(product);
+	                  setAlertState({ active: false });
+	                  setTradeName(product.tradename);
+	                  setCode(product.code);
+	                }
+	                setIsCodInventarioLoading(false);
+	              }}
               onSearch={(value, option) => {
                 setModel(value);
               }}
@@ -1091,7 +1461,21 @@ export default ({ setPageTitle }) => {
               }}
             />
           </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
+	          <div
+              className="advanced-inventory-row"
+	            style={{
+	              display: "grid",
+	              gridTemplateColumns: "minmax(0, 1fr) auto auto",
+	              gridGap: "0.5rem",
+	              alignItems: "center",
+	              gridColumn: "1 / 3",
+	              minWidth: 0,
+	            }}
+	          >
+            <div
+              className="advanced-field-row"
+              style={{ display: "flex", alignItems: "center", minWidth: 0 }}
+            >
             <span
               className="ant-input-group-addon"
               style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
@@ -1101,7 +1485,7 @@ export default ({ setPageTitle }) => {
             <AutoCompleteAntd
               // onFocus={() => resetDataModal()}
               placeholder="Codigo Inventario"
-              style={{ width: "300px" }}
+              style={{ width: "100%" }}
               color={"white"}
               colorFont={"#5F5F7F"}
               value={_code}
@@ -1116,11 +1500,11 @@ export default ({ setPageTitle }) => {
                 setModel(option.product.modelName);
                 setSubFamilyId(option.product.subfamilyId);
                 setTradeName(option.product.tradename);
-              }}
-              onPaste={(e) => {
-                const text = event.clipboardData.getData("text");
-                setCode(text.trimStart().trimEnd());
-              }}
+	              }}
+	              onPaste={(e) => {
+	                const text = e.clipboardData.getData("text");
+	                setCode(text.trimStart().trimEnd());
+	              }}
               onSearch={(value) => {
                 setCode(value);
               }}
@@ -1133,6 +1517,7 @@ export default ({ setPageTitle }) => {
                 return option.value.toLowerCase().includes(input.toLowerCase());
               }}
             />
+            </div>
             <Button
               disabled={_code === "" || _code === null}
               onClick={async () => {
@@ -1156,13 +1541,14 @@ export default ({ setPageTitle }) => {
                   const product = productsFound[0];
                   setProduct(product);
                   setAlertState({ active: false });
-                  setFamilyId(product.familyId);
-                  setElementId(product.elementId);
-                  setTradeName(product.tradename);
-                  setSubFamilyId(product.subfamilyId);
-                  setModelId(product.modelId);
-                  setModel(product.modelName || "");
-                }
+	                  setFamilyId(product.familyId);
+	                  setElementId(product.elementId);
+	                  setTradeName(product.tradename);
+	                  setSubFamilyId(product.subfamilyId);
+	                  setModelId(product.modelId);
+	                  setModel(product.modelName || "");
+	                  setCode(product.code);
+	                }
               }}
               type="primary"
             >
@@ -1188,6 +1574,7 @@ export default ({ setPageTitle }) => {
         title="Información del producto"
         onCancel={() => setIsVisible(false)}
         footer={null}
+        wrapClassName="product-info-modal"
       >
         <ModalProduct id={idModal}></ModalProduct>
       </Modal>
@@ -1197,14 +1584,22 @@ export default ({ setPageTitle }) => {
           proforma={proforma}
           totalPaid={paid}
           totalDebt={due}
-          saleWay={saleWay}
           trigger={setIsModalAddProformaVisible}
         />
       )}
-
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="repeat(4, 1fr)" gridGap="1rem">
-          <Input value="En cotización" addonBefore="Estatus" disabled />
+      <Modal
+        visible={isClientModalVisible}
+        className="create-client-modal"
+        width="70%"
+        title="Crear cliente"
+        onCancel={() => setIsClientModalVisible(false)}
+        footer={null}
+      >
+        <Grid
+          className="create-client-grid"
+          gridTemplateColumns="repeat(2, 1fr)"
+          gridGap="1rem"
+        >
           <Input
             placeholder="Documento de Identidad"
             value={documentNumber}
@@ -1219,26 +1614,7 @@ export default ({ setPageTitle }) => {
             }}
             addonBefore="DNI/RUC"
           />
-          <Grid
-            gridTemplateColumns="repeat(3, 1fr)"
-            gridGap="1rem"
-            gridColumnStart="3"
-            gridColumnEnd="5"
-          >
-            <Button
-              loading={loadingSearchClient}
-              type="primary"
-              onClick={onSearchClient}
-            >
-              Buscar
-            </Button>
-            <Button
-              type="primary"
-              disabled={queryParams.id}
-              onClick={onCreateClient}
-            >
-              Crear cliente
-            </Button>
+          <Grid gridTemplateColumns="1fr" gridGap="1rem">
             <Button onClick={probandoMigo} type="primary">
               Check RUC
             </Button>
@@ -1322,34 +1698,487 @@ export default ({ setPageTitle }) => {
             addonBefore="Dirección"
             disabled={disabled}
           />
+          <Button
+            type="primary"
+            disabled={queryParams.id || disabled}
+            onClick={onCreateClient}
+          >
+            Crear cliente
+          </Button>
         </Grid>
-      </Container>
-      <Container padding="0px" width="100vw" height="35%">
-        <Table
-          rowKey={(record) => record.id}
-          columns={columns}
-          scroll={{ y: windowHeight * 0.3 - 48 }}
-          bordered
-          pagination={false}
-          dataSource={orderBy(proformaProducts, "id", "asc")}
-        />
-      </Container>
-      <Container height="fit-content" padding="2rem 1rem 1rem">
-        <Button
-          padding="0 0.5rem"
-          type="primary"
-          onClick={() => {
-            setAddNewProduct(true);
+      </Modal>
+
+      <Modal
+        visible={isChangeModalVisible}
+        className="change-product-modal"
+        width="720px"
+        title="Cambiar producto"
+        onCancel={() => setIsChangeModalVisible(false)}
+        footer={[
+          <Button
+            key="cancel"
+            margin="0 0.5rem 0 0"
+            onClick={() => setIsChangeModalVisible(false)}
+          >
+            Cerrar
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            disabled={!changeModalSelectedProductId || changeModalLoading}
+            onClick={handleChangeModalSubmit}
+          >
+            Cambiar
+          </Button>,
+        ]}
+      >
+        <div style={{ marginBottom: "0.75rem" }}>
+          <div style={{ color: "#666", marginBottom: "0.35rem" }}>
+            Producto actual
+          </div>
+          <div style={{ fontWeight: 700 }}>
+            {get(changeModalCurrentProduct, "modelName", "-")} ·{" "}
+            {get(changeModalCurrentProduct, "tradename", "-")}
+          </div>
+          <div style={{ color: "#666", marginTop: "0.25rem" }}>
+            Cód. Inventario: {get(changeModalCurrentProduct, "code", "-")}
+          </div>
+          <div style={{ color: "#333", marginTop: "0.5rem" }}>
+            Cantidad solicitada: <strong>{changeRequestedQuantity}</strong>
+          </div>
+        </div>
+
+        <Grid
+          className="change-product-grid change-product-grid-head"
+          gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
+          gridGap="0.75rem"
+          style={{
+            fontWeight: 700,
+            padding: "0.5rem",
+            borderBottom: "1px solid #e8e8e8",
+            color: "#4a4a4a",
           }}
         >
-          <Icon fontSize="1rem" icon={faPlus} />
-          Agregar producto
-        </Button>
+          <div />
+          <div style={{ textAlign: "center" }}>Cód. Inventario</div>
+          <div style={{ textAlign: "center" }}>Modelo</div>
+          <div>Nombre comercial</div>
+          <div style={{ textAlign: "center" }}>Stock</div>
+          <div style={{ textAlign: "center" }}>Estado</div>
+        </Grid>
+
+        <Spin spinning={changeModalLoading}>
+          <div
+            style={{
+              maxHeight: "260px",
+              overflowY: "auto",
+              paddingRight: "0.35rem",
+              paddingBottom: "0.25rem",
+            }}
+          >
+            {!changeModalLoading && changeModalProducts.length === 0 ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="No hay productos del mismo grupo para sugerir"
+              />
+            ) : (
+              changeModalProducts.map((item) => {
+                const hasEnoughStock = item.hasEnoughStock;
+                const isSelected = item.id === changeModalSelectedProductId;
+                const isSelectedWithoutStock = isSelected && !hasEnoughStock;
+
+                return (
+                  <Grid
+                    key={item.id}
+                    className="change-product-grid change-product-grid-row"
+                    gridTemplateColumns="44px 96px 140px minmax(0, 1fr) 80px 100px"
+                    gridGap="0.75rem"
+                    alignItems="center"
+                    onClick={() => setChangeModalSelectedProductId(item.id)}
+                    style={{
+                      cursor: "pointer",
+                      marginTop: "0.5rem",
+                      minHeight: "52px",
+                      padding: "0.6rem 0.5rem",
+                      borderRadius: "6px",
+                      backgroundColor: isSelectedWithoutStock
+                        ? "#fff1f0"
+                        : hasEnoughStock
+                        ? "#fff"
+                        : "#f5f5f5",
+                      border: isSelectedWithoutStock
+                        ? "1px solid #ffccc7"
+                        : isSelected
+                        ? "1px solid #1890ff"
+                        : "1px solid #e8e8e8",
+                      boxShadow: hasEnoughStock
+                        ? "0 1px 3px rgba(0,0,0,0.04)"
+                        : "inset 0 0 0 1px #e8e8e8",
+                      color: hasEnoughStock ? "#222" : "#777",
+                    }}
+                  >
+                    <div style={{ textAlign: "center" }}>
+                      <Radio
+                        checked={isSelected}
+                        onChange={() =>
+                          setChangeModalSelectedProductId(item.id)
+                        }
+                      />
+                    </div>
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        lineHeight: "1.15rem",
+                        overflowWrap: "anywhere",
+                        textAlign: "center",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {item.code}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      {item.modelName || "-"}
+                    </div>
+                    <div>{item.tradename || "-"}</div>
+                    <div style={{ textAlign: "center", fontWeight: 600 }}>
+                      {item.availableStock || 0}
+                    </div>
+                    <div
+                      style={{
+                        textAlign: "center",
+                        color: hasEnoughStock
+                          ? "#237804"
+                          : isSelected
+                          ? "#a8071a"
+                          : "#8c8c8c",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {hasEnoughStock ? "Disponible" : "Sin stock suficiente"}
+                    </div>
+                  </Grid>
+                );
+              })
+            )}
+          </div>
+        </Spin>
+      </Modal>
+
+      <ProformaWorkspace>
+        <Container height="fit-content" padding="0.75rem 1rem">
+        <TopFormGrid>
+          <Input value="En cotización" addonBefore="Estatus" disabled />
+
+          {/* Cliente */}
+          <div
+            className={
+              proforma.id || queryParams.id
+                ? "client-search-row client-search-row-full"
+                : "client-search-row"
+            }
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                proforma.id || queryParams.id ? "1fr" : "1fr auto",
+              gridGap: "1rem",
+              alignItems: "start",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "center", width: "100%" }}
+            >
+              <span
+                className="ant-input-group-addon"
+                style={{ width: "auto", height: "2rem", lineHeight: "2rem" }}
+              >
+                Cliente
+              </span>
+              <AutoCompleteAntd
+                placeholder="Buscar cliente por nombre"
+                style={{ width: "100%" }}
+                value={clientSearch}
+                options={clientSearchOptions}
+                loading={loadingSearchClientsByName}
+                disabled={!!proforma.id || !!queryParams.id}
+                filterOption={false}
+                onSearch={(value) => {
+                  setClientSearch(value);
+                  if (clientId) {
+                    setClientId(null);
+                    setDocumentNumber(null);
+                    setClient(undefined);
+                    setDisabled(false);
+                  }
+                }}
+                onSelect={(value, option) => {
+                  confirmClient(option.client);
+                }}
+              />
+            </div>
+            {!proforma.id && !queryParams.id && (
+              <Button
+                className="new-client-button"
+                type="primary"
+                width="5rem"
+                padding="0 0.5rem"
+                onClick={() => setIsClientModalVisible(true)}
+              >
+                +Nuevo
+              </Button>
+            )}
+          </div>
+
+          {/* Producto */}
+          <ProductSearchBlock>
+            <ProductSearchRow
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gridGap: "1rem",
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <span
+                  className="ant-input-group-addon"
+                  style={{
+                    width: "auto",
+                    height: "2rem",
+                    lineHeight: "2rem",
+                  }}
+                >
+                  Producto
+                </span>
+	                <AutoCompleteAntd
+	                  placeholder="Buscar por nombre comercial o modelo"
+	                  style={{ width: "100%" }}
+	                  value={productSearchName}
+	                  options={mainProductSearchOptions}
+	                  loading={isCodInventarioLoading}
+	                  filterOption={(input, option) => {
+	                    const searchValue = input.toLowerCase();
+	                    return (
+	                      option.value.toLowerCase().includes(searchValue) ||
+	                      option.product?.tradename
+	                        ?.toLowerCase()
+	                        .includes(searchValue) ||
+	                      option.product?.modelName
+	                        ?.toLowerCase()
+	                        .includes(searchValue)
+	                    );
+	                  }}
+	                  onSearch={(value) => {
+	                    setProductSearchName(value);
+	                    setSelectedProductMain(null);
+	                  }}
+	                  onBlur={() => {
+	                    selectMainProductBySearch(productSearchName);
+	                  }}
+	                  onSelect={(value, option) => {
+	                    setProductSearchName(value);
+	                    setSelectedProductMain(option.product);
+	                  }}
+	                />
+              </div>
+              <Button
+                className="add-product-button"
+                type="primary"
+                size="small"
+                disabled={!selectedProductMain}
+                onClick={() => {
+                  setproformaProducts((prevState) => {
+                    return [
+                      ...prevState,
+                      {
+                        id: proformaProducts.length + 1,
+                        quantity: 0,
+                        familyId: selectedProductMain.familyId,
+                        subFamilyId: selectedProductMain.subfamilyId,
+                        elementId: selectedProductMain.elementId,
+                        modelId: selectedProductMain.modelId,
+                        product: {
+                          ...selectedProductMain,
+                          suggestedPrice: (
+                            selectedProductMain.suggestedPrice / 100
+                          ).toFixed(2),
+                        },
+                      },
+                    ];
+                  });
+                  setProductSearchName("");
+                  setSelectedProductMain(null);
+                  notification.success({
+                    message: "Producto agregado correctamente",
+                  });
+                }}
+              >
+                Agregar
+              </Button>
+            </ProductSearchRow>
+            {/* Avanzado link */}
+            <AdvancedProductLink
+              onClick={() => setAddNewProduct(true)}
+            >
+              Avanzado
+            </AdvancedProductLink>
+          </ProductSearchBlock>
+        </TopFormGrid>
       </Container>
-      <Container height="fit-content">
-        <Grid gridTemplateColumns="45% 45%" gridGap="10%">
-          <Grid>
-            <Grid gridTemplateColumns="1fr 1fr" gridGap="2rem">
+      <ProductsSection>
+        <div
+          style={{
+            alignItems: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "0 0 0.5rem",
+          }}
+        >
+          <strong>Productos</strong>
+          <span style={{ color: "#606770", fontSize: "0.85rem" }}>
+            {proformaProducts.length}{" "}
+            {proformaProducts.length === 1 ? "producto" : "productos"}
+          </span>
+        </div>
+        <DesktopProductsTable>
+          <Table
+            rowKey={(record) => record.id}
+            columns={columns}
+            scroll={{
+              x: 900,
+              y: Math.max(Math.min(windowHeight - 520, 420), 160),
+            }}
+            bordered
+            pagination={false}
+            size="small"
+            dataSource={sortedProformaProducts}
+          />
+        </DesktopProductsTable>
+        <MobileProductsList>
+          {sortedProformaProducts.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Agregue productos a la proforma"
+            />
+          ) : (
+            sortedProformaProducts.map((proformaProduct) => (
+              <MobileProductCard key={proformaProduct.id}>
+                <MobileProductHeader>
+                  <div>
+                    <MobileProductModel>
+                      {get(proformaProduct, "product.modelName", "-")}
+                    </MobileProductModel>
+                    <MobileProductCode>
+                      {get(proformaProduct, "product.code", "-")}
+                    </MobileProductCode>
+                  </div>
+                  <MobileSubtotal>
+                    S/ {getProductSubtotal(proformaProduct)}
+                  </MobileSubtotal>
+                </MobileProductHeader>
+                <MobileTradeName>
+                  {get(proformaProduct, "product.tradename", "-")}
+                </MobileTradeName>
+                <MobileProductMeta>
+                  <span>Stock</span>
+                  <strong>{get(proformaProduct, "product.availableStock", 0)}</strong>
+                </MobileProductMeta>
+                <MobileInputsGrid>
+                  <Input
+                    addonBefore="Cant."
+                    type="number"
+                    min={0}
+                    value={
+                      get(proformaProduct, "quantity", 0) === 0
+                        ? undefined
+                        : get(proformaProduct, "quantity", 0)
+                    }
+                    placeholder="Ingrese cantidad"
+                    onChange={(event) =>
+                      updateProductQuantity(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                  />
+                  <Input
+                    addonBefore="Precio S/"
+                    type="number"
+                    min={0}
+                    value={get(proformaProduct, "product.suggestedPrice", 0)}
+                    onChange={(event) =>
+                      updateProductPrice(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                    onBlur={(event) =>
+                      normalizeProductPrice(
+                        proformaProduct,
+                        event.nativeEvent.target.value,
+                      )
+                    }
+                  />
+                </MobileInputsGrid>
+                <MobileActions>
+                  <Tooltip title="Cambiar producto">
+                    <Button
+                      disabled={!proformaProduct.product}
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="default"
+                      onClick={() => openChangeModal(proformaProduct)}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faExchangeAlt} />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Ver producto">
+                    <Button
+                      disabled={!proformaProduct.product}
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="primary"
+                      onClick={() => {
+                        setIsVisible(true);
+                        setIdModal(proformaProduct.product.id);
+                      }}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faEye} />
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Eliminar producto">
+                    <Button
+                      width="32px"
+                      padding="0"
+                      margin="0"
+                      type="danger"
+                      onClick={() => removeProformaProduct(proformaProduct.id)}
+                    >
+                      <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+                    </Button>
+                  </Tooltip>
+                </MobileActions>
+              </MobileProductCard>
+            ))
+          )}
+        </MobileProductsList>
+        {proformaProducts.length > 6 && <DesktopTableFade />}
+      </ProductsSection>
+      <FooterSummary>
+        <FooterSummaryGrid gridTemplateColumns="45% 45%" gridGap="10%">
+          <Grid
+            className="footer-payment-actions"
+            gridTemplateRows="auto auto"
+            gridGap="3.5rem"
+          >
+            <PaymentGrid gridTemplateColumns="1fr 1fr" gridGap="2rem">
               <Input
                 value={paid}
                 type="number"
@@ -1417,45 +2246,55 @@ export default ({ setPageTitle }) => {
                 }}
                 addonBefore="Crédito S/"
               />
-            </Grid>
-            <br />
-            <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+            </PaymentGrid>
+            <ActionsGrid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
               <Button
                 onClick={onSaveProforma}
                 loading={loadingSaveProforma}
-                disabled={!(clientId && proformaProducts.length)}
+                disabled={
+                  !(clientId && proformaProducts.length) || !hasUnsavedChanges
+                }
                 type="primary"
               >
                 Guardar
               </Button>
               <Button
                 type="primary"
-                disabled={!salesActivated}
-                onClick={() => handlePayButton(1)}
+                disabled={!canActivateSale}
+                onClick={handlePayButton}
               >
-                Venta en Tienda
+                Confirmar Proforma
               </Button>
               <Button
-                type="primary"
-                disabled={!salesActivated}
-                onClick={() => handlePayButton(2)}
+                className="delete-proforma-button"
+                type="danger"
+                loading={loadingDeleteProforma}
+                disabled={!canDeleteProforma}
+                onClick={onDeleteProforma}
               >
-                Abono de cuenta
+                Rechazar Proforma
               </Button>
-            </Grid>
+            </ActionsGrid>
           </Grid>
-          <Grid gridTemplateColumns="5fr 2fr" gridGap="2rem">
+          <TotalsGrid
+            gridTemplateColumns="minmax(0, 5fr) minmax(8rem, 2fr)"
+            gridTemplateRows="auto auto auto"
+            gridGap="2rem"
+          >
             <Input
+              className="total-money-input"
               disabled
               value={totalPrice.toFixed(2)}
               addonBefore="Total S/"
+              style={{ gridColumn: "1 / 2", gridRow: "1 / 2" }}
             />
-            <br />
             <Input
+              className="discount-money-input"
               value={discount}
               addonBefore="Descuento S/"
               type="number"
               min={0}
+              style={{ gridColumn: "1 / 2", gridRow: "2 / 3" }}
               onChange={(event) => {
                 // console.log("onchange");
                 setDiscount(event.target.value);
@@ -1473,11 +2312,13 @@ export default ({ setPageTitle }) => {
               }}
             />
             <Input
+              className="discount-percent-input"
               addonBefore="%"
               value={discountPercentage}
               type="number"
               min={0}
               max={100}
+              style={{ gridColumn: "2 / 3", gridRow: "2 / 3" }}
               onChange={(event) => {
                 const value =
                   event.target.value === "" ? 0 : event.target.value;
@@ -1529,10 +2370,16 @@ export default ({ setPageTitle }) => {
               //   );
               // }}
             />
-            <Input disabled value={finalPrice} addonBefore="Total Final S/" />
-            <br />
-          </Grid>
-        </Grid>
+            <Input
+              className="final-money-input"
+              disabled
+              value={finalPrice}
+              addonBefore="Total Final S/"
+              style={{ gridColumn: "1 / 2", gridRow: "3 / 4" }}
+            />
+          </TotalsGrid>
+        </FooterSummaryGrid>
+      </FooterSummary>
         {/* <Modal /> */}
         <ModalValidateDiscount
           // isModalOpen={true || isModalDiscountOpen}
@@ -1550,7 +2397,7 @@ export default ({ setPageTitle }) => {
           onCancel={() => setIsModalDiscountOpen((prev) => !prev)}
         />
         {/* {<Modal open={!!proforma}>Test</Modal>} */}
-      </Container>
+      </ProformaWorkspace>
       {statusValidationModal.discountTransactionId &&
         statusValidationModal.status && (
           <Alert
@@ -1570,5 +2417,14 @@ export default ({ setPageTitle }) => {
           />
         )}
     </>
+  );
+};
+
+export default ({ setPageTitle }) => {
+  const router = useRouter();
+  const proformaId = router.query.id || "new";
+
+  return (
+    <ProformaPageContent key={proformaId} setPageTitle={setPageTitle} />
   );
 };
