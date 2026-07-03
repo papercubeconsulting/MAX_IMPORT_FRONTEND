@@ -2,6 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const chromiumPaths = [
   process.env.CHROME_BIN,
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
   "/usr/bin/chromium",
   "/usr/bin/chromium-browser",
   "/usr/bin/google-chrome",
@@ -13,11 +17,26 @@ const getChromiumPath = () => {
   return chromiumPaths.find((path) => fs.existsSync(path));
 };
 
+const hasPuppeteerCore = () => {
+  try {
+    eval("require").resolve("puppeteer-core");
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 const componentToPDFBufferWithChromium = async (component) => {
   const puppeteer = eval("require")("puppeteer-core");
   const browser = await puppeteer.launch({
     executablePath: getChromiumPath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--disable-extensions",
+    ],
     headless: true,
   });
 
@@ -27,7 +46,7 @@ const componentToPDFBufferWithChromium = async (component) => {
 
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    return page.pdf({
+    return await page.pdf({
       format: "A4",
       printBackground: true,
       margin: {
@@ -44,7 +63,7 @@ const componentToPDFBufferWithChromium = async (component) => {
 };
 
 export const componentToPDFBuffer = (component) => {
-  if (getChromiumPath()) {
+  if (getChromiumPath() && hasPuppeteerCore()) {
     return componentToPDFBufferWithChromium(component);
   }
 
