@@ -7,6 +7,8 @@ const chromiumPaths = [
   "/usr/bin/google-chrome",
 ].filter(Boolean);
 
+const pdfTimeout = 180000;
+
 const getChromiumPath = () => {
   const fs = eval("require")("fs");
 
@@ -19,10 +21,13 @@ const componentToPDFBufferWithChromium = async (component) => {
     executablePath: getChromiumPath(),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     headless: true,
+    protocolTimeout: pdfTimeout,
   });
 
   try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(pdfTimeout);
+    page.setDefaultNavigationTimeout(pdfTimeout);
     const html = `
       <!doctype html>
       <html>
@@ -53,7 +58,7 @@ const componentToPDFBufferWithChromium = async (component) => {
         bottom: "2mm",
         left: "10mm",
       },
-      timeout: 30000,
+      timeout: pdfTimeout,
     });
 
     return buffer;
@@ -82,7 +87,7 @@ export const componentToPDFBuffer = (component) => {
           left: "10mm",
         },
         type: "pdf",
-        timeout: 30000,
+        timeout: pdfTimeout,
       })
       .toBuffer((err, buffer) => {
         if (err) {
