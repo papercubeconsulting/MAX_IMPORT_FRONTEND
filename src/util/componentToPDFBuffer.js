@@ -46,7 +46,7 @@ const componentToPDFBufferWithChromium = async (component) => {
       </html>
     `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "load" });
     await page.emulateMediaType("print");
 
     const buffer = await page.pdf({

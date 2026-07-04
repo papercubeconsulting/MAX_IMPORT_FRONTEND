@@ -18,6 +18,15 @@ const getQueryArray = (value) => {
   return [];
 };
 
+const getLogoDataUri = () => {
+  const fs = eval("require")("fs");
+  const path = eval("require")("path");
+  const logoPath = path.join(process.cwd(), "public", "max-import-ticket.jpg");
+  const logo = fs.readFileSync(logoPath).toString("base64");
+
+  return `data:image/jpeg;base64,${logo}`;
+};
+
 Tickets.getInitialProps = async ({ req, res, query }) => {
   try {
     codes.loadModules(["code128", "gs1-128"], {
@@ -47,6 +56,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
 
       boxes = getQueryArray(boxes);
       productBoxesCodes = getQueryArray(productBoxesCodes);
+      const logoSrc = getLogoDataUri();
 
       const buffer = await componentToPDFBuffer(
         <div>
@@ -78,7 +88,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                         width: "413px",
                         height: "253px",
                       }}
-                      src="https://maximportassets.s3.amazonaws.com/max-import.jpg"
+                      src={logoSrc}
                     />
                   </div>
                   <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
