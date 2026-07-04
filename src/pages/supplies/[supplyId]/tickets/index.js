@@ -50,11 +50,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
               <React.Fragment key={productBoxCode || box}>
                 <div
                   style={{
-                    minHeight: "293mm",
-                    boxSizing: "border-box",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
+                    fontFamily: "Arial, Helvetica, sans-serif",
                     breakAfter: index === boxes.length - 1 ? "auto" : "page",
                     pageBreakAfter:
                       index === boxes.length - 1 ? "auto" : "always",
@@ -70,60 +66,58 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                   <div style={{ textAlign: "center" }}>
                     <img
                       style={{
-                        width: "310px",
-                        height: "190px",
+                        width: "413px",
+                        height: "253px",
                       }}
                       src="https://maximportassets.s3.amazonaws.com/max-import.jpg"
                     />
                   </div>
-                  <div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong style={{ fontSize: "30px" }}>Familia: </strong>
-                      <span style={{ fontSize: "30px" }}>{familyName}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong
-                        style={{
-                          fontSize: "28px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Sub-Familia:{" "}
-                      </strong>
-                      <span style={{ fontSize: "28px" }}>{subfamilyName}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong style={{ fontSize: "28px" }}>Elemento: </strong>
-                      <span style={{ fontSize: "28px" }}>{elementName}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong style={{ fontSize: "28px" }}>Modelo: </strong>
-                      <span style={{ fontSize: "28px" }}>{modelName}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong style={{ fontSize: "32px" }}>
-                        Nombre Comercial:{" "}
-                      </strong>
-                      <span style={{ fontSize: "32px" }}>{tradename}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                        Proveedor:{" "}
-                      </strong>
-                      <span style={{ fontSize: "25px" }}>{providerName}</span>
-                    </div>
-                    <div style={{ marginLeft: "1rem" }}>
-                      <strong style={{ fontSize: "25px" }}>Unid/Caja: </strong>
-                      <span style={{ fontSize: "25px" }}>{boxSize} // </span>
-                      <strong style={{ fontSize: "25px" }}> #Caja: </strong>
-                      <span style={{ fontSize: "25px" }}>{box}</span>
-                    </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "40px" }}>Familia: </strong>
+                    <span style={{ fontSize: "40px" }}>{familyName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong
+                      style={{
+                        fontSize: "37px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Sub-Familia:{" "}
+                    </strong>
+                    <span style={{ fontSize: "37px" }}>{subfamilyName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "37px" }}>Elemento: </strong>
+                    <span style={{ fontSize: "37px" }}>{elementName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "37px" }}>Modelo: </strong>
+                    <span style={{ fontSize: "37px" }}>{modelName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "43px" }}>
+                      Nombre Comercial:{" "}
+                    </strong>
+                    <span style={{ fontSize: "43px" }}>{tradename}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "33px", fontWeight: "bold" }}>
+                      Proveedor:{" "}
+                    </strong>
+                    <span style={{ fontSize: "33px" }}>{providerName}</span>
+                  </div>
+                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                    <strong style={{ fontSize: "33px" }}>Unid/Caja: </strong>
+                    <span style={{ fontSize: "33px" }}>{boxSize} // </span>
+                    <strong style={{ fontSize: "33px" }}>#Caja: </strong>
+                    <span style={{ fontSize: "33px" }}>{box}</span>
                   </div>
                   <img
                     src={"data:image/png;base64," + data8.toString("base64")}
                     style={{
-                      marginTop: "1.5rem",
-                      height: "200px",
+                      marginTop: "2rem",
+                      height: "267px",
                       width: "100%",
                     }}
                     alt={productBoxCode}
