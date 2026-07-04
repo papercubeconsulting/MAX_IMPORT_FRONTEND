@@ -50,6 +50,11 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
               <React.Fragment key={productBoxCode || box}>
                 <div
                   style={{
+                    minHeight: "293mm",
+                    boxSizing: "border-box",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                     breakAfter: index === boxes.length - 1 ? "auto" : "page",
                     pageBreakAfter:
                       index === boxes.length - 1 ? "auto" : "always",
@@ -71,46 +76,48 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                       src="https://maximportassets.s3.amazonaws.com/max-import.jpg"
                     />
                   </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "30px" }}>Familia: </strong>
-                    <span style={{ fontSize: "30px" }}>{familyName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong
-                      style={{
-                        fontSize: "28px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Sub-Familia:{" "}
-                    </strong>
-                    <span style={{ fontSize: "28px" }}>{subfamilyName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "28px" }}>Elemento: </strong>
-                    <span style={{ fontSize: "28px" }}>{elementName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "28px" }}>Modelo: </strong>
-                    <span style={{ fontSize: "28px" }}>{modelName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "32px" }}>
-                      Nombre Comercial:{" "}
-                    </strong>
-                    <span style={{ fontSize: "32px" }}>{tradename}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
-                      Proveedor:{" "}
-                    </strong>
-                    <span style={{ fontSize: "25px" }}>{providerName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <strong style={{ fontSize: "25px" }}>Unid/Caja: </strong>
-                    <span style={{ fontSize: "25px" }}>{boxSize} // </span>
-                    <strong style={{ fontSize: "25px" }}> #Caja: </strong>
-                    <span style={{ fontSize: "25px" }}>{box}</span>
+                  <div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong style={{ fontSize: "30px" }}>Familia: </strong>
+                      <span style={{ fontSize: "30px" }}>{familyName}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong
+                        style={{
+                          fontSize: "28px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Sub-Familia:{" "}
+                      </strong>
+                      <span style={{ fontSize: "28px" }}>{subfamilyName}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong style={{ fontSize: "28px" }}>Elemento: </strong>
+                      <span style={{ fontSize: "28px" }}>{elementName}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong style={{ fontSize: "28px" }}>Modelo: </strong>
+                      <span style={{ fontSize: "28px" }}>{modelName}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong style={{ fontSize: "32px" }}>
+                        Nombre Comercial:{" "}
+                      </strong>
+                      <span style={{ fontSize: "32px" }}>{tradename}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
+                      <strong style={{ fontSize: "25px", fontWeight: "bold" }}>
+                        Proveedor:{" "}
+                      </strong>
+                      <span style={{ fontSize: "25px" }}>{providerName}</span>
+                    </div>
+                    <div style={{ marginLeft: "1rem" }}>
+                      <strong style={{ fontSize: "25px" }}>Unid/Caja: </strong>
+                      <span style={{ fontSize: "25px" }}>{boxSize} // </span>
+                      <strong style={{ fontSize: "25px" }}> #Caja: </strong>
+                      <span style={{ fontSize: "25px" }}>{box}</span>
+                    </div>
                   </div>
                   <img
                     src={"data:image/png;base64," + data8.toString("base64")}

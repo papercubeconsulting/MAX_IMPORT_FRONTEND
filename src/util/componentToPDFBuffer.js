@@ -23,9 +23,25 @@ const componentToPDFBufferWithChromium = async (component) => {
 
   try {
     const page = await browser.newPage();
-    const html = renderToStaticMarkup(component);
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          </style>
+        </head>
+        <body>${renderToStaticMarkup(component)}</body>
+      </html>
+    `;
 
     await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.emulateMediaType("print");
 
     const buffer = await page.pdf({
       format: "A4",
