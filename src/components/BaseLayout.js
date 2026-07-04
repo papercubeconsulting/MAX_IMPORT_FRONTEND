@@ -116,6 +116,13 @@ export const BaseLayout = (props) => {
               <MenuItem>Inventario</MenuItem>
             </MenuLink>
             <MenuLink
+              href="/boxMaintenance"
+              $active={isActiveLink("boxMaintenance")}
+              onClick={() => setIsVisibleMenu(false)}
+            >
+              <MenuItem>Mantenimiento Cajas</MenuItem>
+            </MenuLink>
+            <MenuLink
               href="/supplies"
               $active={isActiveLink("supplies")}
               onClick={() => setIsVisibleMenu(false)}

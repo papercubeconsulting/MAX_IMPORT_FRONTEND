@@ -12,4 +12,13 @@ const putProductBoxes = async (body) =>
 const getProductBoxes = async (params) =>
   baseProvider.httpGet(`productboxes`, params);
 
-export { getProductBox, putProductBox, putProductBoxes, getProductBoxes };
+const generateProductBoxUnitTickets = async (productBoxId) =>
+  baseProvider.httpPost(`productboxes/${productBoxId}/unitTickets`);
+
+export {
+  getProductBox,
+  putProductBox,
+  putProductBoxes,
+  getProductBoxes,
+  generateProductBoxUnitTickets,
+};

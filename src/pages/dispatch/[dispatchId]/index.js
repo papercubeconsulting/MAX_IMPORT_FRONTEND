@@ -5,6 +5,7 @@ import {
   getDispatch,
   userProvider,
   getProductBox,
+  resolveInventoryCode,
   postDispatchProduct,
   postFinishDispatch,
 } from "../../../providers";
@@ -143,6 +144,12 @@ export default ({ setPageTitle }) => {
           onClick={() => {
             setIsVisibleReadProductCode(true);
             setDispatchedProductId(id);
+            setSelectedDispatchedProduct(data);
+            setInventoryCode(null);
+            setDataProduct();
+            setProductBoxId();
+            setProductBarcode();
+            setDispatchMode("BOX");
           }}
         >
           {data.quantity === data.dispatched ? "Entregado" : "Despachar"}
@@ -171,15 +178,34 @@ export default ({ setPageTitle }) => {
   const [isVisibleReadProductCode, setIsVisibleReadProductCode] = useState(
     false
   );
-  const [productBoxCode, setProductBoxCode] = useState(null);
+  const [inventoryCode, setInventoryCode] = useState(null);
 
   //
-  const fetchProductBox = async () => {
+  const fetchInventoryCode = async (code = inventoryCode) => {
     try {
-      const _productBox = await getProductBox(productBoxCode);
-      setDataProduct(_productBox);
-      setProductBoxId(_productBox.id);
-      /* console.log("_productBox", _productBox); */
+      const resolved = await resolveInventoryCode(code);
+
+      if (resolved.type === "BOX") {
+        const _productBox = resolved.productBox || (await getProductBox(code));
+        setDispatchMode("BOX");
+        setDataProduct(_productBox);
+        setProductBoxId(_productBox.id);
+        setProductBarcode(null);
+        setQuantity();
+        setCheck(false);
+      } else {
+        setDispatchMode("PRODUCT");
+        setDataProduct({
+          product: resolved.product,
+          productBarcode: resolved.productBarcode,
+          stock: get(resolved, "product.availableStock", 0),
+        });
+        setProductBoxId(null);
+        setProductBarcode(get(resolved, "productBarcode.barcode", code));
+        setQuantity();
+        setCheck(false);
+      }
+
       setIsVisibleReadProductCode(false);
       setIsVisibleConfirmDispatch(true);
     } catch (error) {
@@ -214,9 +240,9 @@ export default ({ setPageTitle }) => {
     Quagga.onProcessed((data) => {
       if (get(data, "codeResult", null)) {
         const codeProduct = get(data, "codeResult.code", null);
-        setProductBoxCode(get(data, "codeResult.code", null));
+        setInventoryCode(get(data, "codeResult.code", null));
         /* console.log(codeProduct); */
-        codeProduct && fetchProductBox();
+        codeProduct && fetchInventoryCode(codeProduct);
         Quagga.stop();
       }
     });
@@ -230,7 +256,10 @@ export default ({ setPageTitle }) => {
   const [check, setCheck] = useState(false);
   const [quantity, setQuantity] = useState();
   const [dispatchedProductId, setDispatchedProductId] = useState();
+  const [selectedDispatchedProduct, setSelectedDispatchedProduct] = useState();
   const [productBoxId, setProductBoxId] = useState();
+  const [productBarcode, setProductBarcode] = useState();
+  const [dispatchMode, setDispatchMode] = useState("BOX");
 
   const confirmDispatch = async () => {
     try {
@@ -241,16 +270,21 @@ export default ({ setPageTitle }) => {
         });
         return;
       }
-      const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, {
+      const body = {
         quantity,
-        productBoxId,
-      });
+      };
+
+      if (dispatchMode === "PRODUCT") body.productBarcode = productBarcode;
+      else body.productBoxId = productBoxId;
+
+      const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, body);
       /* console.log("respuesta", _resp); */
       notification.success({
         message: "Despacho realizado exitosamente",
       });
       setIsVisibleConfirmDispatch(false);
       setQuantity();
+      setInventoryCode(null);
     } catch (error) {
       notification.error({
         message: "Error al confirmar despacho",
@@ -349,18 +383,22 @@ export default ({ setPageTitle }) => {
       </Modal>
       <Modal
         visible={isVisibleReadProductCode}
-        onCancel={() => setIsVisibleReadProductCode(false)}
-        onOk={() => fetchProductBox()}
-        title="Escanear o ingresar código de caja"
+        onCancel={() => {
+          setIsVisibleReadProductCode(false);
+          setInventoryCode(null);
+        }}
+        onOk={() => fetchInventoryCode()}
+        title="Escanear o ingresar código"
         width="90%"
         wrapClassName="dispatch-code-modal"
       >
         <DispatchCodeGrid gridTemplateColumns="1fr 1fr" gridGap="1rem" marginBottom="1rem">
           <Input
-            value={productBoxCode}
+            value={inventoryCode}
             justify="center"
-            onChange={(event) => setProductBoxCode(event.target.value)}
-            addonBefore="Código de caja"
+            onChange={(event) => setInventoryCode(event.target.value)}
+            addonBefore="Código"
+            placeholder="Caja 1... o producto 2..."
           />
           <Button onClick={scanBarcode}>Escanear Código de barras</Button>
         </DispatchCodeGrid>
@@ -382,7 +420,11 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleConfirmDispatch}
         width="60%"
-        title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        title={
+          dispatchMode === "PRODUCT"
+            ? "Ha escaneado este producto, ¿está seguro que desea despachar?"
+            : "Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        }
         onCancel={() => {
           setIsVisibleConfirmDispatch(false);
           setQuantity();
@@ -398,7 +440,11 @@ export default ({ setPageTitle }) => {
               addonBefore="Familia"
             />
             <Input
-              value={dataProduct?.warehouse.name}
+              value={
+                dispatchMode === "PRODUCT"
+                  ? "Asignación automática"
+                  : dataProduct?.warehouse.name
+              }
               disabled
               addonBefore="Ubicación"
             />
@@ -409,11 +455,14 @@ export default ({ setPageTitle }) => {
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
               <Input
-                value={dataProduct?.boxSize}
+                value={dispatchMode === "PRODUCT" ? "Producto" : dataProduct?.boxSize}
                 disabled
-                addonBefore="Tipo de caja"
+                addonBefore={dispatchMode === "PRODUCT" ? "Tipo" : "Tipo de caja"}
               />
-              <Input disabled value="Unid./Caja" />
+              <Input
+                disabled
+                value={dispatchMode === "PRODUCT" ? "Código 2..." : "Unid./Caja"}
+              />
             </Grid>
             <Input
               value={dataProduct?.product.elementName}
@@ -422,7 +471,11 @@ export default ({ setPageTitle }) => {
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
               <Input
-                value={dataProduct?.stock}
+                value={
+                  dispatchMode === "PRODUCT"
+                    ? get(dataProduct, "product.availableStock", dataProduct?.stock)
+                    : dataProduct?.stock
+                }
                 disabled
                 addonBefore="Disponibles"
               />
@@ -438,7 +491,12 @@ export default ({ setPageTitle }) => {
                 value={quantity}
                 onChange={(e) => {
                   setQuantity(Number(e.target.value));
-                  dataProduct?.stock === Number(e.target.value)
+                  const maxQuantity =
+                    dispatchMode === "PRODUCT"
+                      ? selectedDispatchedProduct?.quantity -
+                        selectedDispatchedProduct?.dispatched
+                      : dataProduct?.stock;
+                  maxQuantity === Number(e.target.value)
                     ? setCheck(true)
                     : setCheck(false);
                 }}
@@ -449,10 +507,17 @@ export default ({ setPageTitle }) => {
                 onChange={(e) => {
                   /* console.log("checked", e.target.checked); */
                   setCheck(e.target.checked);
-                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                  if (e.target.checked) {
+                    setQuantity(
+                      dispatchMode === "PRODUCT"
+                        ? selectedDispatchedProduct?.quantity -
+                            selectedDispatchedProduct?.dispatched
+                        : dataProduct?.stock
+                    );
+                  }
                 }}
               >
-                Toda la caja
+                {dispatchMode === "PRODUCT" ? "Todo lo pendiente" : "Toda la caja"}
               </Checkbox>
             </Grid>
           </DispatchConfirmGrid>
@@ -475,11 +540,19 @@ export default ({ setPageTitle }) => {
             </DispatchConfirmRow>
             <DispatchConfirmRow>
               <span>Ubicación</span>
-              <strong>{dataProduct?.warehouse.name || "-"}</strong>
+              <strong>
+                {dispatchMode === "PRODUCT"
+                  ? "Asignación automática"
+                  : dataProduct?.warehouse.name || "-"}
+              </strong>
             </DispatchConfirmRow>
             <DispatchConfirmRow>
-              <span>Tipo de caja</span>
-              <strong>{dataProduct?.boxSize || "-"} Unid./Caja</strong>
+              <span>{dispatchMode === "PRODUCT" ? "Código" : "Tipo de caja"}</span>
+              <strong>
+                {dispatchMode === "PRODUCT"
+                  ? productBarcode || "-"
+                  : `${dataProduct?.boxSize || "-"} Unid./Caja`}
+              </strong>
             </DispatchConfirmRow>
             <DispatchConfirmRow>
               <span>Disponibles</span>
@@ -490,7 +563,12 @@ export default ({ setPageTitle }) => {
                 value={quantity}
                 onChange={(e) => {
                   setQuantity(Number(e.target.value));
-                  dataProduct?.stock === Number(e.target.value)
+                  const maxQuantity =
+                    dispatchMode === "PRODUCT"
+                      ? selectedDispatchedProduct?.quantity -
+                        selectedDispatchedProduct?.dispatched
+                      : dataProduct?.stock;
+                  maxQuantity === Number(e.target.value)
                     ? setCheck(true)
                     : setCheck(false);
                 }}
@@ -500,10 +578,17 @@ export default ({ setPageTitle }) => {
                 checked={check}
                 onChange={(e) => {
                   setCheck(e.target.checked);
-                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                  if (e.target.checked) {
+                    setQuantity(
+                      dispatchMode === "PRODUCT"
+                        ? selectedDispatchedProduct?.quantity -
+                            selectedDispatchedProduct?.dispatched
+                        : dataProduct?.stock
+                    );
+                  }
                 }}
               >
-                Toda la caja
+                {dispatchMode === "PRODUCT" ? "Todo lo pendiente" : "Toda la caja"}
               </Checkbox>
             </DispatchConfirmQuantity>
           </DispatchConfirmMobileList>
@@ -675,6 +760,12 @@ export default ({ setPageTitle }) => {
                     onClick={() => {
                       setIsVisibleReadProductCode(true);
                       setDispatchedProductId(item.id);
+                      setSelectedDispatchedProduct(item);
+                      setInventoryCode(null);
+                      setDataProduct();
+                      setProductBoxId();
+                      setProductBarcode();
+                      setDispatchMode("BOX");
                     }}
                   >
                     {item.quantity === item.dispatched ? "Entregado" : "Despachar"}
