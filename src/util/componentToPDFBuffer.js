@@ -27,7 +27,7 @@ const componentToPDFBufferWithChromium = async (component) => {
 
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    return page.pdf({
+    const buffer = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: {
@@ -38,6 +38,8 @@ const componentToPDFBufferWithChromium = async (component) => {
       },
       timeout: 30000,
     });
+
+    return buffer;
   } finally {
     await browser.close();
   }

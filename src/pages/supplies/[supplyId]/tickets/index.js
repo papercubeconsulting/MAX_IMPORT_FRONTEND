@@ -133,6 +133,13 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
     return {};
   } catch (error) {
     console.log("error", error);
+
+    if (res && !res.headersSent) {
+      res.statusCode = 500;
+      res.end("Error al generar PDF de tickets");
+    }
+
+    return {};
   }
 };
 
