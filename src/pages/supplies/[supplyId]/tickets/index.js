@@ -6,6 +6,18 @@ import PDFLayout from "../../../../components/PDFLayout";
 
 const Tickets = () => null;
 
+const getQueryArray = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return value.split(",").filter(Boolean);
+  }
+
+  return [];
+};
+
 Tickets.getInitialProps = async ({ req, res, query }) => {
   try {
     codes.loadModules(["code128", "gs1-128"], {
@@ -33,11 +45,8 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
         componentToPDFBuffer,
       } = require("../../../../util/componentToPDFBuffer");
 
-      //? Para caso en el que se pide solo un ticket y el query parameter no se genera como arreglo
-      if (boxes.constructor !== Array) {
-        boxes = [boxes];
-        productBoxesCodes = [productBoxesCodes];
-      }
+      boxes = getQueryArray(boxes);
+      productBoxesCodes = getQueryArray(productBoxesCodes);
 
       const buffer = await componentToPDFBuffer(
         <div>

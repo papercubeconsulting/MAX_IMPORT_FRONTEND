@@ -79,10 +79,6 @@ export const Attend = (props) => {
                     .map(productBox => productBox.trackingCode) */
       };
 
-      const pruebabox1 = boxes.map((elem) => `boxes=${elem}`);
-
-      const pruebabox2 = pruebabox1.join("&");
-
       const productBoxesCodes = boxes
         .map((box) =>
           get(suppliedProduct, "productBoxes", []).find(
@@ -91,26 +87,17 @@ export const Attend = (props) => {
         )
         .map((productBox) => productBox.trackingCode);
 
-      const prueba1 = productBoxesCodes.map(
-        (elem) => `productBoxesCodes=${elem}`
-      );
-
-      const prueba2 = prueba1.join("&");
-
       /* console.log(prueba2);
 
             console.log(query) */
 
-      const queries = Object.keys(query)
-        .map(
-          (key) =>
-            encodeURIComponent(key) + "=" + encodeURIComponent(query[key])
-        )
-        .join("&");
+      const queries = new URLSearchParams({
+        ...query,
+        boxes: boxes.join(","),
+        productBoxesCodes: productBoxesCodes.join(","),
+      }).toString();
 
-      setPruebaUrl(
-        `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
-      );
+      setPruebaUrl(`/supplies/${props.supplyId}/tickets?${queries}`);
 
       setBoxesText("")
       setBoxes([])
