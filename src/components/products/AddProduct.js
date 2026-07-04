@@ -350,19 +350,25 @@ export const AddProduct = (props) => {
         description: "Ingrese un modelo",
       });
     }
-    if (!productGroup.name) {
+    const hasProductGroup = Boolean(productGroup.name || productGroup.code);
+
+    if (hasProductGroup && !productGroup.name) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "Ingrese un grupo",
       });
     }
-    if (!productGroup.code) {
+    if (hasProductGroup && !productGroup.code) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: "Ingrese el código del grupo",
       });
     }
-    if (!productGroup.id && !isValidProductGroupPrefix(productGroup.code)) {
+    if (
+      hasProductGroup &&
+      !productGroup.id &&
+      !isValidProductGroupPrefix(productGroup.code)
+    ) {
       return notification.error({
         message: "Error al intentar subir producto",
         description: `El grupo debe tener formato: ${allowedProductGroupPrefixes.join(", ")}-XX`,
@@ -393,7 +399,11 @@ export const AddProduct = (props) => {
             </CategoryContainer>
             <CategoryContainer>
               <CategoryTitle>GRUPO</CategoryTitle>
-              <Tag>{`${productGroup.name} (${productGroup.code})`}</Tag>
+              <Tag>
+                {hasProductGroup
+                  ? `${productGroup.name} (${productGroup.code})`
+                  : "Sin grupo"}
+              </Tag>
             </CategoryContainer>
           </Container>
           <Container padding="1rem 0" flexDirection="column">
@@ -471,19 +481,22 @@ export const AddProduct = (props) => {
   const submitProduct = async () => {
     try {
       let imagesBodySection = await getImagesBody();
-      const selectedProductGroup = productGroup.id
-        ? productGroup
-        : await postProductGroup({
-            name: productGroup.name,
-            code: productGroup.code,
-          });
+      const hasProductGroup = Boolean(productGroup.name || productGroup.code);
+      const selectedProductGroup = hasProductGroup
+        ? productGroup.id
+          ? productGroup
+          : await postProductGroup({
+              name: productGroup.name,
+              code: productGroup.code,
+            })
+        : null;
 
       const body = {
         familyId: family.id,
         subfamilyId: subfamily.id,
         elementId: element.id,
         modelId: model.id,
-        groupId: selectedProductGroup.id,
+        ...(selectedProductGroup ? { groupId: selectedProductGroup.id } : {}),
         familyName: family.name,
         subfamilyName: subfamily.name,
         elementName: element.name,
