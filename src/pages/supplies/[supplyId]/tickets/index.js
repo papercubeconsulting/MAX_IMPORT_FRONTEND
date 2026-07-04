@@ -47,8 +47,16 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
             const data8 = codes.create("code128", productBoxCode);
 
             return (
-              <>
-                <div>
+              <React.Fragment key={productBoxCode || box}>
+                <div
+                  style={{
+                    breakAfter: index === boxes.length - 1 ? "auto" : "page",
+                    pageBreakAfter:
+                      index === boxes.length - 1 ? "auto" : "always",
+                    breakInside: "avoid",
+                    pageBreakInside: "avoid",
+                  }}
+                >
                   {/* <img
                       src={"data:image/png;base64," + data8.toString("base64")}
                       style={{ marginBottom: "1rem" }}
@@ -114,7 +122,7 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
                     alt={productBoxCode}
                   />
                 </div>
-              </>
+              </React.Fragment>
             );
           })}
         </div>
