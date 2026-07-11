@@ -16,11 +16,15 @@ import {
   postProduct,
 } from "../../providers";
 import { toBase64 } from "../../util";
+import {
+  getMatchingProductGroupPrefix,
+  PRODUCT_GROUP_PREFIXES,
+  isValidProductGroupCode,
+} from "../../util/productGroups";
 import styled from "styled-components";
 
 export const AddProduct = (props) => {
   const colors = ["#dc3546", "#28a746", "#17a3b8"];
-  const allowedProductGroupPrefixes = ["ALT"];
   const newProductGroupOptionPrefix = "__new_product_group__:";
 
   // * List of sources from database
@@ -72,7 +76,6 @@ export const AddProduct = (props) => {
 
         const _productGroupSearchOptions = await getProductGroupSearchOptions();
         setProductGroupSearchOptions(_productGroupSearchOptions);
-
 
         const _providers = await getProviders({ active: true });
         setProviders(_providers);
@@ -226,14 +229,12 @@ export const AddProduct = (props) => {
     product.groupId || getProductGroup(product)?.id;
 
   const isValidProductGroupPrefix = (code) =>
-    allowedProductGroupPrefixes.some((prefix) =>
-      new RegExp(`^${prefix}-\\d+$`).test((code || "").trim().toUpperCase())
-    );
+    isValidProductGroupCode(code, PRODUCT_GROUP_PREFIXES);
 
   const applyProductGroupSearch = async (value) => {
-    const normalizedValue = value.trim().toUpperCase();
-    const matchedPrefix = allowedProductGroupPrefixes.find((prefix) =>
-      normalizedValue.startsWith(prefix)
+    const matchedPrefix = getMatchingProductGroupPrefix(
+      value,
+      PRODUCT_GROUP_PREFIXES
     );
 
     setSuggestedProductGroup(null);
@@ -371,7 +372,7 @@ export const AddProduct = (props) => {
     ) {
       return notification.error({
         message: "Error al intentar subir producto",
-        description: `El grupo debe tener formato: ${allowedProductGroupPrefixes.join(", ")}-XX`,
+        description: `El grupo debe tener formato: ${PRODUCT_GROUP_PREFIXES.join(", ")}-XX`,
       });
     }
     Modal.confirm({

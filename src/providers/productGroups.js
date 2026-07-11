@@ -9,4 +9,8 @@ const getSuggestedProductGroupCode = async (params = {}) =>
 const postProductGroup = async (body) =>
   baseProvider.httpPost("product-groups", body);
 
-export { getProductGroups, getSuggestedProductGroupCode, postProductGroup };
+export {
+  getProductGroups,
+  getSuggestedProductGroupCode,
+  postProductGroup,
+};
