@@ -25,6 +25,11 @@ import {
   updateProduct,
 } from "../../../providers";
 import { toBase64 } from "../../../util";
+import {
+  getMatchingProductGroupPrefix,
+  PRODUCT_GROUP_PREFIXES,
+  isValidProductGroupCode,
+} from "../../../util/productGroups";
 
 import {
   Container,
@@ -39,7 +44,6 @@ import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail"
 import { usePricingCalculation } from "../../../util/usePricingCalculation";
 
 export default () => {
-  const allowedProductGroupPrefixes = ["ALT"];
   const newProductGroupOptionPrefix = "__new_product_group__:";
 
   const stockByWarehouseColumns = [
@@ -274,14 +278,12 @@ export default () => {
   };
 
   const isValidProductGroupPrefix = (code) =>
-    allowedProductGroupPrefixes.some((prefix) =>
-      new RegExp(`^${prefix}-\\d+$`).test((code || "").trim().toUpperCase())
-    );
+    isValidProductGroupCode(code, PRODUCT_GROUP_PREFIXES);
 
   const applyGroupToAssignSearch = async (value) => {
-    const normalizedValue = value.trim().toUpperCase();
-    const matchedPrefix = allowedProductGroupPrefixes.find((prefix) =>
-      normalizedValue.startsWith(prefix)
+    const matchedPrefix = getMatchingProductGroupPrefix(
+      value,
+      PRODUCT_GROUP_PREFIXES
     );
 
     setSuggestedGroupToAssign(null);
@@ -399,7 +401,7 @@ export default () => {
     }
     if (!groupToAssign.id && !isValidProductGroupPrefix(groupToAssign.code)) {
       notification.warning({
-        message: `El grupo debe tener formato: ${allowedProductGroupPrefixes.join(
+        message: `El grupo debe tener formato: ${PRODUCT_GROUP_PREFIXES.join(
           ", "
         )}-XX`,
       });
