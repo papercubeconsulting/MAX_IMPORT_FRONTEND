@@ -1115,11 +1115,53 @@ export default ({ setPageTitle, setShowButton }) => {
             <strong>{get(product, "availableStock", 0)}</strong>
             <span>Disponibles</span>
           </ProductSummaryStats>
-          <ProductSummaryStats>
+        <ProductSummaryStats>
             <strong>{stockByType("Averiado")}</strong>
             <span>Averiados</span>
           </ProductSummaryStats>
         </ProductSummaryHeader>
+        <Container
+          className="product-detail-footer-actions"
+          height="auto"
+          justifyContent="space-around"
+        >
+          <CustomButton
+            onClick={() => setIsModalReadProductBoxCodeVisible(true)}
+            size="large"
+            width="22%"
+            type="primary"
+          >
+            Mover Caja(s)
+          </CustomButton>
+          <CustomButton
+            onClick={() => setIsModalBoxesDetailVisible(true)}
+            size="large"
+            width="22%"
+            type="primary"
+          >
+            Ver detalle de cajas
+          </CustomButton>
+          {user && ["superuser", "manager", "logistic"].includes(user.role) && (
+            <CustomButton
+              onClick={() => setIsUnitTicketVisible(true)}
+              size="large"
+              width="22%"
+              type="primary"
+            >
+              Imprimir tickets unitarios
+            </CustomButton>
+          )}
+          {user && ["superuser", "manager"].includes(user.role) && (
+            <CustomButton
+              onClick={() => setIsReconciliationVisible(true)}
+              size="large"
+              width="22%"
+              type="primary"
+            >
+              Reconciliar inventario
+            </CustomButton>
+          )}
+        </Container>
       <Container
         className="product-detail-info-section"
         height="auto"
@@ -1367,48 +1409,6 @@ export default ({ setPageTitle, setShowButton }) => {
             />
           </div>
         </Grid>
-      </Container>
-      <Container
-        className="product-detail-footer-actions"
-        height="15%"
-        justifyContent="space-around"
-      >
-        <CustomButton
-          onClick={() => setIsModalReadProductBoxCodeVisible(true)}
-          size="large"
-          width="22%"
-          type="primary"
-        >
-          Mover Caja(s)
-        </CustomButton>
-        <CustomButton
-          onClick={() => setIsModalBoxesDetailVisible(true)}
-          size="large"
-          width="22%"
-          type="primary"
-        >
-          Ver detalle de cajas
-        </CustomButton>
-        {user && ["superuser", "manager", "logistic"].includes(user.role) && (
-          <CustomButton
-            onClick={() => setIsUnitTicketVisible(true)}
-            size="large"
-            width="22%"
-            type="primary"
-          >
-            Imprimir tickets unitarios
-          </CustomButton>
-        )}
-        {user && ["superuser", "manager"].includes(user.role) && (
-          <CustomButton
-            onClick={() => setIsReconciliationVisible(true)}
-            size="large"
-            width="22%"
-            type="primary"
-          >
-            Reconciliar inventario
-          </CustomButton>
-        )}
       </Container>
       </ProductPageShell>
     </>
