@@ -5,7 +5,8 @@ import { Dropdown } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCalendarAlt,
-  faIndent,
+  faBars,
+  faTimes,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { Container } from "./Container";
@@ -153,11 +154,12 @@ export const BaseLayout = (props) => {
             </MenuLink>
           </Menu>
         </Sidebar>
-        <Grid>
+        <Grid $menuVisible={!!globalAuthUser && isVisibleMenu}>
           <Header>
             <Container padding="0px" width="auto" alignItems="center">
               <Trigger
-                icon={faIndent}
+                icon={isVisibleMenu ? faTimes : faBars}
+                title={isVisibleMenu ? "Cerrar menú" : "Abrir menú"}
                 onClick={() => setIsVisibleMenu((prevState) => !prevState)}
               />
               <h2>{props.title}</h2>
@@ -209,31 +211,33 @@ const Layout = styled.section`
 `;
 
 const MenuBackdrop = styled.div`
+  background: rgba(15, 23, 42, 0.22);
   display: none;
+  inset: 3.5rem 0 0 0;
+  position: fixed;
+  z-index: 997;
 
   @media (max-width: 768px) {
-    background: rgba(15, 23, 42, 0.34);
     display: ${(props) => (props.$visible ? "block" : "none")};
     inset: 3.75rem 0 0 0;
-    position: fixed;
-    z-index: 997;
   }
 `;
 
 const Sidebar = styled.div`
   position: fixed;
-  top: 3.5rem;
+  top: 0;
   left: 0;
   z-index: 998;
   display: block;
   width: 25vw;
   min-width: 220px;
   max-width: 320px;
-  height: calc(100vh - 3.5rem);
+  height: 100vh;
   background: linear-gradient(to left, #1890ff, #6dd5ed);
-  overflow: hidden;
+  box-shadow: 10px 0 24px rgba(15, 23, 42, 0.16);
+  overflow-y: auto;
   transform: translateX(${(props) => (props.$collapsed ? "-100%" : "0")});
-  transition: transform 0.2s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 
   @media (max-width: 768px) {
     top: 3.75rem;
@@ -245,45 +249,60 @@ const Sidebar = styled.div`
 `;
 
 const Menu = styled.div`
-  display: grid;
-  overflow: hidden;
-  height: 100%;
-  grid-template-rows: repeat(${(props) => props.children.length}, 1fr);
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 100%;
+  padding: 4.25rem 0.75rem 0.75rem;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+  }
 `;
 
 const MenuLink = styled(Link)`
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
+  justify-content: flex-start;
+  min-height: 2.75rem;
   cursor: pointer;
   background-color: ${(props) =>
-    props.$active ? "rgba(0,0,0,0.3)" : "transparent"};
+    props.$active ? "rgba(255,255,255,0.22)" : "transparent"};
+  border-radius: 6px;
   color: white !important;
   text-decoration: none;
+  transition: background-color 0.16s ease, transform 0.16s ease;
 
   :hover {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.16);
     color: white !important;
+    transform: translateX(2px);
   }
 `;
 
 const MenuItem = styled.span`
   font-size: 1rem;
-  text-align: center;
+  line-height: 1.2rem;
+  padding: 0 0.75rem;
+  text-align: left;
 `;
 
 const Grid = styled.section`
   display: grid;
   grid-template-rows: 3.5rem 1fr;
   height: 100%;
-  width: 100%;
+  width: ${(props) =>
+    props.$menuVisible ? "calc(100% - clamp(220px, 25vw, 320px))" : "100%"};
   min-width: 0;
   flex: 1;
+  margin-left: ${(props) =>
+    props.$menuVisible ? "clamp(220px, 25vw, 320px)" : "0"};
+  transition: margin-left 0.22s ease, width 0.22s ease;
 
   @media (max-width: 768px) {
     grid-template-rows: auto minmax(0, 1fr);
+    margin-left: 0;
+    width: 100%;
   }
 `;
 

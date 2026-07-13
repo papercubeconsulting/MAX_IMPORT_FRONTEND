@@ -4,6 +4,7 @@ import { get } from "lodash";
 import { Alert, Checkbox, Input, Modal, Table, Tag, notification } from "antd";
 import { faPeopleCarry } from "@fortawesome/free-solid-svg-icons";
 import moment from "moment-timezone";
+import styled, { createGlobalStyle } from "styled-components";
 
 import {
   getProductBox,
@@ -20,8 +21,6 @@ import {
 } from "../../../components/products/UnitTicketModal";
 
 export default ({ setPageTitle, setShowButton }) => {
-  setPageTitle("Caja de productos");
-  setShowButton(true);
   const productBoxLogColumns = [
     {
       width: "20%",
@@ -81,6 +80,22 @@ export default ({ setPageTitle, setShowButton }) => {
 
   const router = useRouter();
   const { productBoxCode } = router.query;
+
+  useEffect(() => {
+    setShowButton(true);
+  }, []);
+
+  useEffect(() => {
+    const productCode = get(product, "code");
+    const modelName = get(product, "modelName");
+    const boxCode = get(productBox, "trackingCode", productBoxCode);
+
+    setPageTitle(
+      productCode && modelName
+        ? `Caja ${boxCode} - ${productCode} - ${modelName}`
+        : "Caja de productos"
+    );
+  }, [product, productBox, productBoxCode]);
 
   useMemo(() => {
     const fetchProductBox = async () => {
@@ -215,6 +230,7 @@ export default ({ setPageTitle, setShowButton }) => {
   };
   return (
     <>
+      <ProductBoxResponsiveStyles />
       <ReadProductCode
         visible={isModalReadProductBoxCodeVisible}
         trigger={setIsModalReadProductBoxCodeVisible}
@@ -229,11 +245,25 @@ export default ({ setPageTitle, setShowButton }) => {
         warehouseId={get(productBox, "explodedLots.0.warehouseId")}
         originBoxCode={productBox?.trackingCode}
       />
+      <BoxPageShell>
+        <BoxSummaryHeader>
+          <div>
+            <span>Caja</span>
+            <h1>{get(productBox, "trackingCode", productBoxCode || "-")}</h1>
+            <p>
+              {get(product, "code", "-")} - {get(product, "modelName", "-")}
+            </p>
+          </div>
+          <BoxStatusTag $active={isActivePhysicalBox}>
+            {isActivePhysicalBox ? "Caja física activa" : "Caja bloqueada"}
+          </BoxStatusTag>
+        </BoxSummaryHeader>
       <Container height="auto" flexDirection="column">
+        <SectionTitle>Información de caja</SectionTitle>
         <Grid gridTemplateRows="1fr" gridGap="1rem">
           <Grid
+            className="product-box-info-grid"
             gridTemplateColumns="repeat(3, 1fr)"
-            gridTemplateRows="repeat(1, 2rem)"
             gridGap="1rem"
           >
             <Input
@@ -303,15 +333,7 @@ export default ({ setPageTitle, setShowButton }) => {
           </Grid>
         </Grid>
       </Container>
-      <Container
-        height="auto"
-        //    width="50%"
-        flexDirection="column"
-        textAlign="center"
-        justifyContent="center"
-        alignItems="center"
-        padding="1rem"
-      >
+      <MoveSection>
         <h3>Movimiento de caja</h3>
         {!isActivePhysicalBox && (
           <Alert
@@ -336,10 +358,10 @@ export default ({ setPageTitle, setShowButton }) => {
           </Button>
         )}
         <Grid
+          className="product-box-move-grid"
           gridTemplateColumns="2fr 1fr"
-          gridTemplateRows="repeat(1, 1fr)"
           justifyContent="center"
-          gridGap="1rem"
+          gridGap="1.25rem"
         >
           <Select
             value={newWarehouse.name}
@@ -361,12 +383,13 @@ export default ({ setPageTitle, setShowButton }) => {
             Mover
           </Button>
         </Grid>
-      </Container>
+      </MoveSection>
       <Container
+        className="product-box-log-section"
         height="auto"
         flexDirection="column"
         textAlign="center"
-        padding="1rem 0"
+        padding="1rem"
       >
         <Grid gridTemplateRows="repeat(1, auto)" gridGap="1rem">
           <div>
@@ -383,16 +406,198 @@ export default ({ setPageTitle, setShowButton }) => {
           </div>
         </Grid>
       </Container>
-      <Container height="15%" justifyContent="space-around">
+      <Container className="product-box-footer-actions" height="auto" justifyContent="center">
         <Button
           onClick={() => setIsModalReadProductBoxCodeVisible(true)}
           size="large"
-          width="30%"
+          width="240px"
           type="primary"
         >
           Mover Caja(s)
         </Button>
       </Container>
+      </BoxPageShell>
     </>
   );
 };
+
+const BoxPageShell = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+
+  > div {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+  }
+`;
+
+const BoxSummaryHeader = styled.section`
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 1rem;
+
+  span {
+    color: #667085;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    color: #1f2937;
+    font-size: 1.35rem;
+    line-height: 1.7rem;
+    margin: 0.2rem 0;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    color: #5f6b7a;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+`;
+
+const BoxStatusTag = styled.div`
+  background: ${(props) => (props.$active ? "#e6f7ff" : "#fff7e6")};
+  border: 1px solid ${(props) => (props.$active ? "#91d5ff" : "#ffd591")};
+  border-radius: 999px;
+  color: ${(props) => (props.$active ? "#0050b3" : "#ad6800")};
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  white-space: nowrap;
+`;
+
+const SectionTitle = styled.h3`
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  text-align: left;
+`;
+
+const MoveSection = styled.section`
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+
+  h3 {
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: left;
+  }
+`;
+
+const ProductBoxResponsiveStyles = createGlobalStyle`
+  .product-box-info-grid,
+  .product-box-move-grid {
+    width: 100%;
+  }
+
+  .product-box-log-section h3 {
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: left;
+  }
+
+  .product-box-log-section br {
+    display: none;
+  }
+
+  .product-box-log-section .ant-table-thead > tr > th,
+  .product-box-log-section .ant-table-tbody > tr > td {
+    padding: 0.6rem 0.5rem;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .product-box-footer-actions {
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    ${BoxPageShell} {
+      gap: 0.75rem;
+      padding: 0.75rem;
+    }
+
+    ${BoxSummaryHeader} {
+      grid-template-columns: 1fr;
+      padding: 0.85rem;
+    }
+
+    ${BoxSummaryHeader} h1 {
+      font-size: 1.12rem;
+      line-height: 1.4rem;
+    }
+
+    ${BoxStatusTag} {
+      justify-self: flex-start;
+      white-space: normal;
+    }
+
+    .product-box-info-grid,
+    .product-box-move-grid {
+      grid-template-columns: 1fr !important;
+      grid-template-rows: none !important;
+      grid-gap: 0.75rem !important;
+    }
+
+    .product-box-info-grid .ant-input-wrapper.ant-input-group {
+      display: grid;
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .product-box-info-grid .ant-input-group-addon {
+      border-bottom: 0;
+      border-radius: 4px 4px 0 0;
+      border-right: 1px solid #d9d9d9;
+      display: block;
+      line-height: 1.2rem;
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+      white-space: normal;
+      width: 100%;
+    }
+
+    .product-box-info-grid .ant-input {
+      border-radius: 0 0 4px 4px;
+      display: block;
+      min-height: 2.15rem;
+      width: 100%;
+    }
+
+    .product-box-move-grid button,
+    .product-box-footer-actions button {
+      width: 100% !important;
+    }
+
+    .product-box-log-section {
+      overflow-x: auto;
+      padding: 0.75rem !important;
+    }
+
+    .product-box-log-section .ant-table {
+      min-width: 680px;
+    }
+
+    .product-box-footer-actions {
+      padding: 0.75rem !important;
+    }
+  }
+`;
