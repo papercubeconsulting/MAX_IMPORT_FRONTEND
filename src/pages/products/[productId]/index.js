@@ -20,6 +20,7 @@ import {
   getProductGroups,
   getProducts,
   getSuggestedProductGroupCode,
+  getProductBarcodeByProductId,
   me,
   postProductGroup,
   updateProduct,
@@ -42,6 +43,8 @@ import {
 import { ReadProductCode } from "../../../components/products/productBoxes/ReadProductCode";
 import { ModalBoxesDetail } from "../../../components/products/ModalBoxesDetail";
 import { usePricingCalculation } from "../../../util/usePricingCalculation";
+import { UnitTicketModal } from "../../../components/products/UnitTicketModal";
+import { ReconciliationModal } from "../../../components/products/ReconciliationModal";
 
 export default () => {
   const newProductGroupOptionPrefix = "__new_product_group__:";
@@ -93,6 +96,9 @@ export default () => {
   ];
 
   const [product, setProduct] = useState(null);
+  const [unitBarcode, setUnitBarcode] = useState("");
+  const [isUnitTicketVisible, setIsUnitTicketVisible] = useState(false);
+  const [isReconciliationVisible, setIsReconciliationVisible] = useState(false);
 
   // campos editables de producto
   // const [suggestedPrice, setSuggestedPrice] = useState("");
@@ -175,9 +181,11 @@ export default () => {
     try {
       const _product = await getProduct(productId);
       const user = await me();
+      const barcode = await getProductBarcodeByProductId(productId);
       setUser(user);
       // console.log({ user });
       setProduct(_product);
+      setUnitBarcode(barcode.barcode);
       setCost((_product.cost / 100).toFixed(2));
       setMargin(parsedMargin(_product));
       setSuggestedPrice((_product.suggestedPrice / 100).toFixed(2));
@@ -1014,6 +1022,19 @@ export default () => {
           </>
         )}
       </Modal>
+      <UnitTicketModal
+        visible={isUnitTicketVisible}
+        onClose={() => setIsUnitTicketVisible(false)}
+        product={product}
+        barcode={unitBarcode}
+        initialQuantity={1}
+      />
+      <ReconciliationModal
+        visible={isReconciliationVisible}
+        onClose={() => setIsReconciliationVisible(false)}
+        product={product}
+        onCompleted={fetchProduct}
+      />
       <Modal
         open={showImagePreview}
         width="90%"
@@ -1078,7 +1099,7 @@ export default () => {
             <Input
               disabled
               addonBefore="Disponibles"
-              value={stockByType("Almacén")}
+              value={get(product, "availableStock", 0)}
             />
             <Input
               disabled
@@ -1287,7 +1308,7 @@ export default () => {
         <CustomButton
           onClick={() => setIsModalReadProductBoxCodeVisible(true)}
           size="large"
-          width="30%"
+          width="22%"
           type="primary"
         >
           Mover Caja(s)
@@ -1295,11 +1316,31 @@ export default () => {
         <CustomButton
           onClick={() => setIsModalBoxesDetailVisible(true)}
           size="large"
-          width="30%"
+          width="22%"
           type="primary"
         >
           Ver detalle de cajas
         </CustomButton>
+        {user && ["superuser", "manager", "logistic"].includes(user.role) && (
+          <CustomButton
+            onClick={() => setIsUnitTicketVisible(true)}
+            size="large"
+            width="22%"
+            type="primary"
+          >
+            Imprimir tickets unitarios
+          </CustomButton>
+        )}
+        {user && ["superuser", "manager"].includes(user.role) && (
+          <CustomButton
+            onClick={() => setIsReconciliationVisible(true)}
+            size="large"
+            width="22%"
+            type="primary"
+          >
+            Reconciliar inventario
+          </CustomButton>
+        )}
       </Container>
     </>
   );

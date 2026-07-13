@@ -56,7 +56,9 @@ export const ReadProductCode = (props) => {
   useEffect(() => {
     const fetchWarehouses = async () => {
       const _warehouses = await getWarehouses();
-      setWarehouses(_warehouses);
+      setWarehouses(
+        _warehouses.filter((warehouse) => warehouse.type !== 'AjusteInventario')
+      );
     };
     fetchWarehouses();
   }, []);
@@ -270,6 +272,14 @@ export const ReadProductCode = (props) => {
       notification.success({
         message: 'Las cajas han sido movidas correctamente',
       });
+      if ((response || []).some((item) => item.wasExploded)) {
+        notification.info({
+          message: 'Cajas explotadas en tienda',
+          description:
+            'Puede imprimir los tickets unitarios escaneando la caja o el producto en Mantenimiento de cajas.',
+          duration: 8,
+        });
+      }
       setModalConfirm(false);
       setDataCodes([]);
       props.trigger(false);
@@ -331,6 +341,14 @@ export const ReadProductCode = (props) => {
             }}
             options={selectOptions(warehouses)}
           />
+          {newWarehouse.type === 'Tienda' && (
+            <Alert
+              message="Las cajas serán explotadas"
+              description="Al ingresar a tienda quedarán rotas/bloqueadas y sus unidades pasarán a lotes unitarios."
+              type="warning"
+              showIcon
+            />
+          )}
           {isLoading && <div style={{ marginTop: '12px' }}><Alert message="Procesando informacion ....." type="info" showIcon /></div>}
         </>
       </Modal>
