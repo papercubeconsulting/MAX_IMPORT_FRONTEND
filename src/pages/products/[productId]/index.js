@@ -46,14 +46,46 @@ import { usePricingCalculation } from "../../../util/usePricingCalculation";
 import { UnitTicketModal } from "../../../components/products/UnitTicketModal";
 import { ReconciliationModal } from "../../../components/products/ReconciliationModal";
 
-export default () => {
+export default ({ setPageTitle, setShowButton }) => {
   const newProductGroupOptionPrefix = "__new_product_group__:";
+
+  const warehouseTypeLabel = (warehouseType) => {
+    const labels = {
+      Tienda: "Tienda",
+      "Almacén": "Almacén",
+      Averiado: "Averiado",
+      AjusteInventario: "Ajuste de inventario",
+    };
+
+    return labels[warehouseType] || warehouseType || "-";
+  };
+
+  const warehouseTypeColor = (warehouseType) => {
+    const colors = {
+      Tienda: "blue",
+      "Almacén": "green",
+      Averiado: "volcano",
+      AjusteInventario: "gold",
+    };
+
+    return colors[warehouseType] || "default";
+  };
+
+  const renderWarehouseWithType = (_, record) => (
+    <WarehouseLocationCell>
+      <strong>{get(record, "warehouseName", "-")}</strong>
+      <Tag color={warehouseTypeColor(get(record, "warehouseType"))}>
+        {warehouseTypeLabel(get(record, "warehouseType"))}
+      </Tag>
+    </WarehouseLocationCell>
+  );
 
   const stockByWarehouseColumns = [
     {
       title: "Almacén",
       dataIndex: "warehouseName",
       align: "center",
+      render: renderWarehouseWithType,
     },
     {
       title: "Stock",
@@ -68,6 +100,7 @@ export default () => {
       dataIndex: "warehouseName",
       width: "fit-content",
       align: "center",
+      render: renderWarehouseWithType,
     },
     {
       title: "Cajas",
@@ -686,6 +719,21 @@ export default () => {
     }
   }, [productId]);
 
+  useEffect(() => {
+    setShowButton(true);
+  }, []);
+
+  useEffect(() => {
+    const productCode = get(product, "code");
+    const modelName = get(product, "modelName");
+
+    setPageTitle(
+      productCode && modelName
+        ? `${productCode} - ${modelName}`
+        : "Detalle de producto"
+    );
+  }, [product]);
+
   const parsedMargin = (_product) => {
     return _product?.margin === 1
       ? Number(0).toFixed(2)
@@ -1054,11 +1102,30 @@ export default () => {
       >
         <ModalBoxesDetail productId={productId} />
       </Modal>
+      <ProductPageShell>
+        <ProductSummaryHeader>
+          <div>
+            <span>Producto</span>
+            <h1>
+              {get(product, "code", "-")} - {get(product, "modelName", "-")}
+            </h1>
+            <p>{get(product, "tradename", "Sin nombre comercial") || "-"}</p>
+          </div>
+          <ProductSummaryStats>
+            <strong>{get(product, "availableStock", 0)}</strong>
+            <span>Disponibles</span>
+          </ProductSummaryStats>
+          <ProductSummaryStats>
+            <strong>{stockByType("Averiado")}</strong>
+            <span>Averiados</span>
+          </ProductSummaryStats>
+        </ProductSummaryHeader>
       <Container
         className="product-detail-info-section"
         height="auto"
         flexDirection="column"
       >
+        <SectionTitle>Información general</SectionTitle>
         <Grid className="product-detail-info-wrapper" gridTemplateRows="1fr" gridGap="1rem">
           <Grid
             className="product-detail-form-grid"
@@ -1207,6 +1274,7 @@ export default () => {
         textAlign="center"
         padding="1rem 0"
       >
+        <SectionTitle>Disponibilidad e imágenes</SectionTitle>
         <Grid className="product-detail-stock-wrapper" gridTemplateRows="repeat(2, auto)" gridGap="1rem">
           <div className="product-detail-stock-units">
             <h3>
@@ -1342,9 +1410,93 @@ export default () => {
           </CustomButton>
         )}
       </Container>
+      </ProductPageShell>
     </>
   );
 };
+
+const ProductPageShell = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+`;
+
+const ProductSummaryHeader = styled.section`
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 1rem;
+
+  h1 {
+    color: #1f2937;
+    font-size: 1.35rem;
+    line-height: 1.7rem;
+    margin: 0.2rem 0;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    color: #5f6b7a;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: #667085;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+`;
+
+const ProductSummaryStats = styled.div`
+  border-left: 1px solid #eef0f3;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 7rem;
+  padding-left: 1rem;
+
+  strong {
+    color: #1890ff;
+    font-size: 1.45rem;
+    line-height: 1.65rem;
+  }
+
+  span {
+    text-transform: none;
+  }
+`;
+
+const SectionTitle = styled.h3`
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  text-align: left;
+`;
+
+const WarehouseLocationCell = styled.div`
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  min-width: 0;
+
+  strong {
+    color: #1f2937;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .ant-tag {
+    margin-right: 0;
+  }
+`;
 
 const StyledCarousel = styled(Carousel)`
   .slick-dots {
@@ -1459,7 +1611,22 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
   .product-detail-info-section,
   .product-detail-stock-section,
   .product-detail-footer-actions {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    height: auto !important;
     width: 100%;
+  }
+
+  .product-detail-main-actions {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+
+  .product-detail-footer-actions {
+    gap: 0.75rem;
   }
 
   .product-detail-form-grid,
@@ -1522,8 +1689,31 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
   }
 
   @media (max-width: 768px) {
+    ${ProductPageShell} {
+      gap: 0.75rem;
+      padding: 0.75rem;
+    }
+
+    ${ProductSummaryHeader} {
+      grid-template-columns: 1fr;
+      padding: 0.85rem;
+    }
+
+    ${ProductSummaryHeader} h1 {
+      font-size: 1.12rem;
+      line-height: 1.4rem;
+    }
+
+    ${ProductSummaryStats} {
+      border-left: 0;
+      border-top: 1px solid #eef0f3;
+      min-width: 0;
+      padding-left: 0;
+      padding-top: 0.75rem;
+    }
+
     .product-detail-info-section {
-      padding: 0 0.75rem;
+      padding: 0.75rem;
     }
 
     .product-detail-info-wrapper,
@@ -1588,7 +1778,7 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
     }
 
     .product-detail-stock-section {
-      padding: 0.25rem 0.75rem 1rem !important;
+      padding: 0.75rem !important;
     }
 
     .product-detail-stock-wrapper {
@@ -1714,7 +1904,7 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
       gap: 0.75rem;
       grid-template-columns: 1fr;
       height: auto !important;
-      padding: 0 0.75rem 1rem;
+      padding: 0.75rem;
     }
 
     .product-detail-footer-actions button {
