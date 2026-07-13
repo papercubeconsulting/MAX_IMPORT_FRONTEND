@@ -1,10 +1,11 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Container, Grid, ModalProduct } from "../../../components";
+import { Button, Container, Grid, ModalProduct, Select } from "../../../components";
 import {
   getDispatch,
   userProvider,
-  getProductBox,
+  resolveInventoryCode,
+  getWarehouses,
   postDispatchProduct,
   postFinishDispatch,
 } from "../../../providers";
@@ -172,13 +173,39 @@ export default ({ setPageTitle }) => {
     false
   );
   const [productBoxCode, setProductBoxCode] = useState(null);
+  const [dispatchMode, setDispatchMode] = useState("BOX");
+  const [productBarcode, setProductBarcode] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [warehouseId, setWarehouseId] = useState(null);
 
   //
-  const fetchProductBox = async () => {
+  const fetchProductBox = async (scannedCode = productBoxCode) => {
     try {
-      const _productBox = await getProductBox(productBoxCode);
-      setDataProduct(_productBox);
-      setProductBoxId(_productBox.id);
+      if (String(scannedCode || "").startsWith("2") && !warehouseId) {
+        notification.warning({ message: "Seleccione la tienda de despacho" });
+        return;
+      }
+      const resolved = await resolveInventoryCode(scannedCode);
+      if (resolved.type === "BOX") {
+        const _productBox = resolved.productBox;
+        setDispatchMode("BOX");
+        setDataProduct(_productBox);
+        setProductBoxId(_productBox.id);
+        setProductBarcode(null);
+      } else {
+        const storeStock = (resolved.stockByStore || []).find(
+          (item) => item.warehouseId === warehouseId
+        );
+        setDispatchMode("PRODUCT");
+        setDataProduct({
+          product: resolved.product,
+          warehouse: stores.find((store) => store.id === warehouseId),
+          stock: storeStock?.stock || 0,
+          boxSize: null,
+        });
+        setProductBoxId(null);
+        setProductBarcode(resolved.productBarcode.barcode);
+      }
       /* console.log("_productBox", _productBox); */
       setIsVisibleReadProductCode(false);
       setIsVisibleConfirmDispatch(true);
@@ -216,7 +243,7 @@ export default ({ setPageTitle }) => {
         const codeProduct = get(data, "codeResult.code", null);
         setProductBoxCode(get(data, "codeResult.code", null));
         /* console.log(codeProduct); */
-        codeProduct && fetchProductBox();
+        codeProduct && fetchProductBox(codeProduct);
         Quagga.stop();
       }
     });
@@ -243,7 +270,9 @@ export default ({ setPageTitle }) => {
       }
       const _resp = await postDispatchProduct(dispatchId, dispatchedProductId, {
         quantity,
-        productBoxId,
+        ...(dispatchMode === "PRODUCT"
+          ? { productBarcode, warehouseId }
+          : { productBoxId }),
       });
       /* console.log("respuesta", _resp); */
       notification.success({
@@ -274,6 +303,15 @@ export default ({ setPageTitle }) => {
     };
 
     initialize();
+  }, []);
+
+  useEffect(() => {
+    getWarehouses("Tienda")
+      .then((response) => {
+        setStores(response);
+        if (response.length === 1) setWarehouseId(response[0].id);
+      })
+      .catch(() => notification.error({ message: "No se pudieron cargar las tiendas" }));
   }, []);
 
   //para setear el tamaño de pantalla
@@ -351,16 +389,23 @@ export default ({ setPageTitle }) => {
         visible={isVisibleReadProductCode}
         onCancel={() => setIsVisibleReadProductCode(false)}
         onOk={() => fetchProductBox()}
-        title="Escanear o ingresar código de caja"
+        title="Escanear o ingresar código de caja o producto"
         width="90%"
         wrapClassName="dispatch-code-modal"
       >
-        <DispatchCodeGrid gridTemplateColumns="1fr 1fr" gridGap="1rem" marginBottom="1rem">
+        <DispatchCodeGrid gridTemplateColumns="2fr 1fr 1fr" gridGap="1rem" marginBottom="1rem">
           <Input
             value={productBoxCode}
             justify="center"
             onChange={(event) => setProductBoxCode(event.target.value)}
-            addonBefore="Código de caja"
+            addonBefore="Código"
+            placeholder="Caja 1... o producto 2..."
+          />
+          <Select
+            label="Tienda"
+            value={warehouseId}
+            onChange={setWarehouseId}
+            options={stores.map((store) => ({ value: store.id, label: store.name }))}
           />
           <Button onClick={scanBarcode}>Escanear Código de barras</Button>
         </DispatchCodeGrid>
@@ -382,7 +427,11 @@ export default ({ setPageTitle }) => {
       <Modal
         visible={isVisibleConfirmDispatch}
         width="60%"
-        title="Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        title={
+          dispatchMode === "PRODUCT"
+            ? "Ha escaneado este producto, ¿desea despacharlo desde la tienda seleccionada?"
+            : "Ha escaneado esta caja, ¿está seguro que desea despachar este producto?"
+        }
         onCancel={() => {
           setIsVisibleConfirmDispatch(false);
           setQuantity();
@@ -409,7 +458,7 @@ export default ({ setPageTitle }) => {
             />
             <Grid gridTemplateColumns="3fr 2fr" gridGap="1rem">
               <Input
-                value={dataProduct?.boxSize}
+                value={dispatchMode === "PRODUCT" ? "Unitario" : dataProduct?.boxSize}
                 disabled
                 addonBefore="Tipo de caja"
               />
@@ -449,10 +498,10 @@ export default ({ setPageTitle }) => {
                 onChange={(e) => {
                   /* console.log("checked", e.target.checked); */
                   setCheck(e.target.checked);
-                  e.target.checked ? setQuantity(dataProduct?.stock) : "";
+                e.target.checked ? setQuantity(dataProduct?.stock) : "";
                 }}
               >
-                Toda la caja
+                {dispatchMode === "PRODUCT" ? "Todo disponible" : "Toda la caja"}
               </Checkbox>
             </Grid>
           </DispatchConfirmGrid>
@@ -479,7 +528,11 @@ export default ({ setPageTitle }) => {
             </DispatchConfirmRow>
             <DispatchConfirmRow>
               <span>Tipo de caja</span>
-              <strong>{dataProduct?.boxSize || "-"} Unid./Caja</strong>
+              <strong>
+                {dispatchMode === "PRODUCT"
+                  ? "Producto unitario"
+                  : `${dataProduct?.boxSize || "-"} Unid./Caja`}
+              </strong>
             </DispatchConfirmRow>
             <DispatchConfirmRow>
               <span>Disponibles</span>
@@ -503,7 +556,7 @@ export default ({ setPageTitle }) => {
                   e.target.checked ? setQuantity(dataProduct?.stock) : "";
                 }}
               >
-                Toda la caja
+                {dispatchMode === "PRODUCT" ? "Todo disponible" : "Toda la caja"}
               </Checkbox>
             </DispatchConfirmQuantity>
           </DispatchConfirmMobileList>

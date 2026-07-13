@@ -115,6 +115,17 @@ export const BaseLayout = (props) => {
             >
               <MenuItem>Inventario</MenuItem>
             </MenuLink>
+            {["superuser", "manager", "logistic"].includes(
+              get(globalAuthUser, "user.role")
+            ) && (
+              <MenuLink
+                href="/boxMaintenance"
+                $active={isActiveLink("boxMaintenance")}
+                onClick={() => setIsVisibleMenu(false)}
+              >
+                <MenuItem>Mantenimiento de cajas</MenuItem>
+              </MenuLink>
+            )}
             <MenuLink
               href="/supplies"
               $active={isActiveLink("supplies")}

@@ -572,7 +572,7 @@ export default ({ setPageTitle }) => {
       >
         <Grid
           className="inventory-filter-grid inventory-filter-grid-primary"
-          gridTemplateColumns="repeat(4, 1fr)"
+          gridTemplateColumns="repeat(5, 1fr)"
           gridGap="1rem"
         >
           <Select
@@ -754,6 +754,19 @@ export default ({ setPageTitle }) => {
           >
             Mover Caja(s)
           </Button>
+          {globalAuthUser &&
+            ["superuser", "manager", "logistic"].includes(
+              globalAuthUser.user.role
+            ) && (
+              <Button
+                onClick={() => router.push("/boxMaintenance")}
+                size="large"
+                width="230px"
+                type="primary"
+              >
+                Mantenimiento / Reconciliación
+              </Button>
+            )}
         </Grid>
       </Container>
     </>
