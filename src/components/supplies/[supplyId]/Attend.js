@@ -58,6 +58,7 @@ export const Attend = (props) => {
       const providerName = response.provider.name;
       // console.log("providerName", providerName);
       const {
+        code: productCode,
         familyName,
         subfamilyName,
         elementName,
@@ -72,6 +73,7 @@ export const Attend = (props) => {
         modelName,
         tradename,
         providerName,
+        productCode,
         /* boxes, */
         boxSize: suppliedProduct.boxSize,
         /* productBoxesCodes: boxes.map(box=> get(suppliedProduct, "productBoxes", [])

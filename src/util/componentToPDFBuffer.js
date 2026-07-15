@@ -15,7 +15,17 @@ const getChromiumPath = () => {
   return chromiumPaths.find((path) => fs.existsSync(path));
 };
 
-const componentToPDFBufferWithChromium = async (component) => {
+const defaultPdfOptions = {
+  format: "A4",
+  margin: {
+    top: "2mm",
+    right: "10mm",
+    bottom: "2mm",
+    left: "10mm",
+  },
+};
+
+const componentToPDFBufferWithChromium = async (component, options = {}) => {
   const puppeteer = eval("require")("puppeteer-core");
   const browser = await puppeteer.launch({
     executablePath: getChromiumPath(),
@@ -28,6 +38,9 @@ const componentToPDFBufferWithChromium = async (component) => {
     const page = await browser.newPage();
     page.setDefaultTimeout(pdfTimeout);
     page.setDefaultNavigationTimeout(pdfTimeout);
+    if (options.viewport) {
+      await page.setViewport(options.viewport);
+    }
     const html = `
       <!doctype html>
       <html>
@@ -40,6 +53,7 @@ const componentToPDFBufferWithChromium = async (component) => {
               padding: 0;
               font-family: Arial, Helvetica, sans-serif;
             }
+            ${options.css || ""}
           </style>
         </head>
         <body>${renderToStaticMarkup(component)}</body>
@@ -49,17 +63,22 @@ const componentToPDFBufferWithChromium = async (component) => {
     await page.setContent(html, { waitUntil: "load" });
     await page.emulateMediaType("print");
 
-    const buffer = await page.pdf({
-      format: "A4",
+    const pdfOptions = {
       printBackground: true,
-      margin: {
-        top: "2mm",
-        right: "10mm",
-        bottom: "2mm",
-        left: "10mm",
-      },
       timeout: pdfTimeout,
-    });
+      format: options.format || defaultPdfOptions.format,
+      margin: options.margin || defaultPdfOptions.margin,
+      preferCSSPageSize: options.preferCSSPageSize,
+      scale: options.scale,
+    };
+
+    if (options.width && options.height) {
+      delete pdfOptions.format;
+      pdfOptions.width = options.width;
+      pdfOptions.height = options.height;
+    }
+
+    const buffer = await page.pdf(pdfOptions);
 
     return buffer;
   } finally {
@@ -67,28 +86,47 @@ const componentToPDFBufferWithChromium = async (component) => {
   }
 };
 
-export const componentToPDFBuffer = (component) => {
+export const componentToPDFBuffer = (component, options = {}) => {
   if (getChromiumPath()) {
-    return componentToPDFBufferWithChromium(component);
+    return componentToPDFBufferWithChromium(component, options);
   }
 
   return new Promise((resolve, reject) => {
     const pdf = eval("require")("html-pdf");
-    const html = renderToStaticMarkup(component);
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            html,
+            body {
+              margin: 0;
+              padding: 0;
+              font-family: Arial, Helvetica, sans-serif;
+            }
+            ${options.css || ""}
+          </style>
+        </head>
+        <body>${renderToStaticMarkup(component)}</body>
+      </html>
+    `;
+    const pdfOptions = {
+      format: options.format || defaultPdfOptions.format,
+      orientation: "portrait",
+      border: options.margin || defaultPdfOptions.margin,
+      type: "pdf",
+      timeout: pdfTimeout,
+    };
+
+    if (options.width && options.height) {
+      delete pdfOptions.format;
+      pdfOptions.width = options.width;
+      pdfOptions.height = options.height;
+    }
+
     const buffer = pdf
-      .create(html, {
-        format: "A4",
-        orientation: "portrait",
-        /* border: "5mm 10mm", */
-        border: {
-          top: "2mm",
-          right: "10mm",
-          bottom: "2mm",
-          left: "10mm",
-        },
-        type: "pdf",
-        timeout: pdfTimeout,
-      })
+      .create(html, pdfOptions)
       .toBuffer((err, buffer) => {
         if (err) {
           return reject(err);
