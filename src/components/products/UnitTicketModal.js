@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Barcode from "react-barcode";
-import { InputNumber, Modal, Tag, notification } from "antd";
+import { Button, InputNumber, Modal, Tag, notification } from "antd";
 import { get } from "lodash";
 import styled from "styled-components";
 import { createUnitTicketPrint } from "../../providers";
@@ -87,6 +87,27 @@ export const UnitTicketModal = ({
     }
   };
 
+  const openCalibrationPdf = () => {
+    if (!product?.id) return;
+
+    const query = new URLSearchParams({
+      calibration: "1",
+      barcode: /^2\d{15}$/.test(String(barcode || ""))
+        ? barcode
+        : "2123456789012345",
+      productCode: get(product, "code", ""),
+      modelName: get(product, "modelName", ""),
+      originBoxCode: originBoxCode || "",
+    }).toString();
+    const link = document.createElement("a");
+    link.href = `/products/${product.id}/unit-tickets?${query}`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   return (
     <Modal
         visible={visible}
@@ -111,50 +132,45 @@ export const UnitTicketModal = ({
           <span>
             Código compartido: <strong>{barcode || "-"}</strong>
           </span>
+          <Button onClick={openCalibrationPdf}>PDF calibración</Button>
         </Toolbar>
         <PrintArea>
             <Ticket>
-              <TicketTitle>Ticket de unidad</TicketTitle>
-              <TicketLine>
-                <span>Código inventario</span>
-                <strong>{get(product, "code", "-")}</strong>
-              </TicketLine>
-              <TicketLine>
-                <span>Familia</span>
-                <strong>{get(product, "familyName", "-")}</strong>
-              </TicketLine>
-              <TicketLine>
-                <span>Sub-Familia</span>
-                <strong>{get(product, "subfamilyName", "-")}</strong>
-              </TicketLine>
-              <TicketLine>
-                <span>Elemento</span>
-                <strong>{get(product, "elementName", "-")}</strong>
-              </TicketLine>
-              <TicketLine>
+              <TicketTop>
+                <TicketLine className="primary">
+                  <span>Código Max</span>
+                  <strong>{get(product, "code", "-")}</strong>
+                </TicketLine>
+                <TicketLine>
+                  <span>Caja</span>
+                  <strong>{originBoxCode || "-"}</strong>
+                </TicketLine>
+              </TicketTop>
+              <TicketLine className="model">
                 <span>Modelo</span>
                 <strong>{get(product, "modelName", "-")}</strong>
               </TicketLine>
+              <TicketBarcodeWrap>
+                <Barcode
+                  value={barcode || "2123456789012345"}
+                  format="CODE128"
+                  height={64}
+                  width={2}
+                  fontSize={14}
+                  margin={10}
+                />
+              </TicketBarcodeWrap>
               <TicketLine>
+                <span>Código unitario</span>
+                <strong>{barcode || "-"}</strong>
+              </TicketLine>
+              {/* Datos secundarios disponibles para referencia, fuera de la prioridad impresa. */}
+              <SecondaryData>
+                <span>Familia</span>
+                <strong>{get(product, "familyName", "-")}</strong>
                 <span>Nombre comercial</span>
                 <strong>{get(product, "tradename", "-")}</strong>
-              </TicketLine>
-              {originBoxCode && (
-                <TicketLine>
-                  <span>Caja origen</span>
-                  <strong>{originBoxCode}</strong>
-                </TicketLine>
-              )}
-              <BarcodeWrap>
-                <Barcode
-                  value={barcode}
-                  format="CODE128"
-                  height={62}
-                  width={2}
-                  fontSize={16}
-                  margin={0}
-                />
-              </BarcodeWrap>
+              </SecondaryData>
             </Ticket>
         </PrintArea>
       </Modal>
@@ -170,31 +186,58 @@ const Toolbar = styled.div`
 `;
 const PrintArea = styled.div`
   margin: 0 auto;
-  max-width: 430px;
+  max-width: 520px;
 `;
 const Ticket = styled.div`
   border: 1px solid #111827;
-  min-height: 280px;
+  min-height: 220px;
   padding: 0.75rem;
 `;
-const TicketTitle = styled.div`
-  border-bottom: 1px solid #111827;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.35rem;
-  text-align: center;
+const TicketTop = styled.div`
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 0.8fr;
 `;
 const TicketLine = styled.div`
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: 120px 1fr;
-  margin-bottom: 0.3rem;
-  span { color: #4b5563; }
+  margin-bottom: 0.35rem;
+  span {
+    color: #4b5563;
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
   strong { overflow-wrap: anywhere; }
+
+  &.primary strong {
+    font-size: 1.35rem;
+  }
+
+  &.model strong {
+    font-size: 1.1rem;
+  }
 `;
-const BarcodeWrap = styled.div`
+const TicketBarcodeWrap = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 0.75rem;
+  margin: 0.75rem 0 0.35rem;
   overflow: hidden;
+`;
+const SecondaryData = styled.div`
+  border-top: 1px solid #e5e7eb;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 0.5fr 1fr;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+
+  span {
+    color: #6b7280;
+    font-size: 0.75rem;
+  }
+
+  strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 `;

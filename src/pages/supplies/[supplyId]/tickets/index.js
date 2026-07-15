@@ -1,164 +1,328 @@
 import React from "react";
-import styled from "styled-components";
-import codes from "rescode";
-import { get } from "lodash";
-import PDFLayout from "../../../../components/PDFLayout";
 
 const Tickets = () => null;
 
+const zebraLabelDefaults = {
+  labelWidthMm: 50.8,
+  labelHeightMm: 25.4,
+  horizontalGapMm: 2.38,
+  verticalGapMm: 2.63,
+  leftMarginMm: 0,
+  topMarginMm: 0,
+};
+
+const mmToPt = (millimeters) => (Number(millimeters) * 72) / 25.4;
+const mm = (value) => `${Number(value).toFixed(3)}mm`;
+const pdfPx = (value) => `${mmToPt(value).toFixed(3)}px`;
+
+const getNumber = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+};
+
 const getQueryArray = (value) => {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return value.split(",").filter(Boolean);
-  }
-
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") return value.split(",").filter(Boolean);
   return [];
 };
 
-const getLogoDataUri = () => {
-  const fs = eval("require")("fs");
-  const path = eval("require")("path");
-  const logoPath = path.join(process.cwd(), "public", "max-import-ticket.jpg");
-  const logo = fs.readFileSync(logoPath).toString("base64");
+const getTicketConfig = (query) => {
+  const config = Object.keys(zebraLabelDefaults).reduce(
+    (current, key) => ({
+      ...current,
+      [key]: getNumber(query[key], zebraLabelDefaults[key]),
+    }),
+    {}
+  );
 
-  return `data:image/jpeg;base64,${logo}`;
+  return {
+    ...config,
+    pageWidthMm: getNumber(
+      query.pageWidthMm,
+      config.leftMarginMm + config.labelWidthMm * 2 + config.horizontalGapMm
+    ),
+    pageHeightMm: getNumber(
+      query.pageHeightMm,
+      config.topMarginMm + config.labelHeightMm + config.verticalGapMm
+    ),
+  };
 };
 
-Tickets.getInitialProps = async ({ req, res, query }) => {
-  try {
-    codes.loadModules(["code128", "gs1-128"], {
-      includetext: true,
-      scaleX: 4,
-      scaleY: 3,
-      textyoffset: 10,
-    });
+const getBarcodeRuns = (value) => {
+  const JsBarcode = eval("require")("jsbarcode");
+  const rendered = {};
+  JsBarcode(rendered, String(value || "0"), {
+    format: "CODE128",
+    displayValue: false,
+    width: 2,
+    height: 48,
+    margin: 0,
+  });
 
-    const isServer = !!req;
+  const binary = rendered.encodings.map((encoding) => encoding.data).join("");
+  const runs = [];
+  let start = null;
 
-    const {
-      familyName,
-      subfamilyName,
-      elementName,
-      modelName,
-      boxSize,
-      tradename,
-      providerName,
-    } = query;
-    let { boxes, productBoxesCodes } = query;
+  for (let index = 0; index <= binary.length; index += 1) {
+    if (binary[index] === "1" && start === null) start = index;
+    if (binary[index] !== "1" && start !== null) {
+      runs.push({ start, width: index - start });
+      start = null;
+    }
+  }
 
-    if (isServer) {
-      const {
-        componentToPDFBuffer,
-      } = require("../../../../util/componentToPDFBuffer");
+  return { runs, modules: binary.length };
+};
 
-      boxes = getQueryArray(boxes);
-      productBoxesCodes = getQueryArray(productBoxesCodes);
-      const logoSrc = getLogoDataUri();
+const Barcode = ({ value, maxWidthMm = 45.2 }) => {
+  const quietZoneMm = 2.54;
+  const heightMm = 10.8;
+  const { runs, modules } = getBarcodeRuns(value);
+  const moduleWidthMm = Math.min(
+    0.34,
+    Math.max(0.19, (maxWidthMm - quietZoneMm * 2) / modules)
+  );
+  const widthMm = modules * moduleWidthMm + quietZoneMm * 2;
 
-      const buffer = await componentToPDFBuffer(
-        <div>
-          {boxes.map((box, index) => {
-            const productBoxCode = productBoxesCodes[index];
+  return (
+    <div
+      className="barcodeBlock"
+      style={{ height: pdfPx(heightMm), width: pdfPx(widthMm) }}
+    >
+      {runs.map((run, index) => (
+        <span
+          key={`${run.start}-${index}`}
+          style={{
+            height: pdfPx(heightMm),
+            left: pdfPx(quietZoneMm + run.start * moduleWidthMm),
+            width: pdfPx(run.width * moduleWidthMm),
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
-            const data8 = codes.create("code128", productBoxCode);
+const TextLine = ({ label, value, className = "" }) => (
+  <div className={`textLine ${className}`}>
+    <b>{label}:</b> <span>{value || "-"}</span>
+  </div>
+);
 
-            return (
-              <React.Fragment key={productBoxCode || box}>
-                <div
-                  style={{
-                    fontFamily: "Arial, Helvetica, sans-serif",
-                    breakAfter: index === boxes.length - 1 ? "auto" : "page",
-                    pageBreakAfter:
-                      index === boxes.length - 1 ? "auto" : "always",
-                    breakInside: "avoid",
-                    pageBreakInside: "avoid",
-                  }}
-                >
-                  {/* <img
-                      src={"data:image/png;base64," + data8.toString("base64")}
-                      style={{ marginBottom: "1rem" }}
-                      alt={productBoxCode}
-                    /> */}
-                  <div style={{ textAlign: "center" }}>
-                    <img
-                      style={{
-                        width: "413px",
-                        height: "253px",
-                      }}
-                      src={logoSrc}
-                    />
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "40px" }}>Familia: </strong>
-                    <span style={{ fontSize: "40px" }}>{familyName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong
-                      style={{
-                        fontSize: "37px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Sub-Familia:{" "}
-                    </strong>
-                    <span style={{ fontSize: "37px" }}>{subfamilyName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "37px" }}>Elemento: </strong>
-                    <span style={{ fontSize: "37px" }}>{elementName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "37px" }}>Modelo: </strong>
-                    <span style={{ fontSize: "37px" }}>{modelName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "43px" }}>
-                      Nombre Comercial:{" "}
-                    </strong>
-                    <span style={{ fontSize: "43px" }}>{tradename}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "33px", fontWeight: "bold" }}>
-                      Proveedor:{" "}
-                    </strong>
-                    <span style={{ fontSize: "33px" }}>{providerName}</span>
-                  </div>
-                  <div style={{ marginLeft: "1rem", marginBottom: "10px" }}>
-                    <strong style={{ fontSize: "33px" }}>Unid/Caja: </strong>
-                    <span style={{ fontSize: "33px" }}>{boxSize} // </span>
-                    <strong style={{ fontSize: "33px" }}>#Caja: </strong>
-                    <span style={{ fontSize: "33px" }}>{box}</span>
-                  </div>
-                  <img
-                    src={"data:image/png;base64," + data8.toString("base64")}
-                    style={{
-                      marginTop: "2rem",
-                      height: "267px",
-                      width: "100%",
-                    }}
-                    alt={productBoxCode}
-                  />
-                </div>
-              </React.Fragment>
-            );
-          })}
+const formatBoxSuffix = (boxNumber) => {
+  const value = String(boxNumber || "").trim();
+  return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
+};
+
+const BoxLabel = ({ label }) => (
+  <div className="boxLabel">
+    <div className="productCode">
+      {label.productCode || "-"}
+      {label.boxNumber ? ` / ${formatBoxSuffix(label.boxNumber)}` : ""}
+    </div>
+    <TextLine label="Desc" value={label.description} className="description" />
+    <TextLine label="Modelo" value={label.modelName} />
+    <div className="barcodeWrap">
+      <Barcode value={label.productBoxCode} />
+      <div className="barcodeValue">{label.productBoxCode}</div>
+    </div>
+  </div>
+);
+
+const TicketRow = ({ labels, config, isLast }) => (
+  <div
+    className="ticketPage"
+    style={{
+      breakAfter: isLast ? "auto" : "page",
+      pageBreakAfter: isLast ? "auto" : "always",
+    }}
+  >
+    {[0, 1].map((slot) => {
+      const label = labels[slot];
+
+      return (
+        <div
+          key={slot}
+          className="labelSlot"
+          style={{
+            height: pdfPx(config.labelHeightMm),
+            left: pdfPx(
+              config.leftMarginMm +
+                slot * (config.labelWidthMm + config.horizontalGapMm)
+            ),
+            top: pdfPx(config.topMarginMm),
+            width: pdfPx(Math.max(1, config.labelWidthMm - 0.3)),
+          }}
+        >
+          {label && <BoxLabel label={label} />}
         </div>
       );
+    })}
+  </div>
+);
 
-      res.setHeader(
-        "Content-disposition",
-        'attachment; filename="tickets.pdf"'
-      );
+const ticketCss = (config) => `
+  @page {
+    size: ${mm(config.pageWidthMm)} ${mm(config.pageHeightMm)};
+    margin: 0;
+  }
 
-      res.setHeader("Content-Type", "application/pdf");
+  * {
+    box-sizing: border-box;
+  }
 
-      res.end(buffer);
+  html,
+  body,
+  body > div {
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    width: ${pdfPx(config.pageWidthMm)};
+  }
+
+  .ticketPage {
+    height: ${pdfPx(Math.max(config.labelHeightMm, config.pageHeightMm - 0.5))};
+    overflow: hidden;
+    position: relative;
+    width: ${pdfPx(config.pageWidthMm)};
+  }
+
+  .labelSlot {
+    background: #fff;
+    overflow: hidden;
+    position: absolute;
+  }
+
+  .boxLabel {
+    height: 100%;
+    overflow: hidden;
+    padding: ${pdfPx(1.55)} ${pdfPx(2.35)} ${pdfPx(1.15)};
+    position: relative;
+    width: 100%;
+  }
+
+  .productCode,
+  .textLine {
+    min-width: 0;
+  }
+
+  .productCode {
+    color: #000;
+    font-size: 8.1pt;
+    font-weight: 700;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .textLine {
+    color: #000;
+    font-size: 4.7pt;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-top: ${pdfPx(0.12)};
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .textLine b {
+    font-size: 3.7pt;
+    text-transform: uppercase;
+  }
+
+  .textLine.description {
+    font-size: 4.5pt;
+  }
+
+  .barcodeBlock {
+    background: #fff;
+    max-width: 100%;
+    position: relative;
+  }
+
+  .barcodeBlock span {
+    background: #000;
+    display: block;
+    position: absolute;
+    top: 0;
+  }
+
+  .barcodeWrap {
+    align-items: center;
+    bottom: ${pdfPx(1.25)};
+    display: flex;
+    flex-direction: column;
+    left: ${pdfPx(2.35)};
+    position: absolute;
+    right: ${pdfPx(2.35)};
+  }
+
+  .barcodeValue {
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 4.6pt;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: ${pdfPx(0.25)};
+    text-align: center;
+    white-space: nowrap;
+  }
+
+`;
+
+Tickets.getInitialProps = async ({ req, res, query }) => {
+  if (!req) return {};
+
+  try {
+    const { componentToPDFBuffer } = require("../../../../util/componentToPDFBuffer");
+    const config = getTicketConfig(query);
+    const boxes = getQueryArray(query.boxes);
+    const productBoxesCodes = getQueryArray(query.productBoxesCodes);
+    const labels = boxes.map((boxNumber, index) => ({
+      boxNumber,
+      productBoxCode: productBoxesCodes[index] || boxNumber,
+      productCode: query.productCode,
+      description: query.tradename || query.description,
+      modelName: query.modelName,
+      boxSize: query.boxSize,
+      providerName: query.providerName,
+    }));
+    const rows = [];
+
+    for (let index = 0; index < labels.length; index += 2) {
+      rows.push(labels.slice(index, index + 2));
     }
 
-    return {};
+    const buffer = await componentToPDFBuffer(
+      <div>
+        {rows.map((row, index) => (
+          <TicketRow
+            key={index}
+            labels={row}
+            config={config}
+            isLast={index === rows.length - 1}
+          />
+        ))}
+      </div>,
+      {
+        width: mm(config.pageWidthMm),
+        height: mm(config.pageHeightMm),
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        preferCSSPageSize: true,
+        scale: 0.99,
+        viewport: {
+          width: Math.ceil(mmToPt(config.pageWidthMm)),
+          height: Math.ceil(mmToPt(config.pageHeightMm)),
+        },
+        css: ticketCss(config),
+      }
+    );
+
+    res.setHeader("Content-disposition", 'attachment; filename="tickets.pdf"');
+    res.setHeader("Content-Type", "application/pdf");
+    res.end(buffer);
   } catch (error) {
     console.log("error", error);
 
@@ -170,15 +334,5 @@ Tickets.getInitialProps = async ({ req, res, query }) => {
     return {};
   }
 };
-
-const BarcodeContainer = styled.div`
-  border: 2px dashed black;
-  text-align: center;
-  padding: 60px 0;
-
-  p {
-    font-size: 25px;
-  }
-`;
 
 export default Tickets;
