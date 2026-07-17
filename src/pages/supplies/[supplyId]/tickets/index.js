@@ -88,8 +88,8 @@ const getCodeMaxDisplay = (label) => {
 };
 
 const getTicketDescription = (label) => {
-  if (getDisplayValue(label.productCode) === "MX1-00-00-AOL-143") {
-    return "DELCO 29MT 24V 10T COP PINON 40MM S/CHANCHITO (DELCO REMY A1)";
+  if (getDisplayValue(label.productCode) === "MX1-00-00-AOL-144") {
+    return "DELCO 29MT 24V 10T COP PINON 40MM S/CHANCHITO (DELCO REMY A1) TEST TEST TEST TEST TEST TEST TEST";
   }
 
   return label.description;
@@ -285,15 +285,15 @@ const buildPdf = (pages, pageWidth, pageHeight) => {
 const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   const paddingX = mmToPt(2.35);
   const paddingTop = mmToPt(1.55);
-  const barcodeBottom = mmToPt(1.25);
+  const barcodeBottom = mmToPt(0.25);
   const barcodeTextFontSize = 8.9;
-  const barcodeTextGap = mmToPt(0.8);
-  const barcodeHeight = mmToPt(8.1);
+  const barcodeTextGap = mmToPt(0.1);
+  const barcodeHeight = mmToPt(7.7);
   const contentX = x + paddingX;
   const contentWidth = labelWidthPt - paddingX * 2;
   const contentTopY = labelBottomY + labelHeightPt - paddingTop;
   const centerX = x + labelWidthPt / 2;
-  const barcodeValueY = labelBottomY + barcodeBottom + mmToPt(0.4);
+  const barcodeValueY = labelBottomY + barcodeBottom;
   const barcodeY = barcodeValueY + barcodeTextFontSize + barcodeTextGap;
 
   let content = "";
@@ -310,13 +310,13 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
     y: contentTopY - 13.6,
     size: 6,
     lineHeight: 5.8,
-    maxLines: 2,
+    maxLines: 3,
     maxWidth: contentWidth,
   });
   content += drawText({
     text: getCodeMaxDisplay(label),
     x: contentX,
-    y: contentTopY - 27,
+    y: contentTopY - 34,
     size: 6.4,
     maxWidth: contentWidth,
   });
