@@ -103,8 +103,13 @@ const Barcode = ({ value, maxWidthMm = 45.2 }) => {
   );
 };
 
+const getDisplayValue = (value) => {
+  const text = String(value || "").trim();
+  return text || "-";
+};
+
 const TextLine = ({ value, className = "" }) => (
-  <div className={`textLine ${className}`}>{value || "-"}</div>
+  <div className={`textLine ${className}`}>{getDisplayValue(value)}</div>
 );
 
 const formatBoxSuffix = (boxNumber) => {
@@ -113,7 +118,7 @@ const formatBoxSuffix = (boxNumber) => {
 };
 
 const getCodeMaxDisplay = (label) => {
-  const productCode = label.productCode || "-";
+  const productCode = getDisplayValue(label.productCode);
   return label.boxNumber
     ? `${productCode} / ${formatBoxSuffix(label.boxNumber)}`
     : productCode;
@@ -121,7 +126,7 @@ const getCodeMaxDisplay = (label) => {
 
 const BoxLabel = ({ label }) => (
   <div className="boxLabel">
-    <div className="primaryLine">{label.modelName || "-"}</div>
+    <div className="primaryLine">{getDisplayValue(label.modelName)}</div>
     <TextLine value={label.description} className="description" />
     <TextLine value={getCodeMaxDisplay(label)} />
     <div className="barcodeWrap">

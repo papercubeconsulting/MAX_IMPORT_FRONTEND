@@ -29,7 +29,11 @@ const componentToPDFBufferWithChromium = async (component, options = {}) => {
   const puppeteer = eval("require")("puppeteer-core");
   const browser = await puppeteer.launch({
     executablePath: getChromiumPath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
     headless: true,
     protocolTimeout: pdfTimeout,
   });
@@ -61,6 +65,7 @@ const componentToPDFBufferWithChromium = async (component, options = {}) => {
     `;
 
     await page.setContent(html, { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready);
     await page.emulateMediaType("print");
 
     const pdfOptions = {
