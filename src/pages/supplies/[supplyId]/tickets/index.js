@@ -76,7 +76,7 @@ const getBarcodeRuns = (value) => {
 
 const Barcode = ({ value, maxWidthMm = 45.2 }) => {
   const quietZoneMm = 2.54;
-  const heightMm = 10.8;
+  const heightMm = 9.4;
   const { runs, modules } = getBarcodeRuns(value);
   const moduleWidthMm = Math.min(
     0.34,
@@ -103,10 +103,8 @@ const Barcode = ({ value, maxWidthMm = 45.2 }) => {
   );
 };
 
-const TextLine = ({ label, value, className = "" }) => (
-  <div className={`textLine ${className}`}>
-    <b>{label}:</b> <span>{value || "-"}</span>
-  </div>
+const TextLine = ({ value, className = "" }) => (
+  <div className={`textLine ${className}`}>{value || "-"}</div>
 );
 
 const formatBoxSuffix = (boxNumber) => {
@@ -114,14 +112,18 @@ const formatBoxSuffix = (boxNumber) => {
   return /^\d+$/.test(value) ? value.padStart(2, "0") : value;
 };
 
+const getCodeMaxDisplay = (label) => {
+  const productCode = label.productCode || "-";
+  return label.boxNumber
+    ? `${productCode} / ${formatBoxSuffix(label.boxNumber)}`
+    : productCode;
+};
+
 const BoxLabel = ({ label }) => (
   <div className="boxLabel">
-    <div className="productCode">
-      {label.productCode || "-"}
-      {label.boxNumber ? ` / ${formatBoxSuffix(label.boxNumber)}` : ""}
-    </div>
-    <TextLine label="Desc" value={label.description} className="description" />
-    <TextLine label="Modelo" value={label.modelName} />
+    <div className="primaryLine">{label.modelName || "-"}</div>
+    <TextLine value={label.description} className="description" />
+    <TextLine value={getCodeMaxDisplay(label)} />
     <div className="barcodeWrap">
       <Barcode value={label.productBoxCode} />
       <div className="barcodeValue">{label.productBoxCode}</div>
@@ -201,12 +203,12 @@ const ticketCss = (config) => `
     width: 100%;
   }
 
-  .productCode,
+  .primaryLine,
   .textLine {
     min-width: 0;
   }
 
-  .productCode {
+  .primaryLine {
     color: #000;
     font-size: 8.1pt;
     font-weight: 700;
@@ -225,11 +227,6 @@ const ticketCss = (config) => `
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .textLine b {
-    font-size: 3.7pt;
-    text-transform: uppercase;
   }
 
   .textLine.description {
@@ -262,7 +259,7 @@ const ticketCss = (config) => `
   .barcodeValue {
     color: #000;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 4.6pt;
+    font-size: 5.2pt;
     font-weight: 700;
     line-height: 1;
     margin-top: ${pdfPx(0.25)};
