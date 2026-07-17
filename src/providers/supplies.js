@@ -23,6 +23,12 @@ const deleteSupplyProduct = async (supplyId, suppliedProductId) =>
 const getLogsBySupplyId = async (supplyId) =>
   baseProvider.httpGet(`supplies/logs`, { supplyId });
 
+const getStoreReturnAvailability = async (warehouseId, productId) =>
+  baseProvider.httpGet("supplies/store-return/availability", {
+    warehouseId,
+    ...(productId ? { productId } : {}),
+  });
+
 export {
   getSupply,
   getSupplies,
@@ -32,4 +38,5 @@ export {
   putSupplyStatus,
   deleteSupplyProduct,
   getLogsBySupplyId,
+  getStoreReturnAvailability,
 };
