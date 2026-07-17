@@ -124,7 +124,7 @@ export default ({ setPageTitle }) => {
     isStoreReturn &&
     storeReturnProgress.attended < storeReturnProgress.requested;
 
-  const columns = [
+  const baseColumns = [
     {
       title: "Movimiento",
       dataIndex: "id",
@@ -522,9 +522,16 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  const columns = isStoreReturn
+    ? baseColumns.filter(
+        (column) =>
+          !["familyId", "subfamilyId", "elementId"].includes(column.dataIndex)
+      )
+    : baseColumns;
+
   if (isStoreReturn) {
     columns.splice(
-      6,
+      4,
       0,
       {
         title: "Stock unitario en tienda",
