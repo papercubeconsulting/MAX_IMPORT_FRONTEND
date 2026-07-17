@@ -219,9 +219,9 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   const paddingX = mmToPt(2.35);
   const paddingTop = mmToPt(1.55);
   const barcodeBottom = mmToPt(1.25);
-  const barcodeTextFontSize = 5.2;
+  const barcodeTextFontSize = 5.9;
   const barcodeTextGap = mmToPt(0.8);
-  const barcodeHeight = mmToPt(9.4);
+  const barcodeHeight = mmToPt(8.6);
   const contentX = x + paddingX;
   const contentWidth = labelWidthPt - paddingX * 2;
   const contentTopY = labelBottomY + labelHeightPt - paddingTop;
@@ -240,15 +240,15 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   content += drawText({
     text: label.description,
     x: contentX,
-    y: contentTopY - 13.2,
-    size: 4.9,
+    y: contentTopY - 13.6,
+    size: 5.6,
     maxWidth: contentWidth,
   });
   content += drawText({
     text: getCodeMaxDisplay(label),
     x: contentX,
-    y: contentTopY - 18.9,
-    size: 5.1,
+    y: contentTopY - 19.6,
+    size: 5.7,
     maxWidth: contentWidth,
   });
   content += drawBarcode({
