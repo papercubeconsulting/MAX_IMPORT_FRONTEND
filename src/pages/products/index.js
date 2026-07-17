@@ -714,8 +714,8 @@ export default ({ setPageTitle }) => {
       <Container className="inventory-actions-panel" height="15%">
         <Grid
           className="inventory-actions-grid"
-          gridTemplateColumns="repeat(4, 1fr)"
-          gridGap="2rem"
+          gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+          gridGap="1rem"
           justifyItems="center"
         >
           <Button
@@ -754,19 +754,6 @@ export default ({ setPageTitle }) => {
           >
             Mover Caja(s)
           </Button>
-          {globalAuthUser &&
-            ["superuser", "manager", "logistic"].includes(
-              globalAuthUser.user.role
-            ) && (
-              <Button
-                onClick={() => router.push("/boxMaintenance")}
-                size="large"
-                width="230px"
-                type="primary"
-              >
-                Mantenimiento / Reconciliación
-              </Button>
-            )}
         </Grid>
       </Container>
     </>
@@ -807,6 +794,11 @@ const InventoryResponsiveStyles = createGlobalStyle`
 
   .inventory-actions-grid {
     width: 100%;
+  }
+
+  .inventory-actions-grid button {
+    max-width: 240px;
+    width: 100% !important;
   }
 
   @media (min-width: 1200px) {

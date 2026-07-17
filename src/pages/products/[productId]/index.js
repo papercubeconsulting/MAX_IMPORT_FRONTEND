@@ -1148,7 +1148,7 @@ export default ({ setPageTitle, setShowButton }) => {
               width="22%"
               type="primary"
             >
-              Imprimir tickets unitarios
+              Imprimir tickets
             </CustomButton>
           )}
           {user && ["superuser", "manager"].includes(user.role) && (
@@ -1158,7 +1158,7 @@ export default ({ setPageTitle, setShowButton }) => {
               width="22%"
               type="primary"
             >
-              Reconciliar inventario
+              Reconciliar
             </CustomButton>
           )}
         </Container>
