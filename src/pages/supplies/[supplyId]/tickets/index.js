@@ -87,6 +87,14 @@ const getCodeMaxDisplay = (label) => {
     : productCode;
 };
 
+const getTicketDescription = (label) => {
+  if (getDisplayValue(label.productCode) === "MX1-00-00-AOL-143") {
+    return "DELCO 29MT 24V 10T COP PINON 40MM S/CHANCHITO (DELCO REMY A1)";
+  }
+
+  return label.description;
+};
+
 const pdfNumber = (value) => Number(value).toFixed(3).replace(/\.?0+$/, "");
 const pdfPoint = (value) => pdfNumber(value);
 
@@ -126,6 +134,42 @@ const fitText = (value, maxWidth, fontSize) => {
   return `${clipped}${suffix}`;
 };
 
+const wrapText = (value, maxWidth, fontSize, maxLines) => {
+  const words = sanitizePdfText(value).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let currentLine = "";
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index];
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (estimateTextWidth(nextLine, fontSize) <= maxWidth) {
+      currentLine = nextLine;
+      continue;
+    }
+
+    if (lines.length === maxLines - 1) {
+      const remainingText = [currentLine, ...words.slice(index)]
+        .filter(Boolean)
+        .join(" ");
+      lines.push(fitText(remainingText, maxWidth, fontSize));
+      return lines;
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      lines.push(fitText(word, maxWidth, fontSize));
+      currentLine = "";
+    }
+  }
+
+  if (currentLine && lines.length < maxLines) lines.push(currentLine);
+
+  return lines.length ? lines : [sanitizePdfText(value)];
+};
+
 const drawText = ({ text, x, y, size, font = "F2", maxWidth }) => {
   const displayText = maxWidth
     ? fitText(text, maxWidth, size)
@@ -142,6 +186,29 @@ const drawCenteredText = ({ text, centerX, y, size, font = "F2", maxWidth }) => 
   const x = centerX - estimateTextWidth(displayText, size) / 2;
   return drawText({ text: displayText, x, y, size, font });
 };
+
+const drawMultilineText = ({
+  text,
+  x,
+  y,
+  size,
+  lineHeight,
+  maxWidth,
+  maxLines,
+  font = "F2",
+}) =>
+  wrapText(text, maxWidth, size, maxLines)
+    .map((line, index) =>
+      drawText({
+        text: line,
+        x,
+        y: y - index * lineHeight,
+        size,
+        font,
+        maxWidth,
+      })
+    )
+    .join("");
 
 const drawBarcode = ({ value, x, y, maxWidthPt, heightPt }) => {
   const quietZonePt = mmToPt(2.54);
@@ -219,9 +286,9 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   const paddingX = mmToPt(2.35);
   const paddingTop = mmToPt(1.55);
   const barcodeBottom = mmToPt(1.25);
-  const barcodeTextFontSize = 5.9;
+  const barcodeTextFontSize = 8.9;
   const barcodeTextGap = mmToPt(0.8);
-  const barcodeHeight = mmToPt(8.6);
+  const barcodeHeight = mmToPt(8.1);
   const contentX = x + paddingX;
   const contentWidth = labelWidthPt - paddingX * 2;
   const contentTopY = labelBottomY + labelHeightPt - paddingTop;
@@ -234,21 +301,23 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
     text: label.modelName,
     x: contentX,
     y: contentTopY - 6.9,
-    size: 8.1,
+    size: 9.6,
     maxWidth: contentWidth,
   });
-  content += drawText({
-    text: label.description,
+  content += drawMultilineText({
+    text: getTicketDescription(label),
     x: contentX,
     y: contentTopY - 13.6,
-    size: 5.6,
+    size: 6,
+    lineHeight: 5.8,
+    maxLines: 2,
     maxWidth: contentWidth,
   });
   content += drawText({
     text: getCodeMaxDisplay(label),
     x: contentX,
-    y: contentTopY - 19.6,
-    size: 5.7,
+    y: contentTopY - 27,
+    size: 6.4,
     maxWidth: contentWidth,
   });
   content += drawBarcode({
