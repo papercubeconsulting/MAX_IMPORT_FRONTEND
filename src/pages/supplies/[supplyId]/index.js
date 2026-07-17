@@ -11,6 +11,7 @@ import {
   Table,
   Popconfirm,
   Timeline,
+  Modal,
 } from "antd";
 import {
   faCalendarAlt,
@@ -28,6 +29,7 @@ import {
   getProviders,
   getSubfamilies,
   getSupply,
+  getStoreReturnAvailability,
   getWarehouses,
   postSupply,
   putSupply,
@@ -54,11 +56,15 @@ import { ModalLogs, TimeLineItem } from "../../../components/ModalLogs";
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
+  const [supplyType, setSupplyType] = useState("NORMAL");
   const [providers, setProviders] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [storeReturnProducts, setStoreReturnProducts] = useState([]);
   const [isVisibleLogs, setVisibleLogs] = useState(false);
   const [supply, setSupply] = useState(null);
   const [providerId, setProviderId] = useState(null);
+  const [sourceWarehouseId, setSourceWarehouseId] = useState(null);
   const [warehouseId, setWarehouseId] = useState(null);
   const [code, setCode] = useState(null);
   const [arrivalDate, setArrivalDate] = useState(moment());
@@ -81,6 +87,7 @@ export default ({ setPageTitle }) => {
   const isAttend = operation === "attend";
   const isEdit = get(supply, "status", null) === "Pendiente" && !isAttend;
   const disabled = !isEdit && !isNew;
+  const isStoreReturn = supplyType === "STORE_RETURN";
 
   const sumQuantity = suppliedProducts?.reduce(
     (prev, curr) => {
@@ -104,6 +111,18 @@ export default ({ setPageTitle }) => {
       totalQuantity: 0,
     }
   );
+  const storeReturnProgress = suppliedProducts.reduce(
+    (result, item) => ({
+      requested: result.requested + Number(item.quantity || 0),
+      attended:
+        result.attended +
+        Number(item.suppliedQuantity ?? item.productBoxes?.length ?? 0),
+    }),
+    { requested: 0, attended: 0 }
+  );
+  const hasPendingStoreReturn =
+    isStoreReturn &&
+    storeReturnProgress.attended < storeReturnProgress.requested;
 
   const columns = [
     {
@@ -152,7 +171,9 @@ export default ({ setPageTitle }) => {
               icon={disabled ? faPrint : faTrash}
             />
           </Button>
-          {!isNew && isAttend && (
+          {!isNew &&
+            isAttend &&
+            !(isStoreReturn && suppliedProduct.productBoxes?.length > 0) && (
             <Popconfirm
               title="¿Esta seguro de desea eliminar este ítem?"
               onConfirm={() => deleteProduct(suppliedProduct.dbId)}
@@ -178,7 +199,10 @@ export default ({ setPageTitle }) => {
       title: "Familia",
       dataIndex: "familyId",
       align: "center",
-      render: (familyId, suppliedProduct) => (
+      render: (familyId, suppliedProduct) =>
+        isStoreReturn ? (
+          get(suppliedProduct, "product.familyName", "-")
+        ) : (
         <Select
           value={familyId}
           disabled={disabled}
@@ -208,6 +232,8 @@ export default ({ setPageTitle }) => {
       dataIndex: "subfamilyId",
       align: "center",
       render: (subfamilyId, suppliedProduct) => {
+        if (isStoreReturn)
+          return get(suppliedProduct, "product.subfamilyName", "-");
         if (suppliedProduct.familyId && !subfamilyId) {
           const _subfamily = subfamilies.filter(
             (subFamily) => subFamily.familyId === suppliedProduct.familyId
@@ -257,6 +283,8 @@ export default ({ setPageTitle }) => {
       dataIndex: "elementId",
       align: "center",
       render: (elementId, suppliedProduct) => {
+        if (isStoreReturn)
+          return get(suppliedProduct, "product.elementName", "-");
         if (suppliedProduct.subfamilyId && !elementId) {
           const _element = elements.filter(
             (element) => element.subfamilyId === suppliedProduct.subfamilyId
@@ -307,6 +335,43 @@ export default ({ setPageTitle }) => {
       dataIndex: "modelId",
       align: "center",
       render: (modelId, suppliedProduct) => {
+        if (isStoreReturn) {
+          return (
+            <Select
+              value={suppliedProduct.productId}
+              disabled={disabled}
+              placeholder="Seleccione producto"
+              onChange={(productId) => {
+                const availableProduct = storeReturnProducts.find(
+                  (item) => item.productId === productId
+                );
+                if (!availableProduct) return;
+                setSuppliedProducts((current) =>
+                  current.map((item) =>
+                    item.id === suppliedProduct.id
+                      ? {
+                          ...item,
+                          productId,
+                          product: availableProduct.product,
+                          familyId: availableProduct.product.familyId,
+                          subfamilyId: availableProduct.product.subfamilyId,
+                          elementId: availableProduct.product.elementId,
+                          modelId: availableProduct.product.modelId,
+                          availableStock: availableProduct.stock,
+                        }
+                      : item
+                  )
+                );
+              }}
+              options={storeReturnProducts.map((item) => ({
+                value: item.productId,
+                label: `${item.product.code} - ${
+                  item.product.modelName || item.product.tradename || "Producto"
+                } (${item.stock} unid.)`,
+              }))}
+            />
+          );
+        }
         return (
           <RenderColumn
             modelId={modelId}
@@ -457,6 +522,53 @@ export default ({ setPageTitle }) => {
     },
   ];
 
+  if (isStoreReturn) {
+    columns.splice(
+      6,
+      0,
+      {
+        title: "Stock unitario en tienda",
+        dataIndex: "availableStock",
+        width: "150px",
+        align: "center",
+        render: (stock, suppliedProduct) =>
+          stock ??
+          storeReturnProducts.find(
+            (item) => item.productId === suppliedProduct.productId
+          )?.stock ??
+          0,
+      },
+      {
+        title: "Unidades solicitadas",
+        width: "140px",
+        align: "center",
+        render: (_, item) => Number(item.quantity || 0) * Number(item.boxSize || 0),
+      },
+      {
+        title: "Saldo proyectado",
+        width: "140px",
+        align: "center",
+        render: (_, item) => {
+          if (!item.productId) return "-";
+          const stock =
+            storeReturnProducts.find(
+              (product) => product.productId === item.productId
+            )?.stock || 0;
+          const requested = suppliedProducts
+            .filter((product) => product.productId === item.productId)
+            .reduce(
+              (sum, product) =>
+                sum +
+                Number(product.quantity || 0) * Number(product.boxSize || 0),
+              0
+            );
+          const projected = stock - requested;
+          return <Tag color={projected < 0 ? "red" : "blue"}>{projected}</Tag>;
+        },
+      }
+    );
+  }
+
   useEffect(() => {
     const fetchProviders = async () => {
       const _providers = await getProviders({ active: true });
@@ -469,9 +581,29 @@ export default ({ setPageTitle }) => {
     const fetchWarehouses = async () => {
       const _warehouses = await getWarehouses("Almacén");
       setWarehouses(_warehouses);
+      const _stores = await getWarehouses("Tienda");
+      setStores(_stores);
     };
     fetchWarehouses();
   }, []);
+
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const response = await getStoreReturnAvailability(sourceWarehouseId);
+        setStoreReturnProducts(response.products || []);
+      } catch (error) {
+        setStoreReturnProducts([]);
+        notification.error({
+          message: "No se pudo consultar el stock de la tienda",
+          description: error.userMessage || error.message,
+        });
+      }
+    };
+
+    if (isStoreReturn && sourceWarehouseId) fetchAvailability();
+    else setStoreReturnProducts([]);
+  }, [isStoreReturn, sourceWarehouseId, toggleUpdateTable]);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -516,13 +648,16 @@ export default ({ setPageTitle }) => {
 
     setArrivalDate(moment(_supply.arrivalDate));
     setSupply(_supply);
+    setSupplyType(get(_supply, "type", "NORMAL"));
     setProviderId(get(_supply, "providerId", null));
+    setSourceWarehouseId(get(_supply, "sourceWarehouseId", null));
     setWarehouseId(get(_supply, "warehouseId", null));
     setCode(get(_supply, "code", null));
     setSuppliedProducts(
       get(_supply, "suppliedProducts", []).map((suppliedProduct, index) => ({
         id: index + 1,
         dbId: suppliedProduct.id,
+        productId: suppliedProduct.productId,
         productBoxes: suppliedProduct.productBoxes,
         familyId: get(suppliedProduct, "product.familyId", null),
         subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
@@ -532,6 +667,9 @@ export default ({ setPageTitle }) => {
         boxSize: get(suppliedProduct, "boxSize", null),
         initQuantity: get(suppliedProduct, "initQuantity", null),
         initBoxSize: get(suppliedProduct, "initBoxSize", null),
+        suppliedQuantity: get(suppliedProduct, "suppliedQuantity", 0),
+        cancelledQuantity: get(suppliedProduct, "cancelledQuantity", 0),
+        status: get(suppliedProduct, "status", null),
         product: get(suppliedProduct, "product", null),
       }))
     );
@@ -550,6 +688,7 @@ export default ({ setPageTitle }) => {
         (suppliedProduct, index) => ({
           id: index + 1,
           dbId: suppliedProduct.id,
+          productId: suppliedProduct.productId,
           productBoxes: suppliedProduct.productBoxes,
           familyId: get(suppliedProduct, "product.familyId", null),
           subfamilyId: get(suppliedProduct, "product.subfamilyId", null),
@@ -557,6 +696,9 @@ export default ({ setPageTitle }) => {
           modelId: get(suppliedProduct, "product.modelId", null),
           quantity: get(suppliedProduct, "quantity", null),
           boxSize: get(suppliedProduct, "boxSize", null),
+          suppliedQuantity: get(suppliedProduct, "suppliedQuantity", 0),
+          cancelledQuantity: get(suppliedProduct, "cancelledQuantity", 0),
+          status: get(suppliedProduct, "status", null),
           product: get(suppliedProduct, "product", null),
         })
       );
@@ -574,6 +716,25 @@ export default ({ setPageTitle }) => {
 
   const enablePost = useMemo(() => {
     if (!suppliedProducts.length) return false;
+
+    if (isStoreReturn) {
+      if (!sourceWarehouseId || !warehouseId || !code) return false;
+      const requestedByProduct = suppliedProducts.reduce((result, item) => {
+        if (result === null || !item.productId || !item.quantity || !item.boxSize)
+          return null;
+        result[item.productId] =
+          (result[item.productId] || 0) + item.quantity * item.boxSize;
+        return result;
+      }, {});
+      if (!requestedByProduct) return false;
+      return Object.entries(requestedByProduct).every(
+        ([productId, requested]) =>
+          requested <=
+          (storeReturnProducts.find(
+            (item) => item.productId === Number(productId)
+          )?.stock || 0)
+      );
+    }
 
     return suppliedProducts.reduce((accumulator, suppliedProduct) => {
       const { familyId, subfamilyId, elementId, modelId, boxSize, quantity } =
@@ -594,7 +755,15 @@ export default ({ setPageTitle }) => {
         code
       );
     }, true);
-  }, [suppliedProducts, providerId, warehouseId, code]);
+  }, [
+    suppliedProducts,
+    providerId,
+    sourceWarehouseId,
+    warehouseId,
+    code,
+    isStoreReturn,
+    storeReturnProducts,
+  ]);
 
   const selectOptions = (collection) =>
     collection.map((document) => ({
@@ -614,7 +783,9 @@ export default ({ setPageTitle }) => {
 
       const body = {
         suppliedProducts: mappedSuppliedProducts,
-        providerId,
+        type: supplyType,
+        providerId: isStoreReturn ? null : providerId,
+        sourceWarehouseId: isStoreReturn ? sourceWarehouseId : null,
         warehouseId,
         code,
         arrivalDate,
@@ -653,6 +824,27 @@ export default ({ setPageTitle }) => {
     if (products.length === index) return mappedSuppliedProducts;
 
     const currentProduct = products[index];
+    if (isStoreReturn) {
+      return mapSuppliedProducts(
+        products,
+        index + 1,
+        [
+          ...mappedSuppliedProducts,
+          {
+            productId: currentProduct.productId,
+            boxSize: currentProduct.boxSize,
+            quantity: currentProduct.quantity,
+            ...(isEdit
+              ? {
+                  initQuantity: currentProduct.initQuantity,
+                  initBoxSize: currentProduct.initBoxSize,
+                }
+              : {}),
+          },
+        ],
+        isEdit
+      );
+    }
     const {
       familyId,
       subfamilyId,
@@ -704,6 +896,29 @@ export default ({ setPageTitle }) => {
     }
   };
 
+  const closePartialStoreReturn = () =>
+    Modal.confirm({
+      title: "Cancelar saldo pendiente",
+      content:
+        "Las cajas ya atendidas permanecerán en el almacén. Los índices pendientes serán cancelados y la devolución no podrá seguir atendiéndose.",
+      okText: "Cerrar devolución",
+      cancelText: "Volver",
+      onOk: async () => {
+        try {
+          setLoadingSupply(true);
+          await putSupplyStatus(supplyId, "Cerrado parcial");
+          await router.push("/supplies");
+        } catch (error) {
+          notification.error({
+            message: "No se pudo cerrar la devolución",
+            description: error.userMessage || error.message,
+          });
+        } finally {
+          setLoadingSupply(false);
+        }
+      },
+    });
+
   const deleteProduct = async (id) => {
     try {
       const response = await deleteSupplyProduct(supplyId, id);
@@ -729,18 +944,46 @@ export default ({ setPageTitle }) => {
         closeModal={() => setIsModalCargaVisible(false)}
       />
       <Container height="auto">
-        <Grid gridTemplateColumns="1fr 1fr 1fr" gridGap="2rem">
+        <Grid gridTemplateColumns="1fr 1fr 1fr 1fr" gridGap="2rem">
           <Select
-            value={providerId}
-            disabled={disabled || suppliedProducts.length}
-            label="Proveedor"
-            onChange={(value) => setProviderId(value)}
-            options={selectOptions(providers)}
+            value={supplyType}
+            disabled={disabled || suppliedProducts.length > 0}
+            label="Tipo"
+            onChange={(value) => {
+              setSupplyType(value);
+              setProviderId(null);
+              setSourceWarehouseId(null);
+              setSuppliedProducts([]);
+            }}
+            options={[
+              { value: "NORMAL", label: "Abastecimiento de proveedor" },
+              { value: "STORE_RETURN", label: "Devolución desde tienda" },
+            ]}
           />
+          {isStoreReturn ? (
+            <Select
+              value={sourceWarehouseId}
+              disabled={disabled || suppliedProducts.length > 0}
+              label="Tienda origen"
+              onChange={(value) => {
+                setSourceWarehouseId(value);
+                setSuppliedProducts([]);
+              }}
+              options={selectOptions(stores)}
+            />
+          ) : (
+            <Select
+              value={providerId}
+              disabled={disabled || suppliedProducts.length > 0}
+              label="Proveedor"
+              onChange={(value) => setProviderId(value)}
+              options={selectOptions(providers)}
+            />
+          )}
           <Select
             value={warehouseId}
             disabled={disabled}
-            label="Almacén"
+            label={isStoreReturn ? "Almacén destino" : "Almacén"}
             onChange={(value) => setWarehouseId(value)}
             options={selectOptions(warehouses)}
           />
@@ -800,7 +1043,7 @@ export default ({ setPageTitle }) => {
           <Container width="auto" height="5rem">
             <Button
               padding="0 0.5rem"
-              disabled={!providerId}
+              disabled={isStoreReturn ? !sourceWarehouseId : !providerId}
               onClick={() =>
                 setSuppliedProducts((prevState) => [
                   ...prevState,
@@ -849,15 +1092,32 @@ export default ({ setPageTitle }) => {
           </Button>
         )}
         {operation === "attend" && (
-          <Button
-            size="large"
-            width="80%"
-            onClick={finishAttend}
-            loading={loadingSupply}
-            type="primary"
-          >
-            Finalizar atención
-          </Button>
+          <>
+            <Button
+              size="large"
+              width="80%"
+              disabled={hasPendingStoreReturn}
+              onClick={finishAttend}
+              loading={loadingSupply}
+              type="primary"
+            >
+              Finalizar atención
+            </Button>
+            {isStoreReturn &&
+              storeReturnProgress.attended > 0 &&
+              hasPendingStoreReturn && (
+                <Button
+                  size="large"
+                  width="80%"
+                  margin="1rem 0 0 0"
+                  onClick={closePartialStoreReturn}
+                  loading={loadingSupply}
+                  type="danger"
+                >
+                  Cancelar saldo pendiente
+                </Button>
+              )}
+          </>
         )}
       </Container>
       {visibleAttendModal && (
@@ -866,6 +1126,7 @@ export default ({ setPageTitle }) => {
           supplyId={supplyId}
           trigger={setVisibleAttendModal}
           product={attendedProduct}
+          isStoreReturn={isStoreReturn}
           setUpdate={() => setUpdateBoxes(true)}
         />
       )}

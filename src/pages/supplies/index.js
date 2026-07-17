@@ -3,23 +3,42 @@ import { useRouter } from "next/router";
 import { useGlobal } from "reactn";
 import { get } from "lodash";
 import moment from "moment";
-import { Modal, notification, Table } from "antd";
+import styled from "styled-components";
+import { Modal, notification, Space, Table } from "antd";
 import {
   faCalendarAlt,
   faCheck,
   faEdit,
   faEye,
+  faFilter,
+  faPlus,
   faTrash,
+  faUpload,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { clientDateFormat, serverDateFormat } from "../../util";
 import { getSupplies, putSupplyStatus } from "../../providers";
 
-import { Button, Container, DatePicker, Grid, Icon } from "../../components";
+import { Button, Container, DatePicker, Icon, Select } from "../../components";
 import { ModalProviders } from "../../components/supplies/ModalProviders";
 import { ModalCargaMasiva } from "../../components/supplies/[supplyId]/ModalCargaMasiva";
 import { buildUrl, getToken } from "../../providers/baseProvider";
 import FileSaver from "file-saver";
+
+const SUPPLY_TYPES = {
+  ALL: null,
+  NORMAL: "NORMAL",
+  STORE_RETURN: "STORE_RETURN",
+  INVENTORY_ADJUSTMENT: "INVENTORY_ADJUSTMENT",
+};
+
+const supplyTypeOptions = [
+  { value: SUPPLY_TYPES.NORMAL, label: "Proveedor" },
+  { value: SUPPLY_TYPES.ALL, label: "Todos" },
+  { value: SUPPLY_TYPES.STORE_RETURN, label: "Devolución de tienda" },
+  { value: SUPPLY_TYPES.INVENTORY_ADJUSTMENT, label: "Ajuste inventario" },
+];
 
 export default ({ setPageTitle }) => {
   setPageTitle("Abastecimiento");
@@ -37,21 +56,40 @@ export default ({ setPageTitle }) => {
           >
             <Icon marginRight="0px" fontSize="0.8rem" icon={faEdit} />
           </Button>
-          <Button
-            padding="0 0.5rem"
-            onClick={() => confirmCancelSupply(supplyId)}
-            type="primary"
-          >
-            <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
-          </Button>
+          {supply.status === "Pendiente" &&
+            !(
+              supply.type === "STORE_RETURN" &&
+              supply.suppliedProducts?.some(
+                (item) => Number(item.suppliedQuantity) > 0
+              )
+            ) && (
+            <Button
+              padding="0 0.5rem"
+              onClick={() => confirmCancelSupply(supplyId)}
+              type="primary"
+            >
+              <Icon marginRight="0px" fontSize="0.8rem" icon={faTrash} />
+            </Button>
+          )}
         </Container>
       ),
+    },
+    {
+      title: "Tipo",
+      dataIndex: "type",
+      align: "center",
+      render: (type) => {
+        if (type === "STORE_RETURN") return "Devolución de tienda";
+        if (type === "INVENTORY_ADJUSTMENT") return "Ajuste inventario";
+        return "Proveedor";
+      },
     },
     {
       title: "Proveedor",
       dataIndex: "provider",
       align: "center",
-      render: (provider) => provider.name,
+      render: (provider, supply) =>
+        provider?.name || supply.sourceWarehouse?.name || "-",
     },
     {
       title: "Cod. Carga",
@@ -82,7 +120,7 @@ export default ({ setPageTitle }) => {
       width: "150px",
       align: "center",
       render: (status, supply) =>
-        status === "Atendido" ? (
+        ["Atendido", "Cerrado parcial"].includes(status) ? (
           <Button
             width="fit-content"
             onClick={async () => router.push(`/supplies/${supply.id}`)}
@@ -132,9 +170,11 @@ export default ({ setPageTitle }) => {
   const [from, setFrom] = useState(moment().subtract(6, "months"));
   const [to, setTo] = useState(moment().add(6, "M"));
   const [page, setPage] = useState(1);
+  const [supplyType, setSupplyType] = useState(SUPPLY_TYPES.NORMAL);
   const [toggleUpdateTable, setToggleUpdateTable] = useState(false);
 
   const [globalAuthUser] = useGlobal("authUser");
+  const isSuperuser = get(globalAuthUser, "user.role") === "superuser";
 
   const router = useRouter();
 
@@ -151,6 +191,7 @@ export default ({ setPageTitle }) => {
         from: from.format(serverDateFormat),
         to: to.format(serverDateFormat),
         page,
+        ...(supplyType ? { type: supplyType } : {}),
       });
       setPagination({
         position: ["bottomCenter"],
@@ -173,7 +214,12 @@ export default ({ setPageTitle }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, [from, to, page, toggleUpdateTable]);
+  }, [from, to, page, supplyType, toggleUpdateTable]);
+
+  const updateSupplyType = (value) => {
+    setSupplyType(value);
+    setPage(1);
+  };
 
   const confirmCancelSupply = (supplyId) =>
     Modal.confirm({
@@ -265,64 +311,75 @@ export default ({ setPageTitle }) => {
           setIsVisibleProvidersModal={setIsVisibleProvidersModal}
         />
       </Modal>
-      <Container
-        flexDirection="column"
-        height="auto"
-        padding=" 1rem 1rem 0rem 1rem"
-      >
-        <Grid
-          gridTemplateColumns="repeat(3, 1fr)"
-          gridGap="2rem"
-          marginBottom="1rem"
-        >
-          <DatePicker
-            value={from}
-            onChange={(value) => setFrom(value)}
-            format={clientDateFormat}
-            disabledDate={(value) => value >= to}
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Inicio
-              </>
-            }
-          />
-          <DatePicker
-            value={to}
-            onChange={(value) => setTo(value)}
-            format={clientDateFormat}
-            disabledDate={(value) => value <= from}
-            label={
-              <>
-                <Icon icon={faCalendarAlt} />
-                Fecha Fin
-              </>
-            }
-          />
-          <Button
-            type="primary"
-            onClick={async () => router.push(`/supplies/new`)}
-          >
-            Nuevo abastecimiento
-          </Button>
-        </Grid>
-        {globalAuthUser && globalAuthUser.user.role === "superuser" && (
-          <Grid
-            gridTemplateColumns="repeat(3, 1fr)"
-            gridGap="2rem"
-            marginBottom="1rem"
-          >
-            <p></p>
-            <p></p>
+      <SupplyHeader flexDirection="column" height="auto">
+        <SupplyToolbar>
+          <DateFilters>
+            <DatePicker
+              value={from}
+              onChange={(value) => {
+                setFrom(value);
+                setPage(1);
+              }}
+              format={clientDateFormat}
+              disabledDate={(value) => value >= to}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Inicio
+                </>
+              }
+            />
+            <DatePicker
+              value={to}
+              onChange={(value) => {
+                setTo(value);
+                setPage(1);
+              }}
+              format={clientDateFormat}
+              disabledDate={(value) => value <= from}
+              label={
+                <>
+                  <Icon icon={faCalendarAlt} />
+                  Fecha Fin
+                </>
+              }
+            />
+            <Select
+              label={
+                <>
+                  <Icon icon={faFilter} />
+                  Tipo
+                </>
+              }
+              value={supplyType}
+              onChange={updateSupplyType}
+              options={supplyTypeOptions}
+            />
+          </DateFilters>
+          <HeaderActions>
             <Button
               type="primary"
-              onClick={() => setIsVisibleProvidersModal(true)}
+              onClick={async () => router.push(`/supplies/new`)}
             >
-              Proveedores
+              <Icon icon={faPlus} />
+              Nuevo abastecimiento
             </Button>
-          </Grid>
-        )}
-      </Container>
+            <Button type="primary" onClick={() => setIsCargaMasivaVisible(true)}>
+              <Icon icon={faUpload} />
+              Carga Masiva
+            </Button>
+            {isSuperuser && (
+              <Button
+                type="primary"
+                onClick={() => setIsVisibleProvidersModal(true)}
+              >
+                <Icon icon={faUsers} />
+                Proveedores
+              </Button>
+            )}
+          </HeaderActions>
+        </SupplyToolbar>
+      </SupplyHeader>
       <Table
         columns={columns}
         bordered
@@ -330,24 +387,47 @@ export default ({ setPageTitle }) => {
         pagination={pagination}
         scroll={{ y: windowHeight * 0.7 - 16 }}
         onChange={(pagination) => setPage(pagination.current)}
+        rowKey={(record) => record.id}
         dataSource={supplies}
       />
-      <Container height="15%">
-        <Grid
-          gridTemplateColumns="repeat(4, 1fr)"
-          gridGap="2rem"
-          justifyItems="center"
-        >
-          <Button
-            onClick={() => setIsCargaMasivaVisible(true)}
-            size="large"
-            width="200px"
-            type="primary"
-          >
-            Carga Masiva
-          </Button>
-        </Grid>
-      </Container>
     </>
   );
 };
+
+const SupplyHeader = styled(Container)`
+  border-bottom: 1px solid #f0f0f0;
+  padding: 1rem;
+`;
+
+const SupplyToolbar = styled.div`
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  width: 100%;
+
+  @media (max-width: 1080px) {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+`;
+
+const DateFilters = styled.div`
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+  min-width: 0;
+
+  @media (max-width: 780px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const HeaderActions = styled(Space)`
+  justify-content: flex-end;
+
+  @media (max-width: 1080px) {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+`;

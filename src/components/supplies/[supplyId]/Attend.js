@@ -46,7 +46,7 @@ export const Attend = (props) => {
 
   const onSubmit = async () => {
     try {
-      /* setLoadingAttend(true); */
+      setLoadingAttend(true);
       const response = await postSupplyAttend(
         props.supplyId,
         props.product.dbId,
@@ -55,7 +55,8 @@ export const Attend = (props) => {
       const suppliedProduct = get(response, "suppliedProducts", []).find(
         (obj) => obj.id === props.product.dbId
       );
-      const providerName = response.provider.name;
+      const providerName =
+        response.provider?.name || response.sourceWarehouse?.name || "Tienda";
       // console.log("providerName", providerName);
       const {
         code: productCode,
@@ -106,6 +107,7 @@ export const Attend = (props) => {
       setCode(null)
       inputRefCaja.current.focus()
       props.setUpdate()
+      setLoadingAttend(false)
 
       /* console.log(
         `/supplies/${props.supplyId}/tickets?${queries}&${pruebabox2}&${prueba2}`
@@ -143,10 +145,14 @@ export const Attend = (props) => {
         onCancel={() => props.trigger && props.trigger(false)}
         footer={null}
         width="90%"
-        title="Atender"
+        title={
+          props.isStoreReturn
+            ? "Empacar unidades y generar cajas"
+            : "Atender"
+        }
       >
         <Input
-          placeholder="Cajas"
+          placeholder="Índices de caja (ej. 1,3-5)"
           ref={inputRefCaja}
           onChange={(event) => setBoxesText(event.target.value)}
           value={boxesText}
@@ -183,13 +189,14 @@ export const Attend = (props) => {
           </BarcodeContainer>
         )}
         <Button
-          /* disabled={!boxesText || !validInput} */
-          disabled={!boxesText}
+          disabled={!boxesText || !validInput}
           loading={loadingAttend}
           onClick={onSubmit}
           width="100%"
         >
-          Generar Tickets
+          {props.isStoreReturn
+            ? "Crear cajas y generar tickets"
+            : "Generar Tickets"}
         </Button>
         <Button
           disabled={!pruebaUrl}
