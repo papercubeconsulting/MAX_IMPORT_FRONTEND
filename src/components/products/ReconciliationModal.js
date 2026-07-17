@@ -86,12 +86,12 @@ export const ReconciliationModal = ({ visible, onClose, product, onCompleted }) 
             quantity: Number(quantity),
           })),
       });
-      notification.success({ message: "Inventario reconciliado correctamente" });
+      notification.success({ message: "Solicitud de reconciliación registrada" });
       onCompleted && onCompleted();
       onClose();
     } catch (error) {
       notification.error({
-        message: "No se pudo reconciliar el inventario",
+        message: "No se pudo solicitar la reconciliación",
         description: error.userMessage || error.message,
       });
     } finally {
@@ -125,7 +125,7 @@ export const ReconciliationModal = ({ visible, onClose, product, onCompleted }) 
       visible={visible}
       width="900px"
       title={`Reconciliar inventario: ${product?.code || "-"}`}
-      okText={preview ? "Confirmar reconciliación" : "Calcular"}
+      okText={preview ? "Solicitar aprobación" : "Calcular"}
       confirmLoading={loading}
       onOk={confirm}
       onCancel={onClose}

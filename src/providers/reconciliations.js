@@ -8,10 +8,16 @@ const getInventoryReconciliations = async (params) =>
   baseProvider.httpGet("reconciliations", params);
 const getInventoryReconciliation = async (id) =>
   baseProvider.httpGet(`reconciliations/${id}`);
+const approveInventoryReconciliations = async (ids) =>
+  baseProvider.httpPost("reconciliations/approve", { ids });
+const denyInventoryReconciliations = async (ids) =>
+  baseProvider.httpPost("reconciliations/deny", { ids });
 
 export {
+  approveInventoryReconciliations,
   previewInventoryReconciliation,
   createInventoryReconciliation,
+  denyInventoryReconciliations,
   getInventoryReconciliations,
   getInventoryReconciliation,
 };

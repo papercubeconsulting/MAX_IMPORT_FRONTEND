@@ -205,7 +205,7 @@ export default function BoxMaintenance({ setPageTitle }) {
                 setTicketVisible(true);
               }}
             >
-              Imprimir tickets unitarios
+              Imprimir tickets
             </Button>
           </Section>
         </>
@@ -231,11 +231,11 @@ export default function BoxMaintenance({ setPageTitle }) {
             />
             <Actions>
               <Button type="primary" onClick={() => { setTicketQuantity(1); setTicketVisible(true); }}>
-                Imprimir tickets unitarios
+                Imprimir tickets
               </Button>
               {canReconcile && (
                 <Button type="primary" onClick={() => setReconciliationVisible(true)}>
-                  Reconciliar inventario
+                  Reconciliar
                 </Button>
               )}
             </Actions>
