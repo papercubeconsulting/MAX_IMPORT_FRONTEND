@@ -2,6 +2,8 @@ import { baseProvider } from "./baseProvider";
 
 const previewInventoryReconciliation = async (params) =>
   baseProvider.httpGet("reconciliations/preview", params);
+const getReconciliationBoxes = async (params) =>
+  baseProvider.httpGet("reconciliations/boxes", params);
 const createInventoryReconciliation = async (body) =>
   baseProvider.httpPost("reconciliations", body);
 const getInventoryReconciliations = async (params) =>
@@ -20,4 +22,5 @@ export {
   denyInventoryReconciliations,
   getInventoryReconciliations,
   getInventoryReconciliation,
+  getReconciliationBoxes,
 };

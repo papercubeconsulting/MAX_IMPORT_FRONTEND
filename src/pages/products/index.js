@@ -73,7 +73,7 @@ export default ({ setPageTitle }) => {
     },
     {
       title: "Stock",
-      dataIndex: "totalStock",
+      dataIndex: "availableStock",
       align: "center",
     },
     {
@@ -129,19 +129,6 @@ export default ({ setPageTitle }) => {
         const _stock = stockByWarehouseTypeArray.find(
           (stockByWarehouseType) =>
             stockByWarehouseType.warehouseType === "Almacén"
-        );
-
-        return get(_stock, "stock", 0);
-      },
-    },
-    {
-      title: "En Techo",
-      dataIndex: "stockByWarehouseType",
-      align: "center",
-      render: (stockByWarehouseTypeArray) => {
-        const _stock = stockByWarehouseTypeArray.find(
-          (stockByWarehouseType) =>
-            stockByWarehouseType.warehouseType === "Averiado"
         );
 
         return get(_stock, "stock", 0);
