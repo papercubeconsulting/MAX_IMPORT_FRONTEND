@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Barcode from "react-barcode";
-import { Button, InputNumber, Modal, Tag, notification } from "antd";
+import { InputNumber, Modal, Tag, notification } from "antd";
 import { get } from "lodash";
 import styled from "styled-components";
 import { createUnitTicketPrint } from "../../providers";
@@ -87,27 +87,6 @@ export const UnitTicketModal = ({
     }
   };
 
-  const openCalibrationPdf = () => {
-    if (!product?.id) return;
-
-    const query = new URLSearchParams({
-      calibration: "1",
-      barcode: /^2\d{15}$/.test(String(barcode || ""))
-        ? barcode
-        : "2123456789012345",
-      productCode: get(product, "code", ""),
-      modelName: get(product, "modelName", ""),
-      originBoxCode: originBoxCode || "",
-    }).toString();
-    const link = document.createElement("a");
-    link.href = `/products/${product.id}/unit-tickets?${query}`;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
   return (
     <Modal
         visible={visible}
@@ -132,7 +111,6 @@ export const UnitTicketModal = ({
           <span>
             Código compartido: <strong>{barcode || "-"}</strong>
           </span>
-          <Button onClick={openCalibrationPdf}>PDF calibración</Button>
         </Toolbar>
         <PrintArea>
             <Ticket>

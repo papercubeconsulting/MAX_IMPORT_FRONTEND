@@ -750,6 +750,17 @@ export default ({ setPageTitle, setShowButton }) => {
     return get(stockByWarehouseType, "stock", 0);
   };
 
+  const isInventoryAdjustmentRow = (record) =>
+    get(record, "warehouseType") === "AjusteInventario";
+
+  const stockByWarehouseRows = useMemo(() => {
+    return [...get(product, "stockByWarehouse", [])].sort(
+      (a, b) =>
+        Number(isInventoryAdjustmentRow(a)) -
+        Number(isInventoryAdjustmentRow(b))
+    );
+  }, [product]);
+
   // Actualiza campos del producto
   const getImagesBody = async () => {
     switch (imagesList.length) {
@@ -1335,7 +1346,12 @@ export default ({ setPageTitle, setShowButton }) => {
                 scrollToFirstRowOnChange
                 pagination={false}
                 scroll={{ x: 360 }}
-                dataSource={get(product, "stockByWarehouse", [])}
+                dataSource={stockByWarehouseRows}
+                rowClassName={(record) =>
+                  isInventoryAdjustmentRow(record)
+                    ? "inventory-adjustment-stock-row"
+                    : ""
+                }
               />
               <Container
                 className={`product-detail-image-section ${
@@ -1662,6 +1678,16 @@ const ProductDetailResponsiveStyles = createGlobalStyle`
     vertical-align: middle;
     white-space: normal;
     word-break: break-word;
+  }
+
+  .product-detail-units-table .ant-table-tbody > tr.inventory-adjustment-stock-row > td,
+  .product-detail-units-table .ant-table-tbody > tr.inventory-adjustment-stock-row:hover > td {
+    background: #f3f4f6;
+    color: #667085;
+  }
+
+  .product-detail-units-table .ant-table-tbody > tr.inventory-adjustment-stock-row strong {
+    color: #4b5563;
   }
 
   .group-products-add-row {

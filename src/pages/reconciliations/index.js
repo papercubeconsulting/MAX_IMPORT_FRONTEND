@@ -34,6 +34,9 @@ const statusMeta = {
 const renderUser = (user) =>
   user ? [user.name, user.lastname].filter(Boolean).join(" ") || user.email : "-";
 
+const modeLabel = (mode) =>
+  mode === "BOX_STOCK" ? "Ajuste por cajas" : "Conteo global";
+
 export default ({ setPageTitle }) => {
   const [globalAuthUser] = useGlobal("authUser");
   const router = useRouter();
@@ -89,6 +92,8 @@ export default ({ setPageTitle }) => {
         get(item, "product.tradename"),
         get(item, "product.modelName"),
         get(item, "warehouse.name"),
+        modeLabel(item.mode),
+        ...(item.sources || []).map((source) => source.trackingCode),
         renderUser(item.creator),
       ]
         .filter(Boolean)
@@ -154,12 +159,15 @@ export default ({ setPageTitle }) => {
           <Tag color={get(statusMeta, `${record.status}.color`, "default")}>
             {get(statusMeta, `${record.status}.label`, record.status)}
           </Tag>
+          <Tag color={record.mode === "BOX_STOCK" ? "purple" : "blue"}>
+            {modeLabel(record.mode)}
+          </Tag>
           <span>{moment(record.createdAt).format(clientDateFormat)}</span>
         </RequestCell>
       ),
     },
     {
-      title: "Producto / tienda",
+      title: "Producto / referencia",
       key: "product",
       render: (_, record) => (
         <MainCell>
@@ -167,7 +175,11 @@ export default ({ setPageTitle }) => {
             <strong>{record.product?.code || "-"}</strong>
             <span>{record.product?.tradename || record.product?.modelName || "-"}</span>
           </ProductLink>
-          <MiniMeta>{record.warehouse?.name || "-"}</MiniMeta>
+          <MiniMeta>
+            {record.mode === "BOX_STOCK"
+              ? `${record.sources?.length || 0} caja(s) en almacén`
+              : record.warehouse?.name || "-"}
+          </MiniMeta>
         </MainCell>
       ),
     },
@@ -183,7 +195,7 @@ export default ({ setPageTitle }) => {
             <strong>{record.systemStock}</strong>
           </StockPill>
           <StockPill>
-            <span>Conteo</span>
+            <span>{record.mode === "BOX_STOCK" ? "Resultante" : "Conteo"}</span>
             <strong>{record.countedStock}</strong>
           </StockPill>
           <StockPill>
@@ -252,7 +264,13 @@ export default ({ setPageTitle }) => {
     { title: "Tipo", dataIndex: "inventoryKind", render: (value) => value === "EXPLODED" ? "Unitario" : "Caja" },
     { title: "Ubicación", dataIndex: "warehouseName" },
     { title: "Stock al solicitar", dataIndex: "stockAtRequest", align: "center" },
-    { title: "Cantidad", dataIndex: "quantity", align: "center" },
+    {
+      title: "Nuevo stock",
+      dataIndex: "targetStock",
+      align: "center",
+      render: (value, source) => value ?? source.stockAtRequest - source.quantity,
+    },
+    { title: "Retiro", dataIndex: "quantity", align: "center" },
   ];
 
   const selectedPendingIds = selectedRowKeys.filter((id) =>
@@ -285,7 +303,7 @@ export default ({ setPageTitle }) => {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por producto, tienda o solicitante"
+            placeholder="Buscar por producto, caja, tienda o solicitante"
             allowClear
           />
           <Button type="primary" onClick={fetchReconciliations} loading={loading}>
@@ -347,10 +365,21 @@ export default ({ setPageTitle }) => {
       >
         <DetailGrid>
           <Info><span>Producto</span><strong>{get(detail, "product.code", "-")}</strong></Info>
-          <Info><span>Tienda</span><strong>{get(detail, "warehouse.name", "-")}</strong></Info>
+          <Info><span>Tipo</span><strong>{modeLabel(detail?.mode)}</strong></Info>
+          <Info>
+            <span>{detail?.mode === "BOX_STOCK" ? "Origen" : "Tienda"}</span>
+            <strong>
+              {detail?.mode === "BOX_STOCK"
+                ? "Cajas físicas en almacén"
+                : get(detail, "warehouse.name", "-")}
+            </strong>
+          </Info>
           <Info><span>Fecha</span><strong>{detail?.createdAt ? moment(detail.createdAt).format(clientDateFormat) : "-"}</strong></Info>
           <Info><span>Sistema</span><strong>{detail?.systemStock ?? "-"}</strong></Info>
-          <Info><span>Conteo</span><strong>{detail?.countedStock ?? "-"}</strong></Info>
+          <Info>
+            <span>{detail?.mode === "BOX_STOCK" ? "Stock resultante" : "Conteo"}</span>
+            <strong>{detail?.countedStock ?? "-"}</strong>
+          </Info>
           <Info><span>Diferencia</span><strong>{detail?.delta > 0 ? `+${detail.delta}` : detail?.delta ?? "-"}</strong></Info>
           <Info><span>Estado</span><strong>{get(statusMeta, `${detail?.status}.label`, detail?.status || "-")}</strong></Info>
           <Info><span>Solicitado por</span><strong>{renderUser(detail?.creator)}</strong></Info>
@@ -358,7 +387,11 @@ export default ({ setPageTitle }) => {
         </DetailGrid>
         {detail?.delta < 0 && (
           <>
-            <SectionTitle>Fuentes seleccionadas</SectionTitle>
+            <SectionTitle>
+              {detail?.mode === "BOX_STOCK"
+                ? "Cajas modificadas"
+                : "Fuentes seleccionadas"}
+            </SectionTitle>
             <Table
               rowKey="productBoxId"
               columns={sourceColumns}
