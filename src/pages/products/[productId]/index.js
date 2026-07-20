@@ -11,6 +11,7 @@ import {
   Carousel,
   Tooltip,
   Tag,
+  Spin,
 } from "antd";
 import styled, { createGlobalStyle } from "styled-components";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -129,6 +130,7 @@ export default ({ setPageTitle, setShowButton }) => {
   ];
 
   const [product, setProduct] = useState(null);
+  const [isProductLoading, setIsProductLoading] = useState(true);
   const [unitBarcode, setUnitBarcode] = useState("");
   const [isUnitTicketVisible, setIsUnitTicketVisible] = useState(false);
   const [isReconciliationVisible, setIsReconciliationVisible] = useState(false);
@@ -211,6 +213,7 @@ export default ({ setPageTitle, setShowButton }) => {
   };
 
   const fetchProduct = async () => {
+    setIsProductLoading(true);
     try {
       const _product = await getProduct(productId);
       const user = await me();
@@ -231,6 +234,8 @@ export default ({ setPageTitle, setShowButton }) => {
         message: "No se pudo cargar el producto",
         description: error.message,
       });
+    } finally {
+      setIsProductLoading(false);
     }
   };
 
@@ -1114,6 +1119,12 @@ export default ({ setPageTitle, setShowButton }) => {
         <ModalBoxesDetail productId={productId} />
       </Modal>
       <ProductPageShell>
+        {isProductLoading ? (
+          <ProductLoadingCard>
+            <Spin tip="Cargando producto..." size="large" />
+          </ProductLoadingCard>
+        ) : (
+          <>
         <ProductSummaryHeader>
           <div>
             <span>Producto</span>
@@ -1426,6 +1437,8 @@ export default ({ setPageTitle, setShowButton }) => {
           </div>
         </Grid>
       </Container>
+          </>
+        )}
       </ProductPageShell>
     </>
   );
@@ -1435,6 +1448,17 @@ const ProductPageShell = styled.div`
   display: grid;
   gap: 1rem;
   padding: 1rem;
+`;
+
+const ProductLoadingCard = styled.section`
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  min-height: 14rem;
+  padding: 2rem;
 `;
 
 const ProductSummaryHeader = styled.section`

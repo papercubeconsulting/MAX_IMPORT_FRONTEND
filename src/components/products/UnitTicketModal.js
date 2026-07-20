@@ -11,7 +11,6 @@ export const generateUnitTicketPdf = async ({
   quantity,
   productBoxId,
   warehouseId,
-  originBoxCode,
 }) => {
   const response = await createUnitTicketPrint({
     productId: product.id,
@@ -21,8 +20,6 @@ export const generateUnitTicketPdf = async ({
   });
   const currentProduct = response.product || product;
   const currentBarcode = get(response, "productBarcode.barcode", barcode);
-  const currentOriginBoxCode =
-    get(response, "originProductBox.trackingCode") || originBoxCode || "";
   const query = new URLSearchParams({
     printId: get(response, "print.id", ""),
     quantity: String(quantity),
@@ -34,7 +31,6 @@ export const generateUnitTicketPdf = async ({
     modelName: get(currentProduct, "modelName", ""),
     tradename: get(currentProduct, "tradename", ""),
     providerName: get(currentProduct, "provider.name", ""),
-    originBoxCode: currentOriginBoxCode,
   }).toString();
   const link = document.createElement("a");
   link.href = `/products/${currentProduct.id}/unit-tickets?${query}`;
@@ -54,7 +50,6 @@ export const UnitTicketModal = ({
   initialQuantity = 1,
   productBoxId,
   warehouseId,
-  originBoxCode,
 }) => {
   const [quantity, setQuantity] = useState(initialQuantity || 1);
   const [printing, setPrinting] = useState(false);
@@ -73,7 +68,6 @@ export const UnitTicketModal = ({
         quantity,
         productBoxId,
         warehouseId,
-        originBoxCode,
       });
       notification.success({ message: "PDF de tickets generado" });
       onClose();
@@ -114,16 +108,10 @@ export const UnitTicketModal = ({
         </Toolbar>
         <PrintArea>
             <Ticket>
-              <TicketTop>
-                <TicketLine className="primary">
-                  <span>Código Max</span>
-                  <strong>{get(product, "code", "-")}</strong>
-                </TicketLine>
-                <TicketLine>
-                  <span>Caja</span>
-                  <strong>{originBoxCode || "-"}</strong>
-                </TicketLine>
-              </TicketTop>
+              <TicketLine className="primary">
+                <span>Código Max</span>
+                <strong>{get(product, "code", "-")}</strong>
+              </TicketLine>
               <TicketLine className="model">
                 <span>Modelo</span>
                 <strong>{get(product, "modelName", "-")}</strong>
@@ -170,11 +158,6 @@ const Ticket = styled.div`
   border: 1px solid #111827;
   min-height: 220px;
   padding: 0.75rem;
-`;
-const TicketTop = styled.div`
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: 1fr 0.8fr;
 `;
 const TicketLine = styled.div`
   margin-bottom: 0.35rem;
