@@ -215,7 +215,6 @@ export default ({ setPageTitle, setShowButton }) => {
           quantity: response.explodedLot.stock,
           productBoxId: response.productBox.id,
           warehouseId: response.explodedLot.warehouseId,
-          originBoxCode: response.productBox.trackingCode,
         });
         notification.success({ message: "PDF de tickets unitarios generado" });
       }
@@ -243,7 +242,6 @@ export default ({ setPageTitle, setShowButton }) => {
         initialQuantity={ticketQuantity}
         productBoxId={productBox?.id}
         warehouseId={get(productBox, "explodedLots.0.warehouseId")}
-        originBoxCode={productBox?.trackingCode}
       />
       <BoxPageShell>
         <BoxSummaryHeader>

@@ -1,5 +1,3 @@
-import React from "react";
-
 const UnitTickets = () => null;
 
 const zebraLabelDefaults = {
@@ -12,8 +10,6 @@ const zebraLabelDefaults = {
 };
 
 const mmToPt = (millimeters) => (Number(millimeters) * 72) / 25.4;
-const mm = (value) => `${Number(value).toFixed(3)}mm`;
-const pdfPx = (value) => `${mmToPt(value).toFixed(3)}px`;
 
 const getNumber = (value, fallback) => {
   const parsed = Number(value);
@@ -31,8 +27,6 @@ const getTicketConfig = (query) => {
 
   return {
     ...config,
-    // Defaults match the observed driver size:
-    // 50.8 + 2.38 + 50.8 = 103.98 mm wide, 25.4 + 2.63 = 28.03 mm high.
     pageWidthMm: getNumber(
       query.pageWidthMm,
       config.leftMarginMm + config.labelWidthMm * 2 + config.horizontalGapMm
@@ -44,10 +38,10 @@ const getTicketConfig = (query) => {
   };
 };
 
-const getBarcodeRuns = (barcode) => {
+const getBarcodeRuns = (value) => {
   const JsBarcode = eval("require")("jsbarcode");
   const rendered = {};
-  JsBarcode(rendered, barcode, {
+  JsBarcode(rendered, String(value || "0"), {
     format: "CODE128",
     displayValue: false,
     width: 2,
@@ -60,10 +54,7 @@ const getBarcodeRuns = (barcode) => {
   let start = null;
 
   for (let index = 0; index <= binary.length; index += 1) {
-    if (binary[index] === "1" && start === null) {
-      start = index;
-    }
-
+    if (binary[index] === "1" && start === null) start = index;
     if (binary[index] !== "1" && start !== null) {
       runs.push({ start, width: index - start });
       start = null;
@@ -73,309 +64,338 @@ const getBarcodeRuns = (barcode) => {
   return { runs, modules: binary.length };
 };
 
-const Barcode = ({ barcode }) => {
-  const moduleWidthMm = 0.254; // 2 dots at 203 dpi.
-  const quietZoneMm = 2.54;
-  const heightMm = 10.8;
-  const { runs, modules } = getBarcodeRuns(barcode);
-  const widthMm = modules * moduleWidthMm + quietZoneMm * 2;
-
-  return (
-    <div
-      className="barcodeBlock"
-      style={{ height: pdfPx(heightMm), width: pdfPx(widthMm) }}
-    >
-      {runs.map((run, index) => (
-        <span
-          key={`${run.start}-${index}`}
-          style={{
-            height: pdfPx(heightMm),
-            left: pdfPx(quietZoneMm + run.start * moduleWidthMm),
-            width: pdfPx(run.width * moduleWidthMm),
-          }}
-        />
-      ))}
-    </div>
-  );
+const getDisplayValue = (value) => {
+  const text = String(value || "").trim();
+  return text || "-";
 };
 
-const Field = ({ label, value, className = "" }) => (
-  <div className={`field ${className}`}>
-    <span>{label}</span>
-    <strong>{value || "-"}</strong>
-  </div>
-);
+const pdfNumber = (value) => Number(value).toFixed(3).replace(/\.?0+$/, "");
+const pdfPoint = (value) => pdfNumber(value);
 
-const UnitLabel = ({ data, barcode }) => (
-  <div className="unitLabel">
-    <div className="labelHeader">
-      <Field label="Codigo Max" value={data.productCode} className="primary" />
-      <Field label="Caja" value={data.originBoxCode} />
-    </div>
-    <Field label="Modelo" value={data.modelName} className="model" />
-    <div className="barcodeWrap">
-      <Barcode barcode={barcode} />
-      <div className="barcodeValue">{barcode}</div>
-    </div>
-  </div>
-);
+const sanitizePdfText = (value) =>
+  getDisplayValue(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7e]/g, "?");
 
-const CalibrationLabel = ({ side, config, barcode }) => (
-  <div className="unitLabel calibrationLabel">
-    <div className="corner tl" />
-    <div className="corner tr" />
-    <div className="corner bl" />
-    <div className="corner br" />
-    <div className="calibrationTitle">{side}</div>
-    <div className="calibrationRule" />
-    <Barcode barcode={barcode} />
-    <div className="barcodeValue">{barcode}</div>
-    <div className="calibrationText">
-      Etiqueta {config.labelWidthMm} x {config.labelHeightMm} mm
-      <br />
-      Pagina {config.pageWidthMm} x {config.pageHeightMm} mm
-      <br />
-      Gap H {config.horizontalGapMm} mm / Gap V {config.verticalGapMm} mm
-    </div>
-  </div>
-);
+const pdfTextHex = (value) =>
+  Buffer.from(sanitizePdfText(value), "ascii").toString("hex").toUpperCase();
 
-const TicketRow = ({ labels, config, barcode, calibration, isLast }) => (
-  <div
-    className="ticketPage"
-    style={{
-      breakAfter: isLast ? "auto" : "page",
-      pageBreakAfter: isLast ? "auto" : "always",
-    }}
-  >
-    {[0, 1].map((slot) => {
-      const label = labels[slot];
-      const side = slot === 0 ? "LEFT" : "RIGHT";
+const estimateTextWidth = (value, fontSize) =>
+  sanitizePdfText(value)
+    .split("")
+    .reduce((width, char) => {
+      if (char === " ") return width + fontSize * 0.28;
+      if ("ilI.,'`|!:;".includes(char)) return width + fontSize * 0.25;
+      if ("MW@#%&".includes(char)) return width + fontSize * 0.82;
+      if (/[A-Z0-9]/.test(char)) return width + fontSize * 0.6;
+      return width + fontSize * 0.5;
+    }, 0);
 
-      return (
-        <div
-          key={side}
-          className="labelSlot"
-          style={{
-            height: pdfPx(config.labelHeightMm),
-            left: pdfPx(
-              config.leftMarginMm +
-                slot * (config.labelWidthMm + config.horizontalGapMm)
-            ),
-            top: pdfPx(config.topMarginMm),
-            width: pdfPx(Math.max(1, config.labelWidthMm - 0.3)),
-          }}
-        >
-          {calibration ? (
-            <CalibrationLabel side={side} config={config} barcode={barcode} />
-          ) : (
-            label && <UnitLabel data={label} barcode={barcode} />
-          )}
-        </div>
-      );
-    })}
-  </div>
-);
+const fitText = (value, maxWidth, fontSize) => {
+  const text = sanitizePdfText(value);
+  if (estimateTextWidth(text, fontSize) <= maxWidth) return text;
 
-const ticketCss = (config) => `
-  @page {
-    size: ${mm(config.pageWidthMm)} ${mm(config.pageHeightMm)};
-    margin: 0;
+  const suffix = "...";
+  let clipped = text;
+  while (
+    clipped.length > 0 &&
+    estimateTextWidth(`${clipped}${suffix}`, fontSize) > maxWidth
+  ) {
+    clipped = clipped.slice(0, -1);
   }
 
-  * {
-    box-sizing: border-box;
-  }
+  return `${clipped}${suffix}`;
+};
 
-  html,
-  body,
-  body > div {
-    margin: 0;
-    overflow: hidden;
-    padding: 0;
-    width: ${pdfPx(config.pageWidthMm)};
-  }
+const drawText = ({ text, x, y, size, font = "F2", maxWidth }) => {
+  const displayText = maxWidth
+    ? fitText(text, maxWidth, size)
+    : sanitizePdfText(text);
 
-  .ticketPage {
-    height: ${pdfPx(Math.max(config.labelHeightMm, config.pageHeightMm - 0.5))};
-    overflow: hidden;
-    position: relative;
-    width: ${pdfPx(config.pageWidthMm)};
-  }
+  return `BT /${font} ${pdfPoint(size)} Tf 1 0 0 1 ${pdfPoint(x)} ${pdfPoint(
+    y
+  )} Tm <${pdfTextHex(displayText)}> Tj ET\n`;
+};
 
-  .labelSlot {
-    overflow: hidden;
-    position: absolute;
-  }
+const drawCenteredText = ({ text, centerX, y, size, font = "F2", maxWidth }) => {
+  const displayText = maxWidth
+    ? fitText(text, maxWidth, size)
+    : sanitizePdfText(text);
+  const x = centerX - estimateTextWidth(displayText, size) / 2;
+  return drawText({ text: displayText, x, y, size, font });
+};
 
-  .unitLabel {
-    height: 100%;
-    overflow: hidden;
-    padding: ${pdfPx(1.2)} ${pdfPx(1.6)} ${pdfPx(0.9)};
-    position: relative;
-    width: 100%;
-  }
+const drawBarcode = ({ value, x, y, maxWidthPt, heightPt }) => {
+  const quietZonePt = mmToPt(2.54);
+  const { runs, modules } = getBarcodeRuns(value);
+  const moduleWidthPt = Math.min(
+    mmToPt(0.34),
+    Math.max(mmToPt(0.19), (maxWidthPt - quietZonePt * 2) / modules)
+  );
+  const widthPt = modules * moduleWidthPt + quietZonePt * 2;
+  const startX = x + (maxWidthPt - widthPt) / 2;
 
-  .labelHeader {
-    display: grid;
-    gap: ${pdfPx(1.2)};
-    grid-template-columns: 1fr 0.8fr;
-  }
+  return runs
+    .map((run) =>
+      [
+        pdfPoint(startX + quietZonePt + run.start * moduleWidthPt),
+        pdfPoint(y),
+        pdfPoint(run.width * moduleWidthPt),
+        pdfPoint(heightPt),
+        "re f",
+      ].join(" ")
+    )
+    .join("\n")
+    .concat("\n");
+};
 
-  .field {
-    min-width: 0;
-  }
+const drawField = ({
+  label,
+  value,
+  x,
+  labelY,
+  maxWidth,
+  valueSize = 6,
+  valueOffset = 6.6,
+}) => {
+  let content = "";
+  content += drawText({
+    text: label,
+    x,
+    y: labelY,
+    size: 4.8,
+    maxWidth,
+  });
+  content += drawText({
+    text: value,
+    x,
+    y: labelY - valueOffset,
+    size: valueSize,
+    maxWidth,
+  });
+  return content;
+};
 
-  .field span {
-    color: #111;
-    display: block;
-    font-size: 4.8pt;
-    font-weight: 700;
-    line-height: 1;
-    text-transform: uppercase;
-  }
+const buildPdf = (pages, pageWidth, pageHeight) => {
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    null,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+  ];
+  const kids = [];
 
-  .field strong {
-    color: #000;
-    display: block;
-    font-size: 6pt;
-    font-weight: 700;
-    line-height: 1.05;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  pages.forEach((content) => {
+    const pageObjectId = objects.length + 1;
+    const contentObjectId = objects.length + 2;
+    kids.push(`${pageObjectId} 0 R`);
+    objects.push(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pdfPoint(
+        pageWidth
+      )} ${pdfPoint(
+        pageHeight
+      )}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectId} 0 R >>`
+    );
+    objects.push(
+      `<< /Length ${Buffer.byteLength(content, "ascii")} >>\nstream\n${content}endstream`
+    );
+  });
 
-  .field.primary strong {
-    font-size: 9pt;
-  }
+  objects[1] = `<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${pages.length} >>`;
 
-  .field.model {
-    margin-top: ${pdfPx(0.8)};
-  }
+  const chunks = ["%PDF-1.4\n"];
+  const offsets = [0];
 
-  .field.model strong {
-    font-size: 7.4pt;
-  }
+  objects.forEach((object, index) => {
+    offsets[index + 1] = Buffer.byteLength(chunks.join(""), "ascii");
+    chunks.push(`${index + 1} 0 obj\n${object}\nendobj\n`);
+  });
 
-  .barcodeWrap {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    margin-top: ${pdfPx(0.8)};
-  }
+  const xrefOffset = Buffer.byteLength(chunks.join(""), "ascii");
+  chunks.push(`xref\n0 ${objects.length + 1}\n`);
+  chunks.push("0000000000 65535 f \n");
+  offsets.slice(1).forEach((offset) => {
+    chunks.push(`${String(offset).padStart(10, "0")} 00000 n \n`);
+  });
+  chunks.push(
+    `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+  );
 
-  .barcodeBlock {
-    background: #fff;
-    max-width: 100%;
-    position: relative;
-  }
+  return Buffer.from(chunks.join(""), "ascii");
+};
 
-  .barcodeBlock span {
-    background: #000;
-    display: block;
-    position: absolute;
-    top: 0;
-  }
+const drawUnitLabel = ({ label, barcode, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
+  const paddingX = mmToPt(1.6);
+  const paddingTop = mmToPt(1.25);
+  const barcodeBottom = mmToPt(0.25);
+  const barcodeTextFontSize = 8.9;
+  const barcodeTextGap = mmToPt(0.1);
+  const barcodeHeight = mmToPt(7.7);
+  const contentX = x + paddingX;
+  const contentWidth = labelWidthPt - paddingX * 2;
+  const contentTopY = labelBottomY + labelHeightPt - paddingTop;
+  const centerX = x + labelWidthPt / 2;
+  const barcodeValueY = labelBottomY + barcodeBottom;
+  const barcodeY = barcodeValueY + barcodeTextFontSize + barcodeTextGap;
 
-  .barcodeValue {
-    color: #000;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 6.2pt;
-    font-weight: 700;
-    line-height: 1;
-    margin-top: ${pdfPx(0.35)};
-    text-align: center;
-    white-space: nowrap;
-  }
+  let content = "";
+  content += drawField({
+    label: "CODIGO MAX",
+    value: label.productCode,
+    x: contentX,
+    labelY: contentTopY - 4.6,
+    maxWidth: contentWidth,
+    valueSize: 9,
+    valueOffset: 9.2,
+  });
+  content += drawField({
+    label: "MODELO",
+    value: label.modelName,
+    x: contentX,
+    labelY: contentTopY - 22.2,
+    maxWidth: contentWidth,
+    valueSize: 7.4,
+    valueOffset: 7.9,
+  });
+  content += drawBarcode({
+    value: barcode,
+    x: contentX,
+    y: barcodeY,
+    maxWidthPt: contentWidth,
+    heightPt: barcodeHeight,
+  });
+  content += drawCenteredText({
+    text: barcode,
+    centerX,
+    y: barcodeValueY,
+    size: barcodeTextFontSize,
+    maxWidth: contentWidth,
+  });
 
-  .calibrationLabel {
-    border: ${pdfPx(0.2)} solid #000;
-    padding: ${pdfPx(1.5)};
-  }
+  return content;
+};
 
-  .corner {
-    border-color: #000;
-    height: ${pdfPx(3)};
-    position: absolute;
-    width: ${pdfPx(3)};
-  }
+const drawCalibrationLabel = ({
+  side,
+  barcode,
+  config,
+  x,
+  labelBottomY,
+  labelWidthPt,
+  labelHeightPt,
+}) => {
+  const paddingX = mmToPt(1.5);
+  const contentX = x + paddingX;
+  const contentWidth = labelWidthPt - paddingX * 2;
+  const centerX = x + labelWidthPt / 2;
+  const topY = labelBottomY + labelHeightPt;
+  const barcodeHeight = mmToPt(6.8);
+  const barcodeY = labelBottomY + mmToPt(8.2);
 
-  .corner.tl {
-    border-left: ${pdfPx(0.35)} solid;
-    border-top: ${pdfPx(0.35)} solid;
-    left: ${pdfPx(0.8)};
-    top: ${pdfPx(0.8)};
-  }
+  let content = "";
+  content += `${pdfPoint(x + mmToPt(0.2))} ${pdfPoint(
+    labelBottomY + mmToPt(0.2)
+  )} ${pdfPoint(labelWidthPt - mmToPt(0.4))} ${pdfPoint(
+    labelHeightPt - mmToPt(0.4)
+  )} re S\n`;
+  content += drawCenteredText({
+    text: side,
+    centerX,
+    y: topY - mmToPt(4.5),
+    size: 9,
+    maxWidth: contentWidth,
+  });
+  content += `${pdfPoint(contentX + mmToPt(4))} ${pdfPoint(
+    topY - mmToPt(7)
+  )} ${pdfPoint(contentWidth - mmToPt(8))} ${pdfPoint(mmToPt(0.25))} re f\n`;
+  content += drawBarcode({
+    value: barcode,
+    x: contentX,
+    y: barcodeY,
+    maxWidthPt: contentWidth,
+    heightPt: barcodeHeight,
+  });
+  content += drawCenteredText({
+    text: barcode,
+    centerX,
+    y: labelBottomY + mmToPt(5.2),
+    size: 7.2,
+    maxWidth: contentWidth,
+  });
+  content += drawCenteredText({
+    text: `Etiqueta ${config.labelWidthMm} x ${config.labelHeightMm} mm`,
+    centerX,
+    y: labelBottomY + mmToPt(2.8),
+    size: 4.4,
+    maxWidth: contentWidth,
+  });
+  content += drawCenteredText({
+    text: `Pagina ${config.pageWidthMm} x ${config.pageHeightMm} mm`,
+    centerX,
+    y: labelBottomY + mmToPt(1.3),
+    size: 4.4,
+    maxWidth: contentWidth,
+  });
 
-  .corner.tr {
-    border-right: ${pdfPx(0.35)} solid;
-    border-top: ${pdfPx(0.35)} solid;
-    right: ${pdfPx(0.8)};
-    top: ${pdfPx(0.8)};
-  }
+  return content;
+};
 
-  .corner.bl {
-    border-bottom: ${pdfPx(0.35)} solid;
-    border-left: ${pdfPx(0.35)} solid;
-    bottom: ${pdfPx(0.8)};
-    left: ${pdfPx(0.8)};
-  }
+const createUnitTicketPDFBuffer = ({ rows, config, barcode, calibration }) => {
+  const pageWidth = Math.ceil(mmToPt(config.pageWidthMm));
+  const pageHeight = Math.ceil(mmToPt(config.pageHeightMm));
+  const labelWidthPt = mmToPt(Math.max(1, config.labelWidthMm - 0.3));
+  const labelHeightPt = mmToPt(config.labelHeightMm);
+  const horizontalStepPt = mmToPt(config.labelWidthMm + config.horizontalGapMm);
+  const topMarginPt = mmToPt(config.topMarginMm);
+  const leftMarginPt = mmToPt(config.leftMarginMm);
+  const labelBottomY = pageHeight - topMarginPt - labelHeightPt;
 
-  .corner.br {
-    border-bottom: ${pdfPx(0.35)} solid;
-    border-right: ${pdfPx(0.35)} solid;
-    bottom: ${pdfPx(0.8)};
-    right: ${pdfPx(0.8)};
-  }
+  const pages = rows.map((labels) => {
+    let content = `1 1 1 rg 0 0 ${pdfPoint(pageWidth)} ${pdfPoint(
+      pageHeight
+    )} re f\n0 0 0 rg\n`;
+    labels.forEach((label, slot) => {
+      const x = leftMarginPt + slot * horizontalStepPt;
+      content += calibration
+        ? drawCalibrationLabel({
+            side: slot === 0 ? "LEFT" : "RIGHT",
+            barcode,
+            config,
+            x,
+            labelBottomY,
+            labelWidthPt,
+            labelHeightPt,
+          })
+        : drawUnitLabel({
+            label,
+            barcode,
+            x,
+            labelBottomY,
+            labelWidthPt,
+            labelHeightPt,
+          });
+    });
+    return content;
+  });
 
-  .calibrationTitle {
-    font-size: 9pt;
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .calibrationRule {
-    border-top: ${pdfPx(0.25)} solid #000;
-    margin: ${pdfPx(1)} ${pdfPx(4)};
-  }
-
-  .calibrationLabel .barcodeBlock {
-    margin: 0 auto;
-  }
-
-  .calibrationText {
-    bottom: ${pdfPx(1.5)};
-    font-size: 4.4pt;
-    font-weight: 700;
-    left: ${pdfPx(1.5)};
-    line-height: 1.15;
-    position: absolute;
-    right: ${pdfPx(1.5)};
-    text-align: center;
-  }
-`;
+  return buildPdf(pages, pageWidth, pageHeight);
+};
 
 UnitTickets.getInitialProps = async ({ req, res, query }) => {
   if (!req) return {};
+
   try {
     const quantity = Math.min(10000, Math.max(1, Number(query.quantity) || 1));
     const calibration = query.calibration === "1" || query.calibration === "true";
     const barcode = String(query.barcode || "2123456789012345");
     const config = getTicketConfig(query);
 
-    if (!/^2\d{15}$/.test(barcode)) throw new Error("Código unitario inválido");
+    if (!/^2\d{15}$/.test(barcode)) throw new Error("Codigo unitario invalido");
 
-    const { componentToPDFBuffer } = require("../../../../util/componentToPDFBuffer");
     const data = {
       productCode: query.productCode,
-      familyName: query.familyName,
-      subfamilyName: query.subfamilyName,
-      elementName: query.elementName,
       modelName: query.modelName,
-      tradename: query.tradename,
-      providerName: query.providerName,
-      originBoxCode: query.originBoxCode,
     };
     const labels = Array.from({ length: calibration ? 2 : quantity }, () => data);
     const rows = [];
@@ -384,32 +404,12 @@ UnitTickets.getInitialProps = async ({ req, res, query }) => {
       rows.push(labels.slice(index, index + 2));
     }
 
-    const buffer = await componentToPDFBuffer(
-      <div>
-        {rows.map((row, index) => (
-          <TicketRow
-            key={index}
-            labels={row}
-            config={config}
-            barcode={barcode}
-            calibration={calibration}
-            isLast={index === rows.length - 1}
-          />
-        ))}
-      </div>,
-      {
-        width: mm(config.pageWidthMm),
-        height: mm(config.pageHeightMm),
-        margin: { top: "0", right: "0", bottom: "0", left: "0" },
-        preferCSSPageSize: true,
-        scale: 0.99,
-        viewport: {
-          width: Math.ceil(mmToPt(config.pageWidthMm)),
-          height: Math.ceil(mmToPt(config.pageHeightMm)),
-        },
-        css: ticketCss(config),
-      }
-    );
+    const buffer = createUnitTicketPDFBuffer({
+      rows,
+      config,
+      barcode,
+      calibration,
+    });
 
     res.setHeader(
       "Content-Disposition",
