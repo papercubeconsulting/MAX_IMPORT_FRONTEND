@@ -20,6 +20,9 @@ import {
   UnitTicketModal,
 } from "../../../components/products/UnitTicketModal";
 
+const renderUser = (user) =>
+  user ? [user.name, user.lastname].filter(Boolean).join(" ") || "-" : "-";
+
 export default ({ setPageTitle, setShowButton }) => {
   const productBoxLogColumns = [
     {
@@ -45,7 +48,7 @@ export default ({ setPageTitle, setShowButton }) => {
       title: "Usuario",
       dataIndex: "user",
       align: "center",
-      render: (user) => `${user.name} ${user.lastname}`,
+      render: renderUser,
     },
     {
       width: "20%",
@@ -58,7 +61,7 @@ export default ({ setPageTitle, setShowButton }) => {
       title: "Ubicación",
       dataIndex: "warehouse",
       align: "center",
-      render: (warehouse) => warehouse.name,
+      render: (warehouse) => warehouse?.name || "-",
     },
   ];
 
