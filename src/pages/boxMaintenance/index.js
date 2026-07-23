@@ -10,6 +10,7 @@ import {
   resolveInventoryCode,
 } from "../../providers";
 import { UnitTicketModal } from "../../components/products/UnitTicketModal";
+import { BulkUnitTicketModal } from "../../components/products/BulkUnitTicketModal";
 import { ReconciliationModal } from "../../components/products/ReconciliationModal";
 
 export default function BoxMaintenance({ setPageTitle }) {
@@ -23,6 +24,7 @@ export default function BoxMaintenance({ setPageTitle }) {
   const [ticketVisible, setTicketVisible] = useState(false);
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [reconciliationVisible, setReconciliationVisible] = useState(false);
+  const [bulkTicketVisible, setBulkTicketVisible] = useState(false);
 
   const role = get(authUser, "user.role");
   const canReconcile = ["superuser", "manager"].includes(role);
@@ -120,6 +122,11 @@ export default function BoxMaintenance({ setPageTitle }) {
 
   return (
     <Page>
+      <PageActions>
+        <Button type="primary" onClick={() => setBulkTicketVisible(true)}>
+          Imprimir tickets de varias cajas
+        </Button>
+      </PageActions>
       <SearchBar>
         <Input.Search
           value={code}
@@ -272,6 +279,10 @@ export default function BoxMaintenance({ setPageTitle }) {
         product={product}
         onCompleted={() => search(barcode)}
       />
+      <BulkUnitTicketModal
+        visible={bulkTicketVisible}
+        onClose={() => setBulkTicketVisible(false)}
+      />
     </Page>
   );
 }
@@ -284,6 +295,7 @@ const Page = styled.div`
   width: 100%;
 `;
 const SearchBar = styled.div`max-width: 900px; width: 100%;`;
+const PageActions = styled.div`display:flex; flex-wrap:wrap; gap:1rem;`;
 const Section = styled.section`border: 1px solid #d9d9d9; display: grid; gap: 1rem; padding: 1rem;`;
 const Header = styled.div`align-items: center; display: flex; gap: 1rem; justify-content: space-between;`;
 const InfoGrid = styled.div`display: grid; gap: 0.75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); @media(max-width:768px){grid-template-columns:1fr;}`;
