@@ -87,6 +87,13 @@ const getCodeMaxDisplay = (label) => {
     : productCode;
 };
 
+const getUnitsDisplay = (label) => {
+  const units = Number(label.boxSize);
+  if (!Number.isFinite(units) || units <= 0) return null;
+
+  return `UND ${String(Math.trunc(units))}`;
+};
+
 const getTicketDescription = (label) => {
   if (getDisplayValue(label.productCode) === "MX1-00-00-AOL-144") {
     return "DELCO 29MT 24V 10T COP PINON 40MM S/CHANCHITO (DELCO REMY A1) TEST TEST TEST TEST TEST TEST TEST";
@@ -184,6 +191,21 @@ const drawCenteredText = ({ text, centerX, y, size, font = "F2", maxWidth }) => 
     ? fitText(text, maxWidth, size)
     : sanitizePdfText(text);
   const x = centerX - estimateTextWidth(displayText, size) / 2;
+  return drawText({ text: displayText, x, y, size, font });
+};
+
+const drawRightAlignedText = ({
+  text,
+  rightX,
+  y,
+  size,
+  font = "F2",
+  maxWidth,
+}) => {
+  const displayText = maxWidth
+    ? fitText(text, maxWidth, size)
+    : sanitizePdfText(text);
+  const x = rightX - estimateTextWidth(displayText, size);
   return drawText({ text: displayText, x, y, size, font });
 };
 
@@ -295,6 +317,12 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   const centerX = x + labelWidthPt / 2;
   const barcodeValueY = labelBottomY + barcodeBottom;
   const barcodeY = barcodeValueY + barcodeTextFontSize + barcodeTextGap;
+  const codeY = contentTopY - 34;
+  const unitsText = getUnitsDisplay(label);
+  const codeFontSize = 6.4;
+  const unitsMaxWidth = unitsText ? mmToPt(14.2) : 0;
+  const codeUnitsGap = unitsText ? mmToPt(1.4) : 0;
+  const codeMaxWidth = contentWidth - unitsMaxWidth - codeUnitsGap;
 
   let content = "";
   content += drawText({
@@ -316,10 +344,19 @@ const drawLabel = ({ label, x, labelBottomY, labelWidthPt, labelHeightPt }) => {
   content += drawText({
     text: getCodeMaxDisplay(label),
     x: contentX,
-    y: contentTopY - 34,
-    size: 6.4,
-    maxWidth: contentWidth,
+    y: codeY,
+    size: codeFontSize,
+    maxWidth: codeMaxWidth,
   });
+  if (unitsText) {
+    content += drawRightAlignedText({
+      text: unitsText,
+      rightX: contentX + contentWidth,
+      y: codeY,
+      size: codeFontSize,
+      maxWidth: unitsMaxWidth,
+    });
+  }
   content += drawBarcode({
     value: label.productBoxCode,
     x: contentX,
